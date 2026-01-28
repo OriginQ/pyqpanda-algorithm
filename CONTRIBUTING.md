@@ -159,7 +159,7 @@ git merge master
 
 ### 测试
 
-在pull request您的代码之前，请针对您修改的代码编写单元测试，并需要通过现有的测试。alg的测试基于pytest，[pytest使用文档])包含如何使用pytest编写单元测试。
+在pull request您的代码之前，请针对您修改的代码编写单元测试，并需要通过现有的测试。
 
 在编写单元测试之前，您需要先注意一些规范：
 
@@ -188,4 +188,5 @@ git merge master
 <p align="center">
   <img src="my-folder/本源量子云小助手.jpg" alt="本源量子官方小助手" width="30%">
 </p>
+
 
