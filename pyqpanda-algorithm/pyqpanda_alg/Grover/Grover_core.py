@@ -589,10 +589,13 @@ class GroverAdaptiveSearch:
         return minimum_indexes, minimum_res
 
     @staticmethod
-    def _bin_to_int(bin_value):
+    def _bin_to_int(bin_value):    #def _bin_to_int(bin_value):
         n_value = len(bin_value)
         if bin_value.startswith("1"):
             int_v = int(bin_value, 2) - 2 ** n_value
         else:
             int_v = int(bin_value, 2)
         return int_v
+    
+
+
