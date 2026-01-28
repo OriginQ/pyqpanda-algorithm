@@ -2,7 +2,7 @@
 
 如果你初次接触pyqpanda-algorithm（简称alg），并对开源和社区贡献感兴趣，欢迎随时加入！在社区上总是有可以改进的文档（比如正在阅读的），需要检视的代码，可以重构或注释的函数或类，可以持续补充和优化的测试用例。我们将帮助你了解pyqpanda-algorithm，并引导顺利开始第一个贡献！
 
-### 1.alg社区的承诺
+### alg社区的承诺
 
 为了营造一个开放和包容的环境，社区将致力于为所有人提供无骚扰的体验，无论年龄、身体状况如何，体型、残疾、族裔、性特征、性别认同和表达，经验水平、教育程度、社会经济地位、国籍、个人外貌、种族、宗教或性取向。
 
@@ -32,7 +32,7 @@
 
 辱骂、骚扰或其他不文明行为的实例可以通过联系qcloud@originqc.com举报。所有投诉将被审查和调查，并最终作出被认为必要且适当的回应。项目团队有义务保护事件举报人的秘密与隐私。
 
-### 2.了解alg社区
+### 了解alg社区
 
 alg社区基于本源量子提供的pyqpanda-algorithm开源量子算法仓库，集合了13种常见的量子算法，仓库按照不同的算法内容来组织，以便于更好的管理和改善工作流程。我们为社区成员准备了贡献指南和系列issue，欢迎任何人加入并参与社区交流。
 
@@ -41,7 +41,7 @@ alg社区基于本源量子提供的pyqpanda-algorithm开源量子算法仓库�
 - alg即为一个Repository。alg的交付成果会保存在这个Repository内。
 - 可以在alg内提交Issue、针对特定问题参与讨论，提交和解决问题，参与评审等。
 
-### 3.仓库三连
+### 仓库三连
 
 - **设置watching**：选择“all activity”，仓库issue、pr、release动态将及时同步，重要消息不错过。
 
@@ -66,7 +66,7 @@ alg社区基于本源量子提供的pyqpanda-algorithm开源量子算法仓库�
 
 欢迎通过提交/解决Issue或提交PR进行社区贡献！欢迎的贡献类型包括但不限于：代码提交、Bug 修复、文档完善、示例补充、功能建议等。
 
-### 1.提交/解决Issue
+### 提交/解决Issue
 
 #### **找到您感兴趣的issue**
 
@@ -121,23 +121,21 @@ alg社区基于本源量子提供的pyqpanda-algorithm开源量子算法仓库�
 - 进入感兴趣的issue，需要在评论框内输入 `/assign`或 `/assign @yourself`，等待问题分配；
 - 认领成功后，你的名字将显示在负责人列表里。
 
-### 2.提交一个Pull-Request
+### 提交一个Pull-Request
 
 如果你觉得已准备好`code review`，且预备提交PR请求，请确保：
 
 - 代码遵循项目的代码风格，并且成功通过CI测试。为了方便起见，你可以先在本地执行，提前进行检查并发现报告问题。`
 
-- 相关文档已相应更新。如果函数或类在PR期间被修改，请相应更新**docstring**。
-
-  如果你的拉取请求是添加一个新的类、函数或模块，那面向用户，请确保你也添加了这些内容文档索引，将其包含在API文档中。``
+- 如果函数或类在PR期间被修改，请相应更新。如果你的拉取请求是添加一个新的类、函数或模块，那面向用户，请确保你也添加了这些内容文档索引。``
 
 - 确保如果你的更改将对其他用户产生影响（新功能， 弃用、移除等），你已经添加了相关说明。
 
-在创建Pull Request之前，需要先fork alg [repo](https://github.com/OriginQ/QPanda-2)，然后使用这个fork中分支向官方仓库创建 Pull Request。在创建pull request时应选择推送到alg官方仓库的`master`分支。
+在创建Pull Request之前，需要先fork alg [repo](https://github.com/OriginQ/pyqpanda-algorithm)，然后使用这个fork中分支向官方仓库创建 Pull Request。在创建pull request时应选择推送到alg官方仓库的`master`分支。
 
 fork 和 Pull Request的基本流程如下：
 
-1. Fork alg的仓库 [repo page](https://github.com/quantumlib/Cirq)。并把你的克隆仓库下载到你的本机。
+1. Fork alg的仓库 [repo page](https://github.com/OriginQ/pyqpanda-algorithm)。并把你的克隆仓库下载到你的本机。
 2. 从master分支创建一个新的分支：`git checkout master -b new_branch_name`，其中`new_branch_name` 是你的新分支的名称。
 3. 把你的修改提交到你自己的分支。
 4. 如果你的克隆仓库与alg的官方仓库不同步，你需要先更新你的克隆仓库的master分支，然后再把master分支合并到你自己的分支（在合并的过程中，你可能要修改一些合并冲突）:
@@ -159,7 +157,7 @@ git merge master
 6. 经过以上的操作，你就可以把你工作 Pull Request 给alg的官方仓库了，在pull request需要选择官方仓库的``master`分支。
 7. 审查人员将对您的代码进行审核，并可能要求更改，您可以在本地执行这些操作，然后再次执行上述过程。
 
-### 3.测试
+### 测试
 
 在pull request您的代码之前，请针对您修改的代码编写单元测试，并需要通过现有的测试。alg的测试基于pytest，[pytest使用文档])包含如何使用pytest编写单元测试。
 
@@ -190,3 +188,4 @@ git merge master
 <p align="center">
   <img src="my-folder/本源量子云小助手.jpg" alt="本源量子官方小助手" width="30%">
 </p>
+
