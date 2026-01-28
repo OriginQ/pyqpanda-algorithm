@@ -114,28 +114,28 @@ Before submitting a PR, ensure:
 
 #### PR Workflow
 
-1. Fork the alg repository ([repo page](https://github.com/OriginQ/QPanda-2)) and clone it locally.
+1. Fork the alg repository ([repo page]([https://github.com/OriginQ/QPanda-2](https://github.com/OriginQ/pyqpanda-algorithm))) and clone it locally.
 
-2. Create a new branch from `master`:  
-   `git checkout master -b new_branch_name`
+2. Create a new branch from `develop`:  
+   `git checkout develop -b new_branch_name`
 
 3. Commit your changes to the new branch.
 
-4. Sync your forked `master` with the official repository (resolve merge conflicts if needed):
+4. Sync your forked `develop` with the official repository (resolve merge conflicts if needed):
 
    ```bash
-   # Update local master
+   # Update local develop
    git fetch upstream 
-   git checkout master 
-   git merge upstream/master 
-   # Merge master into your branch
+   git checkout develop 
+   git merge upstream/develop 
+   # Merge develop into your branch
    git checkout new_branch_name 
-   git merge master
+   git merge develop
    ```
 
 ### Testing
 
-Write unit tests for modified code and pass all existing tests before submitting a PR. alg uses pytest; refer to the [pytest Primer]for guidance.
+Write unit tests for modified code and pass all existing tests before submitting a PR.
 
 #### Testing Guidelines
 
