@@ -107,7 +107,7 @@ To claim an issue (e.g., `good first issue`, `enhancement issue`):
 
 Before submitting a PR, ensure:
 
-- Code complies with the project’s style and passes CI tests (run `tox` locally to check). 
+- Code complies with the project’s style and passes CI tests. 
 - Relevant documentation (including docstrings) is updated.
 - Additional tests are added for impactful changes.
 - Release notes are added for user-facing changes (mark the PR as a changelog).
