@@ -1,150 +1,192 @@
-# CONTRIBUTING
+## 欢迎你的加入！
 
-## Welcome Aboard!
+如果你初次接触pyqpanda-algorithm（简称alg），并对开源和社区贡献感兴趣，欢迎随时加入！在社区上总是有可以改进的文档（比如正在阅读的），需要检视的代码，可以重构或注释的函数或类，可以持续补充和优化的测试用例。我们将帮助你了解pyqpanda-algorithm，并引导顺利开始第一个贡献！
 
-If you are new to pyqpanda-algorithm (referred to as "alg") and interested in open source and community contributions, we welcome you to join us anytime! There are always opportunities to improve documentation (like the one you’re reading), review code, refactor/annotate functions/classes, or supplement test cases. We will help you understand pyqpanda-algorithm and guide you to make your first contribution smoothly!
+### 1.alg社区的承诺
 
-### 1. The alg Community’s Commitment
+为了营造一个开放和包容的环境，社区将致力于为所有人提供无骚扰的体验，无论年龄、身体状况如何，体型、残疾、族裔、性特征、性别认同和表达，经验水平、教育程度、社会经济地位、国籍、个人外貌、种族、宗教或性取向。
 
-To foster an open and inclusive environment, the community is committed to providing a harassment-free experience for everyone—regardless of age, physical condition, body size, disability, ethnicity, sex characteristics, gender identity/expression, experience level, education, socioeconomic status, nationality, personal appearance, race, religion, or sexual orientation.
+#### 行为标准
 
-#### Code of Conduct
+- **有助于营造积极环境的行为示例：**
+  - 使用欢迎和包容的语言
+  - 尊重不同的观点和经历
+  - 欣然地接受建设性的批评
+  - 专注于对社区最有利的事情
+  - 对社区其他成员表现出同理心
 
-- **Examples of positive behavior**:
-  - Use welcoming and inclusive language
-  - Respect diverse viewpoints and experiences
-  - Gracefully accept constructive criticism
-  - Focus on what is best for the community
-  - Show empathy to other community members
+- **不可接受的行为示例：**
+  - 使用带有性暗示的语言或图像，以及不受欢迎的性关注或挑逗
+  - 种族或政治暗示
+  - 恶意挑衅、侮辱/贬低性言论，以及人身或政治攻击
+  - 公开或私人骚扰
+  - 未经明确许可发布他人的私人信息
+  - 在专业环境中，其他可能被认为不合适的行为
 
-- **Examples of unacceptable behavior**:
-  - Use sexualized language/imagery or unwelcome sexual attention/advances
-  - Make racial/political insinuations
-  - Troll, use insulting/derogatory language, or launch personal/political attacks
-  - Harass others (publicly or privately)
-  - Publish others’ private information without explicit permission
-  - Other conduct deemed inappropriate in a professional setting
+#### 管理职责
 
-#### Maintainer Responsibilities
+项目管理者有责任说明可接受&不可接受的行为标准，并应采取适当且公平的纠正措施对任何不可接受的行为回应。
+项目管理者有权利和责任删除、编辑，或拒绝评论、提交、代码、Wiki、问题及其他不符合行为标准的贡献，或暂时或永久禁止任何对社区做出威胁、冒犯或有害行为的贡献者。
 
-Project maintainers are responsible for clarifying acceptable/unacceptable behavior standards and must take appropriate, fair corrective action in response to unacceptable behavior.  
-Maintainers have the right to remove/edit/reject comments, commits, code, wiki edits, issues, and other contributions that violate this Code of Conduct. They may also temporarily/permanently ban contributors who threaten, offend, or harm the community.
+#### 监督与举报
 
-#### Oversight & Reporting
+辱骂、骚扰或其他不文明行为的实例可以通过联系qcloud@originqc.com举报。所有投诉将被审查和调查，并最终作出被认为必要且适当的回应。项目团队有义务保护事件举报人的秘密与隐私。
 
-Instances of abuse, harassment, or other unacceptable behavior may be reported to [qcloud@originqc.com](mailto:qcloud@originqc.com). All complaints will be reviewed and investigated, and a necessary, appropriate response will be provided. The project team is obligated to protect the confidentiality/privacy of reporters.
+### 2.了解alg社区
 
-### 2. Understanding the alg Community
+alg社区基于本源量子提供的pyqpanda-algorithm开源量子算法仓库，集合了13种常见的量子算法，仓库按照不同的算法内容来组织，以便于更好的管理和改善工作流程。我们为社区成员准备了贡献指南和系列issue，欢迎任何人加入并参与社区交流。
 
-The alg community is built on Origin Quantum’s open-source pyqpanda-algorithm repository, which includes 13 common quantum algorithms. The repository is organized by algorithm type to streamline management and workflow improvements. We provide contribution guidelines and a series of issues for community members—everyone is welcome to join and participate in discussions.
+- alg的社区成员可以推动交付成果输出，并争取让交付成果成为社区发行的一部分。
+- 可以在贡献的同时积累经验和提升影响力。
+- alg即为一个Repository。alg的交付成果会保存在这个Repository内。
+- 可以在alg内提交Issue、针对特定问题参与讨论，提交和解决问题，参与评审等。
 
-- Community members can drive the delivery of outcomes and strive to include them in community releases.
-- Contributors can gain experience and enhance their influence.
-- "alg" refers to a single Repository where all deliverables are stored.
-- You can submit Issues, participate in discussions, fix problems, and join code reviews within alg.
+### 3.仓库三连
 
-### 3. Three Steps to Engage with the Repository
+- **设置watching**：选择“all activity”，仓库issue、pr、release动态将及时同步，重要消息不错过。
 
-- **Enable "Watching"**: Select "all activity" to receive real-time updates on the repository’s issues, PRs, and releases—never miss important messages.
+- **设置star**：标星操作便于以后再次找到仓库或主题。
+对仓库加星标也可表示对ALG社区的支持，拥护ALG成为受欢迎的存储库吧~
 
-![img](https://document.qpanda.cn/uploader/f/fEVXWnBwwlhvWUJ2.png?accessToken=eyJhbGciOiJIUzI1NiIsImtpZCI6ImRlZmF1bHQiLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE3NjgzNTU3MTAsImZpbGVHVUlEIjoibG9xZVdPTkowbGllOVlBbiIsImlhdCI6MTc2ODM1NTExMCwiaXNzIjoidXBsb2FkZXJfYWNjZXNzX3Jlc291cmNlIiwidXNlcklkIjoxMjc5fQ.Kvg-aditEpp5EYnwomPVaviQjD7Ou15Lf4WGGnnaqrE)
+- **添加fork**：创建独立副本到个人仓库，你能够更自由地进行代码试验，而不影响原始项目。
 
-- **Star the Repository**: Starring makes it easier to find the repository later and shows your support for the alg community!
-![img](https://document.qpanda.cn/uploader/f/yBwmC69WzpzBkyqv.png?accessToken=eyJhbGciOiJIUzI1NiIsImtpZCI6ImRlZmF1bHQiLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE3NjgzNTU3MTAsImZpbGVHVUlEIjoibG9xZVdPTkowbGllOVlBbiIsImlhdCI6MTc2ODM1NTExMCwiaXNzIjoidXBsb2FkZXJfYWNjZXNzX3Jlc291cmNlIiwidXNlcklkIjoxMjc5fQ.Kvg-aditEpp5EYnwomPVaviQjD7Ou15Lf4WGGnnaqrE)
+ 
+  - 开发环境准备
+  - 下载和构建软件包
+  - 修改构建和本地验证
+  - 完成若干次commits
+  - 提交PR合并
 
-- **Fork the Repository**: Create an independent copy in your personal repository to experiment with code freely (without affecting the original project).
-  ![img](https://document.qpanda.cn/uploader/f/Wvl6mdBty6jnz0O7.png?accessToken=eyJhbGciOiJIUzI1NiIsImtpZCI6ImRlZmF1bHQiLCJ0eXAiOiJKV1QifQ.eyJleHAiOjE3NjgzNTU3MTAsImZpbGVHVUlEIjoibG9xZVdPTkowbGllOVlBbiIsImlhdCI6MTc2ODM1NTExMCwiaXNzIjoidXBsb2FkZXJfYWNjZXNzX3Jlc291cmNlIiwidXNlcklkIjoxMjc5fQ.Kvg-aditEpp5EYnwomPVaviQjD7Ou15Lf4WGGnnaqrE)
-  
-  - Prepare the development environment
-  
-  - Download and build the package
-  
-  - Modify the build and verify locally
-  
-  - Complete multiple commits
-  
-  - Submit a PR for merging
-  
+成功三连后，恭喜你完成对alg社区的初步拥护，离量子计算又近了一步！接下来，开始你的社区贡献吧！
 
-After completing these three steps, you’ve officially supported the alg community—let’s start contributing!  
 
-## Start Your Contribution
 
-We welcome contributions via submitting/resolving Issues or opening Pull Requests (PRs)! Accepted contributions include (but are not limited to): code submissions, bug fixes, documentation improvements, example supplements, feature suggestions, etc.
 
-### 1. Submit/Resolve an Issue
+## 开始您的贡献
 
-#### **Find an Issue You’re Interested In**
-- **Method 1**: Browse the issue list to explore all open issues and locate your area of interest.
-- **Method 2**: Use fuzzy search (by issue name) in the issue list to quickly find relevant issues.
+欢迎通过提交/解决Issue或提交PR进行社区贡献！欢迎的贡献类型包括但不限于：代码提交、Bug 修复、文档完善、示例补充、功能建议等。
 
-If you cannot find the issue you want, send an email to [qcloud@originqc.com](mailto:qcloud@originqc.com) with the subject "[Question about Issue Process]" and describe the issue’s characteristics—we will assist you.
+### 1.提交/解决Issue
 
-####  **Create an Issue**
-To report a bug, suggest a feature, or raise a question, create an Issue following these guidelines:
+#### **找到您感兴趣的issue**
 
-- **Confirm Prerequisites**: Search for similar issues in the community/latest algorithm version to avoid duplication.
-- **Create the Issue**: On the project’s GitHub page, go to the `Issues` tab → click `New issue` → select the appropriate label to associate with the relevant module.
-- **Fill in a Clear Description**:
-  - **Title**: Summarize the problem clearly (e.g., "Update outdated configuration item in documentation").
-  - **Description**:
-    - **Problem/Feature Request**: Briefly describe the issue or feature.
-    - **Reproduction Steps/Expected Solution**:
-      - For bugs/errors: List detailed reproduction steps and explain the gap between expected and actual results.
-      - For feature requests: Describe the problem to solve, solution approach, or desired feature behavior.
-  - **Supplementary Materials**: Attach logs, screenshots, or error messages (if available).
-  - **Associate Existing Issues**: Link related issues with `#` (e.g., `#123`).
-  - **Add Labels**: Use labels like `/bug`, `/documentation`, `/help wanted`, `/New Request` to facilitate retrieval.
-  - **Participate in Discussions**: Share your opinions in the issue’s comment section.
+找到您感兴趣的issue，可以帮助您在正确的地方提出问题，并得到更快的社区响应。
 
-#### **Assign/Claim an Issue**
-To claim an issue (e.g., `good first issue`, `enhancement issue`):
-1. In the alg issue list, filter by Labels (check `good first issue`/`help wanted`/`enhancement issue`).
-   - `good first issue`: Easy to solve (ideal for beginners) – covers documentation/algorithm reasoning with clear participation guidelines.
-   - `help wanted`: Community-driven issues requiring more time/discussion (suitable for experienced contributors).
-   - `enhancement issue`: Complex issues (e.g., algorithm cases, code optimization) – ideal for hackathons/internships.
-2. Enter the issue page and comment `/assign` or `/assign @yourself` to claim it.
-3. Your name will appear in the assignee list once the claim is successful.
+**方式一**：如果您不了解有哪些issue，您可以查看issue列表，它包含当前社区成立的所有issue清单。您可以通过该列表快速的定位到您感兴趣的领域。
 
-### 2. Submit a Pull Request (PR)
+**方式二**：如果您知道感兴趣的issue名称，可以在issue列表下进行模糊搜索，从而快速定位到对应地址。
 
-Before submitting a PR, ensure:
-- Code complies with the project’s style and passes CI tests (run `tox` locally to check). 
-- Relevant documentation (including docstrings) is updated.
-- Additional tests are added for impactful changes.
-- Release notes are added for user-facing changes (mark the PR as a changelog).
+如果上述两种方式都定位不到您感兴趣的issue，您可以向qcloud@originqc.com发求助邮件。建议您在邮件列表内用“【issue过程疑问】”作为标题，在内容中写出你寻找的issue特征，我们会为您提供帮助。
 
-#### PR Workflow
-1. Fork the alg repository ([repo page](https://github.com/OriginQ/QPanda-2)) and clone it locally.
-2. Create a new branch from `master`:  
-   `git checkout master -b new_branch_name`
-3. Commit your changes to the new branch.
-4. Sync your forked `master` with the official repository (resolve merge conflicts if needed):
-   ```bash
-   # Update local master
-   git fetch upstream 
-   git checkout master 
-   git merge upstream/master 
-   # Merge master into your branch
-   git checkout new_branch_name 
-   git merge master
+####  **创建issue**
 
-### 3. Testing
-Write unit tests for modified code and pass all existing tests before submitting a PR. alg uses pytest; refer to the [pytest Primer]for guidance.
+如果您发现并想向社区上报算法软件包的问题或缺陷、建议或需求，问题提交的方式就是创建一个Issue。您需要查看Issue提交指南以获取更多的信息。提交问题时，**请尽量遵守**问题提交准则。
 
-#### Testing Guidelines
-1. Unit test files must be named `[feature].test.py`.
-2. Use `Test([feature], [test_content])` for test case naming.
-3. Follow pyqpanda3’s code standards for unit test code.
+- **确认前提**：在创建问题前，请搜索在**社区中**或者**算法最新版本**中**是否已有类似问题**，确认问题是否存在或**已被解决**，避免重复。
 
-## Acknowledgements
-Thanks to all contributors, testers, and community supporters. Special thanks to the Origin Quantum Research Institute for technical support in algorithm design and performance optimization.
+- **创建 Issue**：在项目 GitHub 页面的 `Issues` 标签页，点击 `New issue` 按钮，选择对应的issue标签，成功关联对应模块。
+
+- **填写Issue的清晰描述**：遵循以下规范，能极大提高沟通效率。
+
+  - **标题**：清晰概括问题（例如：“修复文档中某处过时的配置项需更新”）。
+
+
+  - **描述**：
+  - **问题描述 / 功能需求**：简要描述遇到的问题或希望添加的功能等需求。
+    
+  - **复现步骤** **/ 预期解决方案**：
+    
+    - 若是bug或代码运行中遇到的相关错误或问题：
+        - 复现步骤：请详细说明并列出复现问题的步骤。
+        - 预期与实际结果：说明期望的表现和实际观察到的结果出入。
+    
+    - 若是功能请求等需求，请详细描述您希望解决什么问题，如何解决问题，或希望新功能如何实现。
+
+- **补充材料**：如有，附上日志、截图或错误信息。
+- **关联已有issue**：若提问是基于已有issue的升级，可通过输入“#”关联以往的issue，进行背景说明。
+- **关联已有label**：建议给自己的提问附上对应的label，方便后续统一检索和管理。
+  如`/bug`、`/documentation`、`/duplicate`、`/help wanted`、`/invaild`、`/New Request`、`/question`、`/wontfix`等
+- **参与issue内的讨论**：每个Issue下面可能已经有参与者们的交流和讨论，如果您感兴趣，也可以在评论框中发表自己的意见。
+
+#### **分配/认领一个Issue**
+
+如果你已经准备好成为社区贡献者，对issues感兴趣并愿意处理管理员发布的`good first issue`、`ehancement issue`其中的一个，可以申请认领将它分配给自己。
+
+- 点击alg的issue列表工具栏，下拉Labels，勾选其中一个/两个进行issue预览；
+   - [good first issue]- 这些问题通常是最容易解决的，非常适合新手。它们为常见的文档和算法推理范围，并在描述中明确列出了参与方法。
+   - [help wanted]- 这类问题通常是社区成员关心的问题，寻求alg代码的帮助或算法应用开发过程中的难点，因此需要更多时间精力去讨论和解决。对于有经验的贡献者来说，这些内容是寻求更具挑战性的选择。
+   - [enhancement issue] - 这些问题通常难度较大，包含算法案例和代码优化等内容，需要更多时间投入。这些都是黑客松、实习项目等不错的选择。
+
+
+- 进入感兴趣的issue，需要在评论框内输入 `/assign`或 `/assign @yourself`，等待问题分配；
+- 认领成功后，你的名字将显示在负责人列表里。
+
+### 2.提交一个Pull-Request
+
+如果你觉得已准备好`code review`，且预备提交PR请求，请确保：
+
+- 代码遵循项目的代码风格，并且成功通过CI测试。为了方便起见，你可以先在本地执行，提前进行检查并发现报告问题。`
+
+- 相关文档已相应更新。如果函数或类在PR期间被修改，请相应更新**docstring**。
+
+  如果你的拉取请求是添加一个新的类、函数或模块，那面向用户，请确保你也添加了这些内容文档索引，将其包含在API文档中。``
+
+- 确保如果你的更改将对其他用户产生影响（新功能， 弃用、移除等），你已经添加了相关说明。
+
+在创建Pull Request之前，需要先fork alg [repo](https://github.com/OriginQ/QPanda-2)，然后使用这个fork中分支向官方仓库创建 Pull Request。在创建pull request时应选择推送到alg官方仓库的`master`分支。
+
+fork 和 Pull Request的基本流程如下：
+
+1. Fork alg的仓库 [repo page](https://github.com/quantumlib/Cirq)。并把你的克隆仓库下载到你的本机。
+2. 从master分支创建一个新的分支：`git checkout master -b new_branch_name`，其中`new_branch_name` 是你的新分支的名称。
+3. 把你的修改提交到你自己的分支。
+4. 如果你的克隆仓库与alg的官方仓库不同步，你需要先更新你的克隆仓库的master分支，然后再把master分支合并到你自己的分支（在合并的过程中，你可能要修改一些合并冲突）:
+
+```
+# Update your local master. 
+git fetch upstream 
+git checkout master 
+git merge upstream/master 
+# Merge local master into your branch. 
+git checkout new_branch_name 
+git merge master
+```
+
+5. 把你修改的推送到你克隆的仓库。
+
+`git push origin new_branch_name`
+
+6. 经过以上的操作，你就可以把你工作 Pull Request 给alg的官方仓库了，在pull request需要选择官方仓库的``master`分支。
+7. 审查人员将对您的代码进行审核，并可能要求更改，您可以在本地执行这些操作，然后再次执行上述过程。
+
+### 3.测试
+
+在pull request您的代码之前，请针对您修改的代码编写单元测试，并需要通过现有的测试。alg的测试基于pytest，[pytest使用文档])包含如何使用pytest编写单元测试。
+
+在编写单元测试之前，您需要先注意一些规范：
+
+1. 单元测试文件的命名必须是你要测试的功能+.test.py;
+2. 使用Test(), 第一个参数必须是你要测试的功能，第二个是要测试的内容；
+3. 单元测试的代码规范需要遵守pyqpanda3的代码规范。
+
+## 致谢
+
+感谢所有贡献者、测试者与社区支持者。特别鸣谢本源量子研究院在算法设计与性能优化方面的技术支持。
 
 ------
 
-## Contact Us
-- **Official Email**: [qcloud@originqc.com](mailto:qcloud@originqc.com)
-- **Pre-sales Consultation**: https://contact.originqc.com.cn/
-- **Official WeChat**: Search for (本源量子云社区) to add the official assistant for quantum cloud support and event updates.
+## **联系方式**
 
-  ![](C:\Users\BY250008\Desktop\单人二维码 拷贝(1).jpg)
+- **官方邮箱**：[qcloud@originqc.com](mailto:qcloud@originqc.com)
+
+- **售前咨询链接**：https://contact.originqc.com.cn/
+
+- **官方微信**：搜索“本源量子云社区”，关注开源项目动态
+<p align="center">
+  <img src="my-folder/服务号.png" alt="本源量子云社区服务号" width="50%">
+</p>
+
+- **官方小助手**：可扫描下方二维码，添加官方小助手，获取更多支持
+<p align="center">
+  <img src="my-folder/本源量子云小助手.jpg" alt="本源量子官方小助手" width="30%">
+</p>
