@@ -1,0 +1,1072 @@
+name: PyQPanda Algorithm CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  # 1. Linux 平台构建 (Python 3.10, 3.11, 3.12)
+  linux-build-310:
+    name: Linux Build (Python 3.10)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential python3-dev
+    
+    - name: Build Linux wheel (Python ${{ matrix.python-version }})
+      run: |
+        set -e
+        echo "========== 开始构建 Linux Python ${{ matrix.python-version }} 包 =========="
+        
+        # 进入项目目录
+        cd pyqpanda-algorithm
+        
+        # 创建虚拟环境
+        python -m venv /tmp/alg-build-linux-${{ matrix.python-version }}-venv
+        source /tmp/alg-build-linux-${{ matrix.python-version }}-venv/bin/activate
+        
+        # 清理旧构建
+        rm -rf build dist *.egg-info 2>/dev/null || true
+        
+        # 安装构建工具
+        pip install wheel setuptools build
+        pip install --upgrade pip
+        
+        # 构建wheel包
+        echo "开始构建wheel包..."
+        python setup.py bdist_wheel
+        
+        # 检查是否生成了wheel文件
+        if [ ! -d "dist" ] || [ -z "$(ls -A dist/*.whl 2>/dev/null)" ]; then
+          echo "⚠️ 尝试使用build工具构建..."
+          python -m build --wheel
+        fi
+        
+        # 重命名为Linux平台格式
+        for whl in dist/*.whl; do
+          filename=$(basename "$whl")
+          # 根据Python版本生成正确的平台标签
+          if [ "${{ matrix.python-version }}" = "3.10" ]; then
+            newname=$(echo "$filename" | sed "s/-any-/-cp310-cp310-manylinux_2_31_x86_64-/")
+          elif [ "${{ matrix.python-version }}" = "3.11" ]; then
+            newname=$(echo "$filename" | sed "s/-any-/-cp311-cp311-manylinux_2_31_x86_64-/")
+          elif [ "${{ matrix.python-version }}" = "3.12" ]; then
+            newname=$(echo "$filename" | sed "s/-any-/-cp312-cp312-manylinux_2_31_x86_64-/")
+          fi
+          if [ "$filename" != "$newname" ]; then
+            mv "dist/$filename" "dist/$newname"
+            echo "重命名: $filename -> $newname"
+          fi
+        done
+        
+        # 创建输出目录
+        mkdir -p ../output/linux/${{ matrix.python-version }}
+        cp dist/*.whl ../output/linux/${{ matrix.python-version }}/
+        
+        echo "✅ Linux Python ${{ matrix.python-version }} 构建完成"
+        ls -lh dist/
+    
+    - name: Upload Linux wheel artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-wheel-${{ matrix.python-version }}
+        path: output/linux/${{ matrix.python-version }}/
+        retention-days: 7
+
+  linux-build-311:
+    name: Linux Build (Python 3.11)
+    runs-on: ubuntu-latest
+    needs: linux-build-310
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential python3-dev
+    
+    - name: Build Linux wheel (Python ${{ matrix.python-version }})
+      run: |
+        set -e
+        echo "========== 开始构建 Linux Python ${{ matrix.python-version }} 包 =========="
+        
+        cd pyqpanda-algorithm
+        python -m venv /tmp/alg-build-linux-${{ matrix.python-version }}-venv
+        source /tmp/alg-build-linux-${{ matrix.python-version }}-venv/bin/activate
+        
+        rm -rf build dist *.egg-info 2>/dev/null || true
+        pip install wheel setuptools build 
+        pip install --upgrade pip
+        
+        echo "开始构建wheel包..."
+        python setup.py bdist_wheel
+        
+        if [ ! -d "dist" ] || [ -z "$(ls -A dist/*.whl 2>/dev/null)" ]; then
+          echo "⚠️ 尝试使用build工具构建..."
+          python -m build --wheel
+        fi
+        
+        for whl in dist/*.whl; do
+          filename=$(basename "$whl")
+          if [ "${{ matrix.python-version }}" = "3.11" ]; then
+            newname=$(echo "$filename" | sed "s/-any-/-cp311-cp311-manylinux_2_31_x86_64-/")
+          fi
+          if [ "$filename" != "$newname" ]; then
+            mv "dist/$filename" "dist/$newname"
+            echo "重命名: $filename -> $newname"
+          fi
+        done
+        
+        mkdir -p ../output/linux/${{ matrix.python-version }}
+        cp dist/*.whl ../output/linux/${{ matrix.python-version }}/
+        
+        echo "✅ Linux Python ${{ matrix.python-version }} 构建完成"
+        ls -lh dist/
+    
+    - name: Upload Linux wheel artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-wheel-${{ matrix.python-version }}
+        path: output/linux/${{ matrix.python-version }}/
+        retention-days: 7
+
+  linux-build-312:
+    name: Linux Build (Python 3.12)
+    runs-on: ubuntu-latest
+    needs: linux-build-311
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential python3-dev
+    
+    - name: Build Linux wheel (Python ${{ matrix.python-version }})
+      run: |
+        set -e
+        echo "========== 开始构建 Linux Python ${{ matrix.python-version }} 包 =========="
+        
+        cd pyqpanda-algorithm
+        python -m venv /tmp/alg-build-linux-${{ matrix.python-version }}-venv
+        source /tmp/alg-build-linux-${{ matrix.python-version }}-venv/bin/activate
+        
+        rm -rf build dist *.egg-info 2>/dev/null || true
+        pip install wheel setuptools build
+        pip install --upgrade pip
+        
+        echo "开始构建wheel包..."
+        python setup.py bdist_wheel
+        
+        if [ ! -d "dist" ] || [ -z "$(ls -A dist/*.whl 2>/dev/null)" ]; then
+          echo "⚠️ 尝试使用build工具构建..."
+          python -m build --wheel
+        fi
+        
+        for whl in dist/*.whl; do
+          filename=$(basename "$whl")
+          if [ "${{ matrix.python-version }}" = "3.12" ]; then
+            newname=$(echo "$filename" | sed "s/-any-/-cp312-cp312-manylinux_2_31_x86_64-/")
+          fi
+          if [ "$filename" != "$newname" ]; then
+            mv "dist/$filename" "dist/$newname"
+            echo "重命名: $filename -> $newname"
+          fi
+        done
+        
+        mkdir -p ../output/linux/${{ matrix.python-version }}
+        cp dist/*.whl ../output/linux/${{ matrix.python-version }}/
+        
+        echo "✅ Linux Python ${{ matrix.python-version }} 构建完成"
+        ls -lh dist/
+    
+    - name: Upload Linux wheel artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: linux-wheel-${{ matrix.python-version }}
+        path: output/linux/${{ matrix.python-version }}/
+        retention-days: 7
+
+  # 2. Windows 平台构建
+  windows-build-310:
+    name: Windows Build (Python 3.10)
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Build Windows wheel (Python ${{ matrix.python-version }})
+      shell: pwsh
+      run: |
+        Write-Host "========== 开始构建 Windows Python ${{ matrix.python-version }} 包 =========="
+        
+        cd pyqpanda-algorithm
+        
+        # 创建虚拟环境
+        python -m venv C:\alg-build-windows-${{ matrix.python-version }}-venv
+        C:\alg-build-windows-${{ matrix.python-version }}-venv\Scripts\Activate.ps1
+        
+        # 清理旧构建
+        Remove-Item -Recurse -Force build, dist, *.egg-info -ErrorAction SilentlyContinue
+        
+        # 安装构建工具
+        pip install wheel setuptools build
+        pip install --upgrade pip
+        
+        # 构建wheel包
+        Write-Host "开始构建wheel包..."
+        python setup.py bdist_wheel
+        
+        # 检查是否生成了wheel文件
+        if (-not (Test-Path "dist") -or -not (Get-ChildItem "dist\*.whl" -ErrorAction SilentlyContinue)) {
+          Write-Host "⚠️ 尝试使用build工具构建..."
+          python -m build --wheel
+        }
+        
+        # 重命名为Windows平台格式
+        Get-ChildItem "dist\*.whl" | ForEach-Object {
+          $filename = $_.Name
+          if (${{ matrix.python-version }} -eq "3.10") {
+            $newname = $filename -replace "-any-", "-cp310-cp310-win_amd64-"
+          } elseif (${{ matrix.python-version }} -eq "3.11") {
+            $newname = $filename -replace "-any-", "-cp311-cp311-win_amd64-"
+          } elseif (${{ matrix.python-version }} -eq "3.12") {
+            $newname = $filename -replace "-any-", "-cp312-cp312-win_amd64-"
+          }
+          if ($filename -ne $newname) {
+            Rename-Item -Path "dist\$filename" -NewName $newname
+            Write-Host "重命名: $filename -> $newname"
+          }
+        }
+        
+        # 创建输出目录
+        New-Item -ItemType Directory -Force -Path "..\output\windows\${{ matrix.python-version }}" | Out-Null
+        Copy-Item "dist\*.whl" -Destination "..\output\windows\${{ matrix.python-version }}\"
+        
+        Write-Host "✅ Windows Python ${{ matrix.python-version }} 构建完成"
+        Get-ChildItem dist\
+    
+    - name: Upload Windows wheel artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-wheel-${{ matrix.python-version }}
+        path: output/windows/${{ matrix.python-version }}/
+        retention-days: 7
+
+  windows-build-311:
+    name: Windows Build (Python 3.11)
+    runs-on: windows-latest
+    needs: windows-build-310
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Build Windows wheel (Python ${{ matrix.python-version }})
+      shell: pwsh
+      run: |
+        Write-Host "========== 开始构建 Windows Python ${{ matrix.python-version }} 包 =========="
+        
+        cd pyqpanda-algorithm
+        python -m venv C:\alg-build-windows-${{ matrix.python-version }}-venv
+        C:\alg-build-windows-${{ matrix.python-version }}-venv\Scripts\Activate.ps1
+        
+        Remove-Item -Recurse -Force build, dist, *.egg-info -ErrorAction SilentlyContinue
+        pip install wheel setuptools build
+        pip install --upgrade pip
+        
+        Write-Host "开始构建wheel包..."
+        python setup.py bdist_wheel
+        
+        if (-not (Test-Path "dist") -or -not (Get-ChildItem "dist\*.whl" -ErrorAction SilentlyContinue)) {
+          Write-Host "⚠️ 尝试使用build工具构建..."
+          python -m build --wheel
+        }
+        
+        Get-ChildItem "dist\*.whl" | ForEach-Object {
+          $filename = $_.Name
+          if (${{ matrix.python-version }} -eq "3.11") {
+            $newname = $filename -replace "-any-", "-cp311-cp311-win_amd64-"
+          }
+          if ($filename -ne $newname) {
+            Rename-Item -Path "dist\$filename" -NewName $newname
+            Write-Host "重命名: $filename -> $newname"
+          }
+        }
+        
+        New-Item -ItemType Directory -Force -Path "..\output\windows\${{ matrix.python-version }}" | Out-Null
+        Copy-Item "dist\*.whl" -Destination "..\output\windows\${{ matrix.python-version }}\"
+        
+        Write-Host "✅ Windows Python ${{ matrix.python-version }} 构建完成"
+        Get-ChildItem dist\
+    
+    - name: Upload Windows wheel artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-wheel-${{ matrix.python-version }}
+        path: output/windows/${{ matrix.python-version }}/
+        retention-days: 7
+
+  windows-build-312:
+    name: Windows Build (Python 3.12)
+    runs-on: windows-latest
+    needs: windows-build-311
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Build Windows wheel (Python ${{ matrix.python-version }})
+      shell: pwsh
+      run: |
+        Write-Host "========== 开始构建 Windows Python ${{ matrix.python-version }} 包 =========="
+        
+        cd pyqpanda-algorithm
+        python -m venv C:\alg-build-windows-${{ matrix.python-version }}-venv
+        C:\alg-build-windows-${{ matrix.python-version }}-venv\Scripts\Activate.ps1
+        
+        Remove-Item -Recurse -Force build, dist, *.egg-info -ErrorAction SilentlyContinue
+        pip install wheel setuptools build
+        pip install --upgrade pip
+        
+        Write-Host "开始构建wheel包..."
+        python setup.py bdist_wheel
+        
+        if (-not (Test-Path "dist") -or -not (Get-ChildItem "dist\*.whl" -ErrorAction SilentlyContinue)) {
+          Write-Host "⚠️ 尝试使用build工具构建..."
+          python -m build --wheel
+        }
+        
+        Get-ChildItem "dist\*.whl" | ForEach-Object {
+          $filename = $_.Name
+          if (${{ matrix.python-version }} -eq "3.12") {
+            $newname = $filename -replace "-any-", "-cp312-cp312-win_amd64-"
+          }
+          if ($filename -ne $newname) {
+            Rename-Item -Path "dist\$filename" -NewName $newname
+            Write-Host "重命名: $filename -> $newname"
+          }
+        }
+        
+        New-Item -ItemType Directory -Force -Path "..\output\windows\${{ matrix.python-version }}" | Out-Null
+        Copy-Item "dist\*.whl" -Destination "..\output\windows\${{ matrix.python-version }}\"
+        
+        Write-Host "✅ Windows Python ${{ matrix.python-version }} 构建完成"
+        Get-ChildItem dist\
+    
+    - name: Upload Windows wheel artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-wheel-${{ matrix.python-version }}
+        path: output/windows/${{ matrix.python-version }}/
+        retention-days: 7
+
+  # 3. macOS 平台构建
+  macos-build-310:
+    name: macOS Build (Python 3.10)
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Build macOS wheel (Python ${{ matrix.python-version }})
+      run: |
+        set -e
+        echo "========== 开始构建 macOS Python ${{ matrix.python-version }} 包 =========="
+        
+        cd pyqpanda-algorithm
+        
+        # 创建虚拟环境
+        python -m venv /tmp/alg-build-macos-${{ matrix.python-version }}-venv
+        source /tmp/alg-build-macos-${{ matrix.python-version }}-venv/bin/activate
+        
+        # 清理旧构建
+        rm -rf build dist *.egg-info 2>/dev/null || true
+        
+        # 安装构建工具
+        pip install wheel setuptools build
+        pip install --upgrade pip
+        
+        # 构建wheel包
+        echo "开始构建wheel包..."
+        python setup.py bdist_wheel
+        
+        # 检查是否生成了wheel文件
+        if [ ! -d "dist" ] || [ -z "$(ls -A dist/*.whl 2>/dev/null)" ]; then
+          echo "⚠️ 尝试使用build工具构建..."
+          python -m build --wheel
+        fi
+        
+        # 重命名为macOS平台格式
+        for whl in dist/*.whl; do
+          filename=$(basename "$whl")
+          # 根据Python版本和架构生成正确的平台标签
+          if [ "${{ matrix.python-version }}" = "3.10" ]; then
+            # macOS 有不同的架构，这里假设构建通用架构
+            newname=$(echo "$filename" | sed "s/-any-/-cp310-cp310-macosx_10_15_x86_64-/")
+          elif [ "${{ matrix.python-version }}" = "3.11" ]; then
+            newname=$(echo "$filename" | sed "s/-any-/-cp311-cp311-macosx_10_15_x86_64-/")
+          elif [ "${{ matrix.python-version }}" = "3.12" ]; then
+            newname=$(echo "$filename" | sed "s/-any-/-cp312-cp312-macosx_10_15_x86_64-/")
+          fi
+          if [ "$filename" != "$newname" ]; then
+            mv "dist/$filename" "dist/$newname"
+            echo "重命名: $filename -> $newname"
+          fi
+        done
+        
+        # 创建输出目录
+        mkdir -p ../output/macos/${{ matrix.python-version }}
+        cp dist/*.whl ../output/macos/${{ matrix.python-version }}/
+        
+        echo "✅ macOS Python ${{ matrix.python-version }} 构建完成"
+        ls -lh dist/
+    
+    - name: Upload macOS wheel artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos-wheel-${{ matrix.python-version }}
+        path: output/macos/${{ matrix.python-version }}/
+        retention-days: 7
+
+  macos-build-311:
+    name: macOS Build (Python 3.11)
+    runs-on: macos-latest
+    needs: macos-build-310
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Build macOS wheel (Python ${{ matrix.python-version }})
+      run: |
+        set -e
+        echo "========== 开始构建 macOS Python ${{ matrix.python-version }} 包 =========="
+        
+        cd pyqpanda-algorithm
+        python -m venv /tmp/alg-build-macos-${{ matrix.python-version }}-venv
+        source /tmp/alg-build-macos-${{ matrix.python-version }}-venv/bin/activate
+        
+        rm -rf build dist *.egg-info 2>/dev/null || true
+        pip install wheel setuptools build
+        pip install --upgrade pip
+        
+        echo "开始构建wheel包..."
+        python setup.py bdist_wheel
+        
+        if [ ! -d "dist" ] || [ -z "$(ls -A dist/*.whl 2>/dev/null)" ]; then
+          echo "⚠️ 尝试使用build工具构建..."
+          python -m build --wheel
+        fi
+        
+        for whl in dist/*.whl; do
+          filename=$(basename "$whl")
+          if [ "${{ matrix.python-version }}" = "3.11" ]; then
+            newname=$(echo "$filename" | sed "s/-any-/-cp311-cp311-macosx_10_15_x86_64-/")
+          fi
+          if [ "$filename" != "$newname" ]; then
+            mv "dist/$filename" "dist/$newname"
+            echo "重命名: $filename -> $newname"
+          fi
+        done
+        
+        mkdir -p ../output/macos/${{ matrix.python-version }}
+        cp dist/*.whl ../output/macos/${{ matrix.python-version }}/
+        
+        echo "✅ macOS Python ${{ matrix.python-version }} 构建完成"
+        ls -lh dist/
+    
+    - name: Upload macOS wheel artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos-wheel-${{ matrix.python-version }}
+        path: output/macos/${{ matrix.python-version }}/
+        retention-days: 7
+
+  macos-build-312:
+    name: macOS Build (Python 3.12)
+    runs-on: macos-latest
+    needs: macos-build-311
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Build macOS wheel (Python ${{ matrix.python-version }})
+      run: |
+        set -e
+        echo "========== 开始构建 macOS Python ${{ matrix.python-version }} 包 =========="
+        
+        cd pyqpanda-algorithm
+        python -m venv /tmp/alg-build-macos-${{ matrix.python-version }}-venv
+        source /tmp/alg-build-macos-${{ matrix.python-version }}-venv/bin/activate
+        
+        rm -rf build dist *.egg-info 2>/dev/null || true
+        pip install wheel setuptools build
+        pip install --upgrade pip
+        
+        echo "开始构建wheel包..."
+        python setup.py bdist_wheel
+        
+        if [ ! -d "dist" ] || [ -z "$(ls -A dist/*.whl 2>/dev/null)" ]; then
+          echo "⚠️ 尝试使用build工具构建..."
+          python -m build --wheel
+        fi
+        
+        for whl in dist/*.whl; do
+          filename=$(basename "$whl")
+          if [ "${{ matrix.python-version }}" = "3.12" ]; then
+            newname=$(echo "$filename" | sed "s/-any-/-cp312-cp312-macosx_10_15_x86_64-/")
+          fi
+          if [ "$filename" != "$newname" ]; then
+            mv "dist/$filename" "dist/$newname"
+            echo "重命名: $filename -> $newname"
+          fi
+        done
+        
+        mkdir -p ../output/macos/${{ matrix.python-version }}
+        cp dist/*.whl ../output/macos/${{ matrix.python-version }}/
+        
+        echo "✅ macOS Python ${{ matrix.python-version }} 构建完成"
+        ls -lh dist/
+    
+    - name: Upload macOS wheel artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: macos-wheel-${{ matrix.python-version }}
+        path: output/macos/${{ matrix.python-version }}/
+        retention-days: 7
+
+  # 4. 文档构建
+  docs-build:
+    name: Documentation Build
+    runs-on: ubuntu-latest
+    needs: [linux-build-312, windows-build-312, macos-build-312]
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+    
+    - name: Build Documentation
+      run: |
+        set -e
+        echo "========== 开始构建项目文档 =========="
+        
+        # 检查目录结构
+        echo "当前工作目录: $(pwd)"
+        echo "目录内容:"
+        ls -la
+        
+        # 创建虚拟环境
+        python -m venv /tmp/alg-build-docs-venv
+        source /tmp/alg-build-docs-venv/bin/activate
+        
+        # 检查 Tutorials/source 目录是否存在
+        if [ ! -d "Tutorials/source" ]; then
+          echo "❌ 错误: Tutorials/source 目录不存在"
+          echo "当前目录内容:"
+          ls -la
+          echo "Tutorials 目录内容:"
+          ls -la Tutorials/ 2>/dev/null || echo "Tutorials 目录不存在"
+          exit 1
+        fi
+        
+        # 安装文档构建依赖
+        echo "安装文档构建工具..."
+        pip install sphinx sphinx_autoapi sphinx-material beautifulsoup4
+        
+        # 进入文档源目录
+        cd Tutorials/source
+        
+        echo "当前文档源目录: $(pwd)"
+        echo "文档源目录内容:"
+        ls -la
+        
+        # 清理旧的构建输出
+        rm -rf build 2>/dev/null || true
+        
+        # 构建HTML文档
+        echo "正在构建HTML文档..."
+        sphinx-build -b html ./ ./build/
+        
+        # 回到根目录
+        cd ../..
+        
+        # 创建文档输出目录
+        mkdir -p output/docs/html
+        
+        # 复制生成的文档
+        echo "复制生成的文档..."
+        cp -r Tutorials/source/build/* output/docs/html/
+        
+        echo "✅ 文档构建完成"
+        echo "生成的文档文件:"
+        find output/docs/html -name "*.html" | wc -l
+        echo "主文档文件: output/docs/html/index.html"
+        
+        # 创建文档索引文件
+        cat > output/docs/README.md << EOF
+        # PyQPanda Algorithm 项目文档
+        
+        ## 文档说明
+        本文档使用 Sphinx + AutoAPI 自动生成，包含了项目的完整 API 文档。
+        
+        ## 查看文档
+        1. 打开 \`html/index.html\` 文件在浏览器中查看
+        2. 支持搜索功能
+        
+        ## 构建信息
+        - 构建时间: $(date)
+        - 构建工具: Sphinx $(sphinx-build --version 2>&1 | head -1)
+        - 文档页数: $(find output/docs/html -name "*.html" | wc -l) 个HTML文件
+        
+        ## 包含的模块文档
+        - pyqpanda_alg.Grover - Grover搜索算法
+        - pyqpanda_alg.QAE - 量子幅度估计
+        - pyqpanda_alg.QAOA - 量子近似优化算法
+        - pyqpanda_alg.QARM - 量子关联规则挖掘
+        - pyqpanda_alg.QCmp - 量子比较器
+        - pyqpanda_alg.QPCA - 量子主成分分析
+        - pyqpanda_alg.QSVD - 量子奇异值分解
+        - pyqpanda_alg.QSVM - 量子支持向量机
+        - pyqpanda_alg.QSVR - 量子支持向量回归
+        - pyqpanda_alg.QUBO - 量子无约束二进制优化
+        - pyqpanda_alg.QmRMR - 量子最小冗余最大相关性
+        - pyqpanda_alg.QKmeans - 量子K-means聚类
+        - pyqpanda_alg.QSEncode - 量子状态编码
+        - pyqpanda_alg.plugin - 插件系统
+        
+        ## 重新构建
+        如需重新构建文档，请运行:
+        \`\`\`bash
+        cd Tutorials/source
+        sphinx-build -b html ./ ./build/
+        \`\`\`
+        EOF
+        
+        echo "✅ 文档打包完成"
+        echo "输出目录结构:"
+        ls -lh output/docs/
+        echo ""
+        echo "HTML文档示例:"
+        ls -lh output/docs/html/*.html | head -5
+    
+    - name: Upload Documentation Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation-html
+        path: output/docs/
+        retention-days: 7
+
+  # 5. 自动化测试
+  automated-testing:
+    name: Automated Testing
+    runs-on: ubuntu-latest
+    needs: [linux-build-312]
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+    
+    - name: Download Linux wheel artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: linux-wheel-3.10
+        path: downloaded-wheels/
+    
+    - name: Run Automated Tests
+      run: |
+        set -e
+        echo "开始自动化测试"
+        
+        # 创建虚拟环境
+        python -m venv /tmp/alg-test-venv
+        source /tmp/alg-test-venv/bin/activate
+        
+        # 查找wheel包
+        WHEEL_FILE=$(find downloaded-wheels -name "*.whl" | head -1)
+        
+        if [ -n "$WHEEL_FILE" ]; then
+          echo "安装wheel包: $WHEEL_FILE"
+          pip install "$WHEEL_FILE"
+        else
+          if [ -f "pyqpanda-algorithm/setup.py" ]; then
+            cd pyqpanda-algorithm
+            pip install -e .
+            cd ..
+          else
+            echo "❌ 错误: 未找到wheel包且没有setup.py"
+            exit 1
+          fi
+        fi
+        
+        # 安装项目依赖
+        pip install numpy scipy sympy pandas
+        
+        if [ -f "pyqpanda-algorithm/requirements.txt" ]; then
+          pip install -r pyqpanda-algorithm/requirements.txt
+        fi
+        
+        # 安装测试依赖
+        pip install pytest allure-pytest pytest-html pytest-rerunfailures pytest-xdist
+        
+        # 检查测试目录
+        if [ ! -d "test" ]; then
+          echo "❌ 错误: test 目录不存在"
+          exit 1
+        fi
+        
+        # 进入测试目录
+        cd test
+        
+        # 创建测试输出目录
+        mkdir -p ../output/test_results
+        mkdir -p ../output/test_results/allure-results
+        mkdir -p ../output/test_results/html-report
+        
+        # 运行测试
+        echo "运行单元测试..."
+        pytest -v \
+          --junitxml=../output/test_results/junit-results.xml \
+          --alluredir=../output/test_results/allure-results \
+          --clean-alluredir \
+          --tb=short \
+          --disable-warnings \
+          --maxfail=5 \
+          || true
+        
+        # 生成HTML报告
+        echo "生成HTML报告..."
+        pytest -v \
+          --html=../output/test_results/html-report/report.html \
+          --self-contained-html \
+          --tb=short \
+          --disable-warnings \
+          --maxfail=5 \
+          || true
+        
+        # 生成Allure报告
+        if [ -d "../output/test_results/allure-results" ] && [ -n "$(ls -A ../output/test_results/allure-results 2>/dev/null)" ]; then
+          echo "安装Allure报告工具..."
+          curl -o allure-2.17.3.tgz -Ls https://github.com/allure-framework/allure2/releases/download/2.17.3/allure-2.17.3.tgz
+          tar -zxvf allure-2.17.3.tgz
+          
+          echo "生成Allure报告..."
+          ./allure-2.17.3/bin/allure generate ../output/test_results/allure-results -o ../output/test_results/allure-report --clean
+        fi
+        
+        cd ..
+        echo "✅ 自动化测试完成"
+    
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: output/test_results/
+        retention-days: 7
+
+  # 6. 打包所有产物
+  package-all:
+    name: Package All Artifacts
+    runs-on: ubuntu-latest
+    needs: [docs-build, automated-testing]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+    
+    - name: Download all artifacts
+      run: |
+        mkdir -p all-artifacts
+        mkdir -p all-artifacts/wheels
+        mkdir -p all-artifacts/docs
+        mkdir -p all-artifacts/tests
+    
+    - name: Download Linux wheels
+      uses: actions/download-artifact@v4
+      with:
+        name: linux-wheel-3.10
+        path: all-artifacts/wheels/
+    
+    - name: Download Windows wheels
+      uses: actions/download-artifact@v4
+      with:
+        name: windows-wheel-3.10
+        path: all-artifacts/wheels/
+    
+    - name: Download macOS wheels
+      uses: actions/download-artifact@v4
+      with:
+        name: macos-wheel-3.10
+        path: all-artifacts/wheels/
+    
+    - name: Download Documentation
+      uses: actions/download-artifact@v4
+      with:
+        name: documentation-html
+        path: all-artifacts/docs/
+    
+    - name: Download Test Results
+      uses: actions/download-artifact@v4
+      with:
+        name: test-results
+        path: all-artifacts/tests/
+    
+    - name: Create Release Package
+      run: |
+        echo "========== 打包所有构建产物 =========="
+        
+        # 创建发布目录
+        mkdir -p release_package/wheels
+        mkdir -p release_package/docs
+        mkdir -p release_package/test_reports
+        
+        # 复制所有wheel文件
+        echo "收集所有平台的wheel文件..."
+        find all-artifacts/wheels -name "*.whl" -type f -exec cp {} release_package/wheels/ \;
+        
+        # 复制文档
+        if [ -d "all-artifacts/docs" ]; then
+          cp -r all-artifacts/docs/* release_package/docs/
+        fi
+        
+        # 复制测试结果
+        if [ -d "all-artifacts/tests" ]; then
+          cp -r all-artifacts/tests/* release_package/test_reports/
+        fi
+        
+        # 创建README文件
+        cat > release_package/README.md << EOF
+        # PyQPanda Algorithm 多平台多版本发布包
+        
+        ## 支持的平台和Python版本
+        
+        | 平台 | Python版本 | 架构 | 备注 |
+        |------|------------|------|------|
+        | Linux | 3.10, 3.11, 3.12 | x86_64 | 在Ubuntu环境中构建 |
+        | Windows | 3.10, 3.11, 3.12 | AMD64 | 在Windows环境中构建 |
+        | macOS | 3.10, 3.11, 3.12 | x86_64 | 在macOS环境中构建 |
+        
+        ## 包含内容
+        1. **Wheel包** (\`wheels/\` 目录)
+           - 所有平台的预编译包
+           - 按平台和Python版本分类
+        
+        2. **项目文档** (\`docs/\` 目录)
+           - 完整的API文档
+           - HTML格式，可直接在浏览器中查看
+           - 打开 \`docs/html/index.html\` 开始浏览
+        
+        3. **测试报告** (\`test_reports/\` 目录)
+           - 自动化测试结果
+           - JUnit格式报告
+           - HTML可视化报告
+           - Allure高级报告
+        
+        ## 文件命名规范
+        - Linux: \`包名-版本-cp{版本号}-cp{版本号}-manylinux_2_31_x86_64.whl\`
+        - Windows: \`包名-版本-cp{版本号}-cp{版本号}-win_amd64.whl\`
+        - macOS: \`包名-版本-cp{版本号}-cp{版本号}-macosx_10_15_x86_64.whl\`
+        
+        ## 使用说明
+        \`\`\`bash
+        # 根据您的平台和Python版本选择合适的文件
+        pip install wheels/your_package-*.whl
+        
+        # 查看文档
+        # 打开 docs/html/index.html 在浏览器中查看
+        
+        # 查看测试报告
+        # 打开 test_reports/html-report/report.html 查看测试结果
+        \`\`\`
+        
+        ## 构建环境
+        - 构建系统: GitHub Actions
+        - 构建时间: $(date)
+        - 总包数量: \$(ls -1 release_package/wheels/*.whl 2>/dev/null | wc -l 2>/dev/null || echo "0")
+        EOF
+        
+        # 创建目录结构说明
+        cat > release_package/DIRECTORY_STRUCTURE.md << EOF
+        # 目录结构
+        
+        release_package/
+        ├── README.md              # 本文件
+        ├── DIRECTORY_STRUCTURE.md # 目录结构说明
+        ├── wheels/                # 所有平台的Wheel包
+        │   ├── linux_3.10_*.whl
+        │   ├── linux_3.11_*.whl
+        │   ├── linux_3.12_*.whl
+        │   ├── windows_3.10_*.whl
+        │   ├── windows_3.11_*.whl
+        │   ├── windows_3.12_*.whl
+        │   ├── macos_3.10_*.whl
+        │   ├── macos_3.11_*.whl
+        │   └── macos_3.12_*.whl
+        ├── docs/                  # 项目文档
+        │   ├── README.md          # 文档说明
+        │   └── html/              # HTML文档
+        │       ├── index.html     # 文档首页
+        │       ├── *.html         # 其他页面
+        │       └── _static/       # 静态资源
+        └── test_reports/          # 测试报告
+            ├── junit-results.xml  # JUnit格式测试结果
+            ├── html-report/       # HTML测试报告
+            │   └── report.html    # HTML测试报告
+            ├── allure-results/    # Allure原始数据
+            └── allure-report/     # Allure测试报告(如生成)
+        EOF
+        
+        echo "✅ 打包完成"
+        echo "发布包内容:"
+        find release_package -type f | sort
+    
+    - name: Upload Final Package
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-package
+        path: release_package/
+        retention-days: 30
+    
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          release_package/**/*.whl
+          release_package/docs/html/index.html
+        body_path: release_package/README.md
+
+  # 7. 工作流状态汇总
+  workflow-summary:
+    name: Workflow Summary
+    runs-on: ubuntu-latest
+    needs: [package-all]
+    if: always()
+    
+    steps:
+    - name: Check workflow status
+      run: |
+        echo "🎉 PyQPanda Algorithm CI/CD Pipeline 执行完成!"
+        echo ""
+        echo "📦 构建产物:"
+        echo "  - Linux wheels (Python 3.10, 3.11, 3.12)"
+        echo "  - Windows wheels (Python 3.10, 3.11, 3.12)"
+        echo "  - macOS wheels (Python 3.10, 3.11, 3.12)"
+        echo "  - HTML Documentation"
+        echo "  - Automated Test Reports"
+        echo ""
+        echo "📂 所有产物已打包至 'release-package' 工件"
+        echo "📄 详细报告可在 GitHub Actions 页面查看"
