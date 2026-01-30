@@ -13,9 +13,10 @@ from pyqpanda_alg import QARM
 #数据读取
 def read(file_path):
     if os.path.exists(file_path):
-        trans_data = []
+        trans_data = []#......
         with open(file_path, 'r', encoding='utf8') as f:
             data_line = f.readlines()
+            #......
             if data_line:
                 for line in data_line:
                     if line:
@@ -27,7 +28,7 @@ def read(file_path):
         raise FileNotFoundError('The file {} does not exists!'.format(file_path))#异常处理，若文件不存在，抛出 FileNotFoundError
     return trans_data
 
-
+#......
 if __name__ == '__main__':
     data_path = QARM.__path__[0]#获取 QARM 模块的安装路径，用于定位数据集文件夹。
     data_file = os.path.join(data_path, 'dataset/data2.txt')#拼接数据文件完整路径。
