@@ -44,5 +44,5 @@
 #
 #
 # if __name__ == "__main__":
-#     # 直接运行测试
+#     # 直接run test
 #     pytest.main([__file__, "-v"])
