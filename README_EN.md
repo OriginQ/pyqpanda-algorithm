@@ -90,6 +90,21 @@ pyqpanda_alg is primarily developed in Python with the following system requirem
 
 ------
 
+## Branch Explanation
+This project follows a "stable branch + development branch" collaboration model, with different branches serving distinct purposes to help you choose the right one for your needs.
+
+### 📌 main (Main Branch)
+- **Core Purpose**: The `main` branch is the project's **stable release branch**, containing fully tested, production-ready open-source quantum algorithm code.
+- **Usage Scenario**: If you want to study, learn the core implementation of quantum algorithms, or directly build upon mature code for secondary development, you can pull and use the content from the `main` branch.
+- **Important Note**: The `main` branch does **not** accept any direct commits or Pull Requests (PRs), ensuring the core code remains stable and bug-free.
+
+### 🛠️ develop (Development Branch)
+- **Core Purpose**: The `develop` branch is the project's **collaborative development branch**, used for integrating community contributions, iterating new features, and fixing issues.
+- **Submission Scenario**: If you wish to contribute to the project, including but not limited to:Submitting bug fixes、Improving project documentation (e.g., README, code comments)、Adding example code for quantum algorithms、Proposing or implementing new feature suggestions、Optimizing the performance or readability of existing algorithms，please submit all Pull Requests (PRs) **to the `develop` branch only**.
+- **Collaboration Note**: We regularly review contributions on the `develop` branch. After testing and validation, approved changes will be merged into the `main` branch, so high-quality contributions are synced to the stable release.
+
+------
+
 ## Open Source License
 Licensed under [Apache License 2.0](https://gitee.com/OriginQ/alg/blob/master/LICENSE), free and friendly for commercial/non-commercial use by companies, teams, and individuals. Feel free to use and register.
 
@@ -116,3 +131,4 @@ Thanks to all contributors, testers, and community supporters. Special thanks to
 <p align="center">
   <img src="my-folder/本源量子云小助手.jpg" alt="本源量子官方小助手" width="30%">
 </p>
+
