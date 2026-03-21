@@ -32,7 +32,6 @@ warnings.filterwarnings("ignore", category=SyntaxWarning)
 from . import QAOA
 # from . import VQE
 # from . import HHL
-# from . import QAOA
 from . import QARM
 from . import QKmeans
 # from . import QLuoShu

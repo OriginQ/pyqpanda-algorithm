@@ -25,7 +25,7 @@ class Grover:
             Operator/Circuit of marking the good states by phase-flip. Default doing a pauli-Z
             gate at the last qubit.
         zero_flip : callable ``f(qubits)``\n
-            Operator/Circuit of reflects 0s by phase-flip. Default doing a zero-controled pauli-Z
+            Operator/Circuit of reflects 0s by phase-flip. Default doing a zero-controlled pauli-Z
             gate on qubits.
         mark_data : ``str``, ``list[str]``\n
             Marked target state. Default None.
@@ -246,7 +246,7 @@ def amp_operator(q_input=None, q_flip=None, q_zero=None, in_operator=None, flip_
             Operator/Circuit of marking the good states by phase-flip. Default doing a pauli-Z
             gate at the last qubit.
         zero_flip : callable ``f(qubits)``\n
-            Operator/Circuit of reflects 0s by phase-flip. Default doing a zero-controled pauli-Z
+            Operator/Circuit of reflects 0s by phase-flip. Default doing a zero-controlled pauli-Z
             gate on qubits.
 
     Returns
