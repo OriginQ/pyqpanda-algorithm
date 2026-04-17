@@ -19,6 +19,29 @@ from pyqpanda3.core import CPUQVM, QCircuit, QProg, SWAP, U3, H, measure, draw_q
 
 
 def _QuantumKmeansCircuit(theta0, phi0, theta, phi):
+    """
+    Build and run a swap-test circuit to estimate the distance between two qubit states.
+
+    Uses the swap test: a Hadamard on an ancilla qubit, a controlled-SWAP between the two
+    data qubits, and a final Hadamard, then measures the ancilla. The probability of
+    measuring ``|1>`` on the ancilla is related to the inner product of the two states.
+
+    Parameters
+        theta0 : ``float``\n
+            Polar angle (theta) for the U3 gate encoding the first data point's x-coordinate.
+        phi0 : ``float``\n
+            Azimuthal angle (phi) for the U3 gate encoding the first data point's y-coordinate.
+        theta : ``float``\n
+            Polar angle (theta) for the U3 gate encoding the second data point's x-coordinate.
+        phi : ``float``\n
+            Azimuthal angle (phi) for the U3 gate encoding the second data point's y-coordinate.
+
+    Returns
+        result : ``dict``\n
+            Measurement probability dictionary for the ancilla qubit. Key ``'1'`` gives the
+            probability of measuring ``|1>``, which is proportional to the distance between
+            the two encoded states.
+    """
     machine = CPUQVM()
     prog = QProg(3)
     qlist = prog.qubits()
@@ -39,12 +62,33 @@ def _QuantumKmeansCircuit(theta0, phi0, theta, phi):
 
 
 def _point_centroid_distances(point, centroids, k):
+    """
+    Compute quantum-estimated distances from a data point to each of k centroids.
+
+    Encodes the x- and y-coordinates of the point and each centroid as qubit rotation
+    angles via a linear mapping to [0, pi], then calls ``_QuantumKmeansCircuit`` for
+    each centroid to obtain a swap-test probability proportional to the distance.
+
+    Parameters
+        point : ``array-like`` of length 2\n
+            A 2D data point ``[x, y]`` with values in [-1, 1].
+        centroids : ``list`` of array-like\n
+            List of k centroid coordinates, each of the form ``[x, y]``.
+        k : ``int``\n
+            Number of centroids (clusters).
+
+    Returns
+        results_list : ``list`` of ``float``\n
+            List of length k. Each element is the swap-test probability of measuring
+            ``|1>`` for the corresponding centroid — higher values indicate greater
+            distance from the data point to that centroid.
+    """
     xval = [point[0]]
     for i in range(k):
-      xval.append(centroids[i][0])
+        xval.append(centroids[i][0])
     yval = [point[1]]
     for i in range(k):
-      yval.append(centroids[i][1])
+        yval.append(centroids[i][1])
 
     theta_t = [((x + 1) * pi / 2) for x in xval]
     theta_c = [((x + 1) * pi / 2) for x in yval]
