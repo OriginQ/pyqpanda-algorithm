@@ -21,10 +21,10 @@
 #
 #         assert str(hamiltonian) is not None
 #         assert len(str(hamiltonian)) > 0
-#         print(f"原始表达式: {f}")
-#         print(f"转换后的哈密顿量: {hamiltonian}")
+#         print(f"{f}")
+#         print(f"{hamiltonian}")
 #
 #
 # if __name__ == "__main__":
-#     # 运行测试
+#     # run test
 #     pytest.main([__file__, "-v", "-s"])

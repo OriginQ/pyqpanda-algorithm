@@ -3,7 +3,6 @@
 # import pytest
 # import numpy as np
 #
-# # 添加项目路径到系统路径
 # sys.path.append((Path.cwd().parent.parent).__str__())
 #
 # from pyqpanda_alg.QAOA import default_circuits
@@ -45,5 +44,5 @@
 #
 #
 # if __name__ == "__main__":
-#     # 运行测试
+#     # run test
 #     pytest.main([__file__, "-v"])

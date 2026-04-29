@@ -30,7 +30,6 @@ Overall, it provides a standardized set of tools for developers, allowing them t
 
     autoapi/pyqpanda_alg/QAOA/index
     autoapi/pyqpanda_alg/QARM/index
-    autoapi/pyqpanda_alg/QAlgBase/index
     autoapi/pyqpanda_alg/QKmeans/index
     autoapi/pyqpanda_alg/QPCA/index
     autoapi/pyqpanda_alg/QSVM/index

@@ -107,14 +107,14 @@ To claim an issue (e.g., `good first issue`, `enhancement issue`):
 
 Before submitting a PR, ensure:
 
-- Code complies with the project’s style and passes CI tests (run `tox` locally to check). 
+- Code complies with the project’s style and passes CI/CD tests. 
 - Relevant documentation (including docstrings) is updated.
 - Additional tests are added for impactful changes.
 - Release notes are added for user-facing changes (mark the PR as a changelog).
 
 #### PR Workflow
 
-1. Fork the alg repository ([repo page](https://github.com/OriginQ/pyqpanda-algorithm)) and clone it locally.
+1. Fork the alg repository ([repo page]([https://github.com/OriginQ/QPanda-2](https://github.com/OriginQ/pyqpanda-algorithm))) and clone it locally.
 
 2. Create a new branch from `develop`:  
    `git checkout develop -b new_branch_name`

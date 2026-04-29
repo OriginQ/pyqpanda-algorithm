@@ -6,7 +6,6 @@ import os
 requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
 
-
 is_win = (platform.system() == 'Windows')
 if is_win:
     pd_files = ['*.pyd', '*.dll', '*.pyi']
@@ -20,10 +19,9 @@ setup(
     license = "Apache Licence",  
     author = "OriginQ",
     install_requires=requirements,
-    description= "A Quantum Algorithm Development and Runtime Environment Kit, based on pyqpanda.",    
+    description= "A Quantum Algorithm Development and Runtime Environment Kit, based on pyqpanda3.",    
     packages = find_packages(),  
     
-    py_modules = ['psi4_wrapper'],
     package_data={
         '':pd_files
     },

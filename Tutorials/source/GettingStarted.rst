@@ -11,7 +11,7 @@ It contains many practical quantum application algorithms. Installation and use 
 Configuration
 >>>>>>>>>>>>>>>>>>>
 
-pyqpanda_alg uses C++ as the host language, and its environmental requirements for the system are as follows:
+pyqpanda_alg's environmental requirements for the system are as follows:
 
 Windows
 ---------------------
@@ -19,8 +19,6 @@ Windows
 
     * - software
       - version
-    * - `Microsoft Visual C++ Redistributable x64`_ 
-      - 2019
     * - Python
       - >= 3.11 && <= 3.13
 
@@ -35,15 +33,3 @@ Linux
       - >= 7.5 
     * - Python
       - >= 3.11 && <= 3.13
-
-
-Install
->>>>>>>>>>>>>>>>>
-
-If you have already installed the python environment and the pip tool, enter the following command in the terminal or console:
-
-    .. code-block:: python
-
-        pip install pyqpanda_alg
-
-.. note:: If you encounter permission problems under linux, you need to add ``sudo``
