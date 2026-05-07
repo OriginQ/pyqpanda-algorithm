@@ -1,0 +1,7 @@
+__pycache__/
+.pytest_cache/
+.venv/
+*.pyc
+*.pyo
+outputs*/
+Tutorials/SU2ColorChainTutorial/outputs*/

@@ -1,0 +1,24 @@
+项目名：SU(2) Color-Chain Quantum Simulation Tutorial
+
+任务类型：创新应用
+
+项目简介：
+本项目实现了一个小规模 SU(2)-对称量子多体模拟示例，用于展示 singlet 态制备、singlet/triplet sector 能谱分析、局域 color-singlet quench 和 connected color correlation between two probe sites。项目默认使用 4 到 8 个 qubit，可在本地快速复现，并提供 OpenQASM 与 pyQPanda CPUQVM 示例入口。
+
+核心展示：
+1. 使用 SU(2)-scalar interaction $S_i \cdot S_j$ 构造 color-chain toy Hamiltonian。
+2. 扫描 dimerization 参数 $\delta$，展示低能谱结构变化。
+3. 使用 total spin $\mathbf{S}_{\mathrm{tot}}^2$ 识别 singlet / triplet sector。
+4. 在中心 bond 施加 color-singlet quench，观察能量注入与低能级权重重排。
+5. 计算左右 probe sites 的 connected color correlation。
+6. 导出 singlet-pair preparation 和 color-quench probe 的 OpenQASM 原型。
+7. 提供 pyQPanda CPUQVM 示例，便于量子线路学习与迁移。
+
+适用场景：
+- 量子多体模拟教学示例。
+- SU(2) 对称性与 sector spectroscopy 演示。
+- connected correlation 与 color-chain 类观测量演示。
+- pyQPanda / OpenQASM 线路构造示例。
+
+推荐 PR 标题：
+【创新应用】SU(2) color-chain quantum simulation tutorial
