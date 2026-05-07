@@ -47,7 +47,7 @@ def main() -> None:
     write_text(out_dir / "correlation_slope_chart.txt", ascii_metric_chart(rows, "probe_corr_abs_slope", "SU(2) probe-site color-correlation slope"))
     write_text(out_dir / "fidelity_loss_chart.txt", ascii_metric_chart(rows, "fidelity_loss_to_previous", "SU(2) ground-state fidelity loss between adjacent delta values"))
     write_text(out_dir / "state_prep_singlet_pairs.qasm", singlet_pair_state_prep_qasm(args.num_qubits))
-    write_text(out_dir / "color_quench_probe.qasm", su2_color_quench_probe_qasm(args.num_qubits))
+    write_text(out_dir / "color_quench_probe.qasm", su2_color_quench_probe_qasm(args.num_qubits, theta=args.theta))
 
     print("SU(2) color-chain quantum simulation 完成")
     print(f"输出目录：{out_dir}")

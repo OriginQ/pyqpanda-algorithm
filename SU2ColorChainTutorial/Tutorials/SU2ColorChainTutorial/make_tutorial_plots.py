@@ -9,10 +9,14 @@ sys.path.insert(0, str(ROOT))
 from make_plots import main as make_plots_main
 
 
+def has_option(name: str) -> bool:
+    return any(arg == name or arg.startswith(f"{name}=") for arg in sys.argv[1:])
+
+
 if __name__ == "__main__":
     here = Path(__file__).resolve().parent
-    if "--input" not in sys.argv:
+    if not has_option("--input"):
         sys.argv.extend(["--input", str(here / "outputs" / "summary.json")])
-    if "--out" not in sys.argv:
+    if not has_option("--out"):
         sys.argv.extend(["--out", str(here / "outputs" / "figures")])
     make_plots_main()

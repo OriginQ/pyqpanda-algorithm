@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import argparse
 import sys
 from pathlib import Path
 
@@ -10,8 +9,12 @@ sys.path.insert(0, str(ROOT))
 from run_demo import main as run_demo_main
 
 
+def has_option(name: str) -> bool:
+    return any(arg == name or arg.startswith(f"{name}=") for arg in sys.argv[1:])
+
+
 if __name__ == "__main__":
     default_out = str(Path(__file__).resolve().parent / "outputs")
-    if "--out" not in sys.argv:
+    if not has_option("--out"):
         sys.argv.extend(["--out", default_out])
     run_demo_main()

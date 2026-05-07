@@ -12,6 +12,8 @@ def write_json(path: Path, payload: dict[str, Any]) -> None:
 
 
 def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
+    if not rows:
+        raise ValueError("write_csv 需要至少一行数据")
     path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = list(rows[0].keys())
     with path.open("w", newline="", encoding="utf-8") as handle:
@@ -32,7 +34,7 @@ def ascii_metric_chart(rows: list[dict[str, Any]], metric: str, title: str, x_ke
     for row, value in zip(rows, values):
         raw = float(row[metric])
         bar_len = int(width * value / max_value) if max_value > 0 else 0
-        lines.append(f"{float(row[x_key]):9.4f} {raw:24.9f}  " + "█" * max(1, bar_len))
+        lines.append(f"{float(row[x_key]):9.4f} {raw:24.9f}  " + "█" * bar_len)
     return "\n".join(lines) + "\n"
 
 

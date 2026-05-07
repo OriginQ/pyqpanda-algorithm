@@ -10,7 +10,8 @@
 
 - [x] `README.md`：项目总说明
 - [x] `contest_pitch.txt`：项目简介与应用场景
-- [x] `requirements.txt`：依赖列表
+- [x] `requirements.txt`：基础依赖列表
+- [x] `requirements-pyqpanda.txt`：pyQPanda 可选依赖列表
 - [x] `run_demo.py`：主扫描入口
 - [x] `make_plots.py`：图表生成入口
 - [x] `pyqpanda_demo.py`：pyQPanda CPUQVM 示例入口

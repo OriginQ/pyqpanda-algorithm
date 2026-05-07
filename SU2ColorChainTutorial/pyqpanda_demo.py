@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from math import pi
 from pathlib import Path
 from typing import Any
 
@@ -10,7 +11,7 @@ def load_pyqpanda() -> Any:
     try:
         import pyqpanda as pq
     except Exception as exc:
-        raise SystemExit("未安装 pyqpanda。请先运行：py -3 -m pip install pyqpanda") from exc
+        raise SystemExit("未安装 pyqpanda。请先运行：python -m pip install pyqpanda") from exc
     return pq
 
 
@@ -19,6 +20,33 @@ def insert_gate(prog: Any, gate: Any) -> Any:
     if callable(method):
         return method(gate)
     return prog << gate
+
+
+def append_rzz(pq: Any, prog: Any, qubits: list[Any], left: int, right: int, angle: float) -> None:
+    insert_gate(prog, pq.CNOT(qubits[left], qubits[right]))
+    insert_gate(prog, pq.RZ(qubits[right], angle))
+    insert_gate(prog, pq.CNOT(qubits[left], qubits[right]))
+
+
+def append_su2_color_probe(pq: Any, prog: Any, qubits: list[Any], left: int, right: int, theta: float) -> None:
+    rx = getattr(pq, "RX", None)
+    if not callable(rx):
+        raise RuntimeError("pyqpanda 未找到 RX gate")
+
+    pair_angle = theta / 2.0
+    insert_gate(prog, pq.H(qubits[left]))
+    insert_gate(prog, pq.H(qubits[right]))
+    append_rzz(pq, prog, qubits, left, right, pair_angle)
+    insert_gate(prog, pq.H(qubits[left]))
+    insert_gate(prog, pq.H(qubits[right]))
+
+    insert_gate(prog, rx(qubits[left], pi / 2.0))
+    insert_gate(prog, rx(qubits[right], pi / 2.0))
+    append_rzz(pq, prog, qubits, left, right, pair_angle)
+    insert_gate(prog, rx(qubits[left], -pi / 2.0))
+    insert_gate(prog, rx(qubits[right], -pi / 2.0))
+
+    append_rzz(pq, prog, qubits, left, right, pair_angle)
 
 
 def build_singlet_pair_program(pq: Any, qubits: list[Any], cbits: list[Any], theta: float, with_quench: bool) -> Any:
@@ -33,9 +61,7 @@ def build_singlet_pair_program(pq: Any, qubits: list[Any], cbits: list[Any], the
     if with_quench:
         center_left = len(qubits) // 2 - 1
         center_right = len(qubits) // 2
-        insert_gate(prog, pq.CNOT(qubits[center_left], qubits[center_right]))
-        insert_gate(prog, pq.RZ(qubits[center_right], theta))
-        insert_gate(prog, pq.CNOT(qubits[center_left], qubits[center_right]))
+        append_su2_color_probe(pq, prog, qubits, center_left, center_right, theta)
 
     measure = getattr(pq, "Measure", None)
     if callable(measure):

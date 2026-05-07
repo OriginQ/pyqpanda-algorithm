@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from su2_toy.model import ToyConfig, central_quench, ground_state, hamiltonian, total_spin_expectation
-from su2_toy.qasm_export import singlet_pair_state_prep_qasm
+from su2_toy.qasm_export import singlet_pair_state_prep_qasm, su2_color_quench_probe_qasm
 from su2_toy.scan import scan_parameter_grid, summarize_scan
 
 
@@ -48,3 +48,10 @@ def test_singlet_pair_qasm_shape() -> None:
     assert "OPENQASM 2.0" in qasm
     assert "cx q[0],q[1];" in qasm
     assert "cx q[2],q[3];" in qasm
+
+
+def test_color_quench_qasm_uses_theta_and_center_pair() -> None:
+    qasm = su2_color_quench_probe_qasm(6, theta=0.4)
+    assert "rz(0.2) q[3];" in qasm
+    assert "rx(1.57079632679) q[2];" in qasm
+    assert "measure q[5] -> c[5];" in qasm

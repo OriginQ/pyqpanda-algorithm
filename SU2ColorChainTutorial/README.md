@@ -2,7 +2,7 @@
 
 ## 项目简介
 
-本项目是一个面向量子算法创新应用的 SU(2) 对称量子多体模拟示例。项目使用小规模 color-chain toy Hamiltonian，展示 SU(2) singlet 态制备、singlet/triplet sector 能谱分析、局域 color-singlet quench 以及左右探测点的 connected color correlation。
+本项目是一个面向量子算法创新应用的 SU(2) 对称量子多体模拟示例。项目使用小规模 color-chain toy Hamiltonian，展示 SU(2) singlet 态制备、singlet/triplet sector 能谱分析、局域 color-singlet quench 以及左右 probe sites 的 connected color correlation。
 
 该示例默认使用 4 到 8 个 qubit，可在本地完成精确对角化扫描、图表生成和基础线路导出；同时提供 pyQPanda CPUQVM 示例，便于学习和迁移到 pyQPanda 生态。
 
@@ -33,6 +33,7 @@ SU2ColorChainTutorial/
 ├── SUBMISSION_CHECKLIST.md
 ├── contest_pitch.txt
 ├── requirements.txt
+├── requirements-pyqpanda.txt
 ├── run_demo.py
 ├── make_plots.py
 ├── pyqpanda_demo.py
@@ -50,19 +51,22 @@ SU2ColorChainTutorial/
 
 ## 安装依赖
 
+基础数值教程依赖：
+
 ```bash
 pip install -r requirements.txt
 ```
 
-依赖包括：
-
 ```text
 numpy
 matplotlib
-pyqpanda
 ```
 
-其中 `pyqpanda` 用于 CPUQVM 示例；如果只运行数值扫描和画图，`numpy` 与 `matplotlib` 即可。
+如需运行 pyQPanda CPUQVM 示例，再安装可选依赖：
+
+```bash
+pip install -r requirements-pyqpanda.txt
+```
 
 ## 赛事指定工具使用说明
 

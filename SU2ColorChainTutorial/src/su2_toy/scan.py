@@ -3,32 +3,70 @@ from __future__ import annotations
 from dataclasses import asdict
 from typing import Iterable
 
+import numpy as np
+
 from .model import (
     ToyConfig,
     central_quench,
     connected_probe_correlation,
     energy,
-    ground_state,
     hamiltonian,
-    lowest_sector_energies,
-    spectral_weights,
-    spectrum_spin_table,
     spin_from_s2,
-    total_spin_expectation,
+    total_spin_squared_operator,
 )
+from .operators import expectation
+
+
+def _eigensystem(h: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    values, vectors = np.linalg.eigh(h)
+    order = np.argsort(values.real)
+    return values[order].real, vectors[:, order]
+
+
+def _spin_table(vectors: np.ndarray, values: np.ndarray, s2_op: np.ndarray, levels: int) -> list[dict[str, float]]:
+    table = []
+    for level in range(min(levels, len(values))):
+        s2_value = float(expectation(vectors[:, level], s2_op).real)
+        table.append({"level": level, "energy": float(values[level]), "s2": s2_value, "spin": spin_from_s2(s2_value)})
+    return table
+
+
+def _lowest_sector_energies(vectors: np.ndarray, values: np.ndarray, s2_op: np.ndarray) -> dict[str, float]:
+    lowest_singlet = float("nan")
+    lowest_triplet = float("nan")
+    for level, value in enumerate(values):
+        spin = spin_from_s2(float(expectation(vectors[:, level], s2_op).real))
+        if np.isnan(lowest_singlet) and abs(spin - 0.0) < 0.35:
+            lowest_singlet = float(value)
+        if np.isnan(lowest_triplet) and abs(spin - 1.0) < 0.35:
+            lowest_triplet = float(value)
+        if not np.isnan(lowest_singlet) and not np.isnan(lowest_triplet):
+            break
+    return {
+        "lowest_singlet_e": lowest_singlet,
+        "lowest_triplet_e": lowest_triplet,
+        "singlet_triplet_gap": lowest_triplet - lowest_singlet,
+    }
+
+
+def _spectral_weights(state: np.ndarray, vectors: np.ndarray, levels: int) -> list[float]:
+    kept = min(levels, vectors.shape[1])
+    return [float(abs(np.vdot(vectors[:, level], state)) ** 2) for level in range(kept)]
 
 
 def scan_parameter_grid(config: ToyConfig, delta_values: Iterable[float], quench_theta: float = 0.35, levels: int = 8) -> list[dict[str, float | int | list[float]]]:
     rows = []
     states = []
+    s2_op = total_spin_squared_operator(config)
     for delta in delta_values:
         h = hamiltonian(config, float(delta))
-        spectrum, psi0 = ground_state(h)
+        spectrum, vectors = _eigensystem(h)
+        psi0 = vectors[:, 0]
         psiq = central_quench(psi0, config, quench_theta)
         kept = min(levels, len(spectrum))
-        spin_table = spectrum_spin_table(h, config, kept)
-        sector = lowest_sector_energies(h, config)
-        s2_ground = total_spin_expectation(psi0, config)
+        spin_table = _spin_table(vectors, spectrum, s2_op, kept)
+        sector = _lowest_sector_energies(vectors, spectrum, s2_op)
+        s2_ground = float(expectation(psi0, s2_op).real)
         states.append(psi0)
         rows.append(
             {
@@ -47,7 +85,7 @@ def scan_parameter_grid(config: ToyConfig, delta_values: Iterable[float], quench
                 "singlet_triplet_gap": sector["singlet_triplet_gap"],
                 "probe_color_conn": connected_probe_correlation(psi0, config),
                 "quench_delta_e": energy(psiq, h) - float(spectrum[0]),
-                "quench_low_level_weight": spectral_weights(psiq, h, kept),
+                "quench_low_energy_weight": _spectral_weights(psiq, vectors, kept),
                 "fidelity_to_previous": 1.0,
                 "fidelity_loss_to_previous": 0.0,
                 "probe_corr_abs_slope": 0.0,
