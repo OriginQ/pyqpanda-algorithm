@@ -94,7 +94,7 @@ def connected_probe_correlation(state: np.ndarray, config: ToyConfig) -> float:
     return float(conn)
 
 
-def total_spin_expectation(state: np.ndarray, config: ToyConfig) -> float:
+def total_spin_squared_expectation(state: np.ndarray, config: ToyConfig) -> float:
     return float(expectation(state, total_spin_squared_operator(config)).real)
 
 
@@ -113,7 +113,7 @@ def spectral_weights(state: np.ndarray, h: np.ndarray, levels: int) -> list[floa
     return [float(abs(np.vdot(vectors[:, i], state)) ** 2) for i in range(vectors.shape[1])]
 
 
-def spectrum_spin_table(h: np.ndarray, config: ToyConfig, levels: int) -> list[dict[str, float]]:
+def spectrum_spin_table(h: np.ndarray, config: ToyConfig, levels: int) -> list[dict[str, float | int]]:
     values, vectors = np.linalg.eigh(h)
     order = np.argsort(values.real)
     values = values[order].real

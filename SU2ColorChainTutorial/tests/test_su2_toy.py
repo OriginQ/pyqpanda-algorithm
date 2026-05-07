@@ -8,7 +8,7 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from su2_toy.model import ToyConfig, central_quench, ground_state, hamiltonian, total_spin_expectation
+from su2_toy.model import ToyConfig, central_quench, ground_state, hamiltonian, total_spin_squared_expectation
 from su2_toy.qasm_export import singlet_pair_state_prep_qasm, su2_color_quench_probe_qasm
 from su2_toy.scan import scan_parameter_grid, summarize_scan
 
@@ -24,7 +24,7 @@ def test_ground_state_is_normalized_and_near_singlet() -> None:
     values, psi0 = ground_state(hamiltonian(config, dimer_delta=0.2))
     assert values[1] >= values[0]
     assert np.isclose(np.linalg.norm(psi0), 1.0)
-    assert total_spin_expectation(psi0, config) < 1e-8
+    assert total_spin_squared_expectation(psi0, config) < 1e-8
 
 
 def test_color_singlet_quench_preserves_norm() -> None:

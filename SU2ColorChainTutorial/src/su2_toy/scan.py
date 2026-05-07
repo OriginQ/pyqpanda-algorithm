@@ -23,7 +23,7 @@ def _eigensystem(h: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return values[order].real, vectors[:, order]
 
 
-def _spin_table(vectors: np.ndarray, values: np.ndarray, s2_op: np.ndarray, levels: int) -> list[dict[str, float]]:
+def _spin_table(vectors: np.ndarray, values: np.ndarray, s2_op: np.ndarray, levels: int) -> list[dict[str, float | int]]:
     table = []
     for level in range(min(levels, len(values))):
         s2_value = float(expectation(vectors[:, level], s2_op).real)

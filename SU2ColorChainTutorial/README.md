@@ -82,6 +82,8 @@ pyQPanda CPUQVM             -> executable circuit realization
 
 ## 运行示例
 
+以下命令均在 `SU2ColorChainTutorial/` 目录下执行。
+
 ### 1. 运行 SU(2) 扫描
 
 ```bash
@@ -205,6 +207,8 @@ $$
 - 同时包含数值模拟、图表生成、OpenQASM 导出和 pyQPanda CPUQVM 示例。
 
 ## 验证方式
+
+在 `SU2ColorChainTutorial/` 目录下执行：
 
 ```bash
 python -m py_compile run_demo.py make_plots.py pyqpanda_demo.py

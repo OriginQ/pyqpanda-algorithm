@@ -27,7 +27,10 @@
 
 ## 本地验证命令
 
+从仓库根目录进入 `SU2ColorChainTutorial/` 后执行：
+
 ```bash
+cd SU2ColorChainTutorial
 python -m py_compile run_demo.py make_plots.py pyqpanda_demo.py
 python -m py_compile Tutorials/SU2ColorChainTutorial/run_tutorial.py Tutorials/SU2ColorChainTutorial/make_tutorial_plots.py Tutorials/SU2ColorChainTutorial/pyqpanda_cpuqvm_example.py
 python Tutorials/SU2ColorChainTutorial/run_tutorial.py --num-qubits 6 --points 17

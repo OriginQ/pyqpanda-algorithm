@@ -53,9 +53,10 @@ src/su2_toy/
 
 ## 运行教程扫描
 
-在项目根目录执行：
+从仓库根目录进入 `SU2ColorChainTutorial/` 后执行：
 
 ```bash
+cd SU2ColorChainTutorial
 python Tutorials/SU2ColorChainTutorial/run_tutorial.py --num-qubits 6 --points 17
 ```
 
@@ -89,6 +90,8 @@ color_quench_probe.qasm
 ```
 
 ## 生成图表
+
+继续在 `SU2ColorChainTutorial/` 目录下执行：
 
 ```bash
 python Tutorials/SU2ColorChainTutorial/make_tutorial_plots.py

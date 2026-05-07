@@ -42,5 +42,6 @@ def normalize(state: np.ndarray) -> np.ndarray:
 
 
 def pauli_rotation_state(state: np.ndarray, pauli_matrix: np.ndarray, theta: float) -> np.ndarray:
-    dim = pauli_matrix.shape[0]
+    if state.shape[0] != pauli_matrix.shape[0]:
+        raise ValueError("state 与 pauli_matrix 维度不匹配")
     return np.cos(theta) * state - 1j * np.sin(theta) * (pauli_matrix @ state)

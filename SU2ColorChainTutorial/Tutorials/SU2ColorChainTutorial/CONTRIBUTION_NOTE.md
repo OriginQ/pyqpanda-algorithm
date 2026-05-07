@@ -75,7 +75,10 @@ $$
 
 ## 本地验证
 
+从仓库根目录进入 `SU2ColorChainTutorial/` 后执行：
+
 ```bash
+cd SU2ColorChainTutorial
 python Tutorials/SU2ColorChainTutorial/run_tutorial.py --num-qubits 6 --points 17
 python Tutorials/SU2ColorChainTutorial/make_tutorial_plots.py
 python -c "import sys; sys.path.insert(0, 'tests'); import test_su2_toy as t; [getattr(t, n)() for n in dir(t) if n.startswith('test_')]; print('tests ok')"
