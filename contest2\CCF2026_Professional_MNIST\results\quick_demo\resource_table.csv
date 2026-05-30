@@ -1,0 +1,4 @@
+model,qubits,depth,circuit_params,head_params,total_params,one_qubit_gates,two_qubit_gates,shots,backend,train_time_sec,infer_time_sec
+logistic_8feature,0,0,0,9,9,0,0,0,classical,0.02246,0.00014
+vqc_clean,8,28,32,9,41,56,21,256,local_statevector,11.472344,0.378983
+vqc_noise_aware,8,28,32,9,41,56,21,256,local_statevector_noise_aware,12.156496,0.435632

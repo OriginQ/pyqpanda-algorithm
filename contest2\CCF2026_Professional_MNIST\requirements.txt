@@ -1,0 +1,3 @@
+# No third-party dependency is required for the default local run.
+# Optional migration targets: pyqpanda3, pyvqnet, numpy, matplotlib.
+
