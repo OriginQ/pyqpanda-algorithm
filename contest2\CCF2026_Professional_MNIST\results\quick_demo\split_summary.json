@@ -1,0 +1,17 @@
+{
+  "test": {
+    "class_0": 12,
+    "class_1": 12,
+    "samples": 24
+  },
+  "train": {
+    "class_0": 36,
+    "class_1": 36,
+    "samples": 72
+  },
+  "val": {
+    "class_0": 12,
+    "class_1": 12,
+    "samples": 24
+  }
+}

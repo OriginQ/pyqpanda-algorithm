@@ -1,0 +1,16 @@
+{
+  "angle_jitter": 0.04,
+  "ansatz_layers": 2,
+  "dataset_name": "mnist_like_3_vs_8",
+  "eval_noise_prob": 0.04,
+  "logistic_epochs": 180,
+  "n_pixels": 64,
+  "n_qubits": 8,
+  "n_samples": 120,
+  "seed": 2020,
+  "shots": 256,
+  "train_noise_prob": 0.04,
+  "train_ratio": 0.6,
+  "val_ratio": 0.2,
+  "vqc_epochs": 10
+}
