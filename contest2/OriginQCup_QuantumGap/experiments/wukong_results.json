@@ -1,0 +1,111 @@
+{
+  "backend": "WK_C180",
+  "shots": 1024,
+  "results": [
+    {
+      "label": "bell",
+      "backend": "WK_C180",
+      "shots": 1024,
+      "job_id": "FB6423D57AEF322DEB08FAF167DDD320",
+      "wall_seconds": 169.5080337524414,
+      "counts": {
+        "00": 250,
+        "01": 225,
+        "10": 47,
+        "11": 502
+      },
+      "raw_obj": null
+    },
+    {
+      "label": "ghz3",
+      "backend": "WK_C180",
+      "shots": 1024,
+      "job_id": "669F8E938B280B24727D5C5385DFCEC1",
+      "wall_seconds": 18.942503213882446,
+      "counts": {
+        "000": 467,
+        "001": 5,
+        "010": 15,
+        "011": 39,
+        "100": 20,
+        "101": 16,
+        "110": 25,
+        "111": 437
+      },
+      "raw_obj": null
+    },
+    {
+      "label": "mirror_n3_d3",
+      "backend": "WK_C180",
+      "shots": 1024,
+      "job_id": "4F4AE9A54111037B9C13081A8F6D0863",
+      "wall_seconds": 4.949408531188965,
+      "counts": {
+        "000": 609,
+        "001": 84,
+        "010": 248,
+        "011": 62,
+        "100": 11,
+        "101": 2,
+        "110": 8
+      },
+      "raw_obj": null
+    },
+    {
+      "label": "qv_n3",
+      "backend": "WK_C180",
+      "shots": 1024,
+      "job_id": "3C3E2DE3336878EBE061C9C73B18D973",
+      "wall_seconds": 5.05854344367981,
+      "counts": {
+        "000": 111,
+        "001": 42,
+        "010": 36,
+        "011": 10,
+        "100": 482,
+        "101": 209,
+        "110": 87,
+        "111": 47
+      },
+      "raw_obj": null,
+      "ideal_heavy_output_frequency": 0.9617820020006612,
+      "heavy_set_indices": [
+        0,
+        1,
+        4,
+        5
+      ]
+    }
+  ],
+  "decoded": [
+    {
+      "metric": "bell_fidelity_proxy",
+      "value": 0.734375,
+      "noiseless_target": 1.0,
+      "label": "bell",
+      "job_id": "FB6423D57AEF322DEB08FAF167DDD320"
+    },
+    {
+      "metric": "ghz_fidelity_proxy",
+      "value": 0.8828125,
+      "noiseless_target": 1.0,
+      "label": "ghz3",
+      "job_id": "669F8E938B280B24727D5C5385DFCEC1"
+    },
+    {
+      "metric": "survival_probability",
+      "value": 0.5947265625,
+      "noiseless_target": 1.0,
+      "label": "mirror_n3_d3",
+      "job_id": "4F4AE9A54111037B9C13081A8F6D0863"
+    },
+    {
+      "metric": "heavy_output_frequency",
+      "value": 0.82421875,
+      "ideal_heavy_output_frequency": 0.9617820020006612,
+      "pass_threshold": 0.6666666666666666,
+      "label": "qv_n3",
+      "job_id": "3C3E2DE3336878EBE061C9C73B18D973"
+    }
+  ]
+}

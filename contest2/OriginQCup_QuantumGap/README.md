@@ -51,7 +51,27 @@ Every benchmark hits its noiseless target on the local CPUQVM. The QV probe's he
 
 ### Origin QCloud end-to-end
 
-The Bell state has been exercised against the Origin `full_amplitude` cloud backend during development — real Origin task ID `2316D46C0EBBFD5C384896D0028A44C3` returned the expected `[0.5, 0, 0, 0.5]` amplitude vector for `|00⟩, |01⟩, |10⟩, |11⟩`.
+The Bell state was first exercised against the Origin `full_amplitude` cloud simulator — real Origin task ID `2316D46C0EBBFD5C384896D0028A44C3` returned the expected `[0.5, 0, 0, 0.5]` amplitude vector for `|00⟩, |01⟩, |10⟩, |11⟩`.
+
+### Origin Wukong WK_C180 real-hardware run
+
+The full suite has been run on the real **Wukong WK_C180** quantum processor (1024 shots each, with `QCloudOptions` mapping + optimisation + amend enabled). Every job ID below is verifiable in Origin's task console:
+
+| Benchmark | Wukong task ID | Headline metric | Noiseless target |
+|---|---|---|---|
+| `bell_benchmark` | `FB6423D57AEF322DEB08FAF167DDD320` | `bell_fidelity_proxy = 0.7344` | 1.0 |
+| `ghz_benchmark` (n=3) | `669F8E938B280B24727D5C5385DFCEC1` | `ghz_fidelity_proxy = 0.8828` | 1.0 |
+| `mirror_circuit_probe` (n=3, d=3) | `4F4AE9A54111037B9C13081A8F6D0863` | `survival_probability = 0.5947` | 1.0 |
+| `quantum_volume_probe` (n=3) | `3C3E2DE3336878EBE061C9C73B18D973` | `heavy_output_frequency = 0.8242` | pass ≥ 2/3 = 0.667 ✓ |
+
+Reading the numbers:
+
+- **Bell 0.73** — \|01⟩ leakage 22.5% (residual dephasing + readout error at the 2-qubit edge used by the transpiler).
+- **GHZ 0.88** — \|000⟩ 46.7% + \|111⟩ 43.7%, strong 3-qubit entanglement preserved across the CX ladder.
+- **Mirror 0.59** — survival after 6 layers (3 forward + 3 inverse) of random {H, S, X, CNOT}. The drop from 1.0 is the holistic mid-depth error budget.
+- **QV n=3 0.82** — single-trial heavy-output frequency comfortably above the 2/3 pass threshold; a full QV claim wants ≥ 100 trials but this probe is a fast pre-flight check.
+
+A reproducible runner is in `experiments/run_on_wukong.py`; the raw JSON record of every run is at `experiments/wukong_results.json`.
 
 ## Quick usage
 
