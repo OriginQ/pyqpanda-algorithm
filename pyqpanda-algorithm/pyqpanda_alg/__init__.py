@@ -30,7 +30,7 @@ import warnings
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 from . import QAOA
-# from . import VQE
+from . import VQE
 # from . import HHL
 # from . import QAOA
 from . import QARM
