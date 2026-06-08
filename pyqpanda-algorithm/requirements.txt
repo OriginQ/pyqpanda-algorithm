@@ -3,6 +3,8 @@ matplotlib>=3.3
 pydot
 scipy
 sympy
+pandas
+scikit-learn
 mypy>=1.14
 requests
 pycryptodome
