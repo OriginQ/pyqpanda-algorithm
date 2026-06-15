@@ -13,10 +13,20 @@
 from pyqpanda3.core import CPUQVM, QCircuit, QProg, Z, X, H, BARRIER
 import numpy as np
 
-from .. plugin import *
+from ..plugin import *
+
+
+def _ensure_list(q):
+    """Normalize a qubit argument to a list."""
+    if q is None:
+        return None
+    if not hasattr(q, '__len__'):
+        return [q]
+    return list(q)
+
 
 class Grover:
-    """ This class provides a framework for Grover Search algorithm [1].
+    """This class provides a framework for Grover Search algorithm [1].
 
     Parameters
         in_operator : callable ``f(qubits)``\n
@@ -103,40 +113,80 @@ class Grover:
         {'00': 0.0, '01': 0.0, '10': 0.0, '11': 1.0000000000000004}
 
         .. parsed-literal::
-                      ┌─┐             ┌─┐ ┌─┐     ┌─┐ ┌─┐
-            q_0:  |0>─┤H├ ─■─ ─── ─■─ ┤H├ ┤X├ ─■─ ┤X├ ┤H├
+                      ┌─┐             ┌─┐ ─┐     ┌─┐ ┌─┐
+            q_0:  |0>─┤H├ ─■─ ─── ─■─ ┤H├ ┤X├ ─■─ X├ ┤H├
                       ├─┤  │       │  ├─┤ ├─┤ ┌┴┐ ├─┤ ├─┤
-            q_1:  |0>─┤H├ ─■─ ─── ─■─ ┤H├ ┤X├ ┤Z├ ┤X├ ┤H├
-                      └─┘ ┌┴┐ ┌─┐ ┌┴┐ └─┘ └─┘ └─┘ └─┘ └─┘
+            q_1:  |0>─┤H├ ■─ ─── ─■─ ┤H├ ┤X├ ┤Z ┤X├ ┤H├
+                      └─┘ ┌┴┐ ┌─┐ ┌┴┐ └─┘ └─┘ └─┘ └─┘ └─
             q_2:  |0>──── ┤X├ ┤Z├ ┤X├ ─── ─── ─── ─── ───
                           └─┘ └─┘ └─┘
 
         """
-        if not hasattr(q_input, '__len__'):
-            q_input = [q_input]
+        if iternum < 0:
+            raise ValueError(f"iternum must be non-negative, got {iternum}")
 
-        if q_flip is None:
-            q_flip = q_input
-        if not hasattr(q_flip, '__len__'):
-            q_flip = [q_flip]
-
-        if q_zero is None:
-            q_zero = q_input
-        if not hasattr(q_zero, '__len__'):
-            q_zero = [q_zero]
+        q_input = _ensure_list(q_input)
+        q_flip = _ensure_list(q_flip) if q_flip is not None else q_input
+        q_zero = _ensure_list(q_zero) if q_zero is not None else q_input
 
         q_all = list(set(q_input + q_zero + q_flip))
         if self.amplify is not None:
             amp_cir = self.amplify(q_all)
         else:
-            amp_cir = amp_operator(q_input, q_flip, q_zero, self.in_operator, self.flip_operator, self.u_s)
+            amp_cir = amp_operator(q_input, q_flip, q_zero,
+                                   self.in_operator, self.flip_operator, self.u_s)
 
         circuit = QCircuit()
         circuit << self.in_operator(q_input)
-        while iternum > 0:
+        for _ in range(iternum):
             circuit << amp_cir
-            iternum -= 1
         return circuit
+
+    def search(self, q_input=None, q_flip=None, q_zero=None, iternum: int = 1, shots: int = 1000):
+        """
+        Run Grover search end-to-end: build circuit, execute, and return measurement results.
+
+        Parameters
+            q_input : ``QVec``\n
+                Target qubit(s) for in_operator.
+            q_flip : ``QVec``\n
+                Target qubit(s) for flip_operator.
+            q_zero : ``QVec``\n
+                Target qubit(s) for zero_flip.
+            iternum : ``int``\n
+                Number of Grover iterations.
+            shots : ``int``\n
+                Number of measurement shots. Default 1000.
+
+        Returns
+            result : ``dict``\n
+                Measurement probability dictionary.
+
+        Examples
+            >>> from pyqpanda_alg import Grover
+            >>> from pyqpanda3.core import TOFFOLI, Z, QCircuit
+            >>> def mark(qubits):
+            ...     cir = QCircuit()
+            ...     cir << TOFFOLI(qubits[0], qubits[1], qubits[2])
+            ...     cir << Z(qubits[2])
+            ...     cir << TOFFOLI(qubits[0], qubits[1], qubits[2])
+            ...     return cir
+            >>> g = Grover.Grover(flip_operator=mark)
+            >>> q = list(range(3))
+            >>> result = g.search(q_input=q[:2], q_flip=q, q_zero=q[:2], iternum=1, shots=1000)
+            >>> print(result)
+            {'00': 0.0, '01': 0.0, '10': 0.0, '11': 1.0}
+        """
+        q_input = _ensure_list(q_input)
+        q_zero = _ensure_list(q_zero) if q_zero is not None else q_input
+
+        circuit = self.cir(q_input=q_input, q_flip=q_flip, q_zero=q_zero, iternum=iternum)
+
+        machine = CPUQVM()
+        prog = QProg()
+        prog << circuit
+        machine.run(prog, shots=shots)
+        return machine.result().get_prob_dict(q_input)
 
 
 def iter_num(q_num, sol_num):
@@ -224,7 +274,6 @@ def iter_analysis(q_num, sol_num, iternum=1):
     return prob, theta
 
 
-
 def amp_operator(q_input=None, q_flip=None, q_zero=None, in_operator=None, flip_operator=None, zero_flip=None):
     """
     Construct complete Grover amplitude amplification operator.
@@ -272,29 +321,19 @@ def amp_operator(q_input=None, q_flip=None, q_zero=None, in_operator=None, flip_
 
     .. parsed-literal::
                               ┌─┐ ┌─┐     ┌─┐ ┌─┐
-        q_0:  |0>──■─ ─── ─■─ ┤H├ ┤X├ ─■─ ┤X├ ┤H├
-                   │       │  ├─┤ ├─┤ ┌┴┐ ├─┤ ├─┤
-        q_1:  |0>──■─ ─── ─■─ ┤H├ ┤X├ ┤Z├ ┤X├ ┤H├
-                  ┌┴┐ ┌─┐ ┌┴┐ └─┘ └─┘ └─┘ └─┘ └─┘
-        q_2:  |0>─┤X├ ┤Z├ ┤X├ ─── ─── ─── ─── ───
+        q_0:  |0>──■─ ── ─■─ ┤H├ X├ ─■─ ┤X├ ┤H├
+                   │       │  ├─┤ ├─┤ ┌┐ ├─┤ ├─┤
+        q_1:  |0>──■─ ─── ─■─ ┤H├ ┤X├ ┤Z├ X├ ┤H├
+                  ┴┐ ┌─┐ ┌┴┐ └─┘ └─┘ └─┘ └─ └─┘
+        q_2:  |0>─┤X├ Z├ ┤X├ ── ─── ─── ─── ───
                   └─┘ └─┘ └─┘
 
     """
-    if not hasattr(q_input, '__len__'):
-        q_input = [q_input]
+    q_input = _ensure_list(q_input)
+    q_flip = _ensure_list(q_flip) if q_flip is not None else [q_input[-1]]
+    q_zero = _ensure_list(q_zero) if q_zero is not None else q_input
 
-    if q_flip is None:
-        q_flip = [q_input[-1]]
-    if not hasattr(q_flip, '__len__'):
-        q_flip = [q_flip]
-
-    if q_zero is None:
-        q_zero = q_input
-    if not hasattr(q_zero, '__len__'):
-        q_zero = [q_zero]
-
-    in_operator_no_dagger = in_operator(q_input) if in_operator is not None else apply_QGate(q_input, H)
-    in_operator = in_operator(q_input) if in_operator is not None else apply_QGate(q_input, H)
+    in_operator_cir = in_operator(q_input) if in_operator is not None else apply_QGate(q_input, H)
 
     flip_operator = flip_operator(q_flip) if flip_operator is not None else Z(q_flip[-1])
 
@@ -306,12 +345,12 @@ def amp_operator(q_input=None, q_flip=None, q_zero=None, in_operator=None, flip_
     else:
         zero_flip = QCircuit()
         zero_flip << apply_QGate(q_zero, X)
-        zero_flip << apply_QGate([q_zero[-1]], Z).control(q_zero[:-1]) 
+        zero_flip << apply_QGate([q_zero[-1]], Z).control(q_zero[:-1])
         zero_flip << apply_QGate(q_zero, X)
 
     circuit = QCircuit()
     circuit << flip_operator
-    circuit << in_operator.dagger() << zero_flip << in_operator_no_dagger
+    circuit << in_operator_cir.dagger() << zero_flip << in_operator_cir
 
     return circuit
 
@@ -349,8 +388,7 @@ def mark_data_reflection(qubits: list = None, mark_data=None):
     {'000': 0.0, '001': 0.5000000000000002, '010': 0.0, '011': 0.0, '100': 0.0, '101': 0.5000000000000002, '110': 0.0, '111': 0.0}
 
     """
-    if not hasattr(qubits, '__len__'):
-        qubits = [qubits]
+    qubits = _ensure_list(qubits)
     flip_operator = QCircuit()
 
     if isinstance(mark_data, str):
@@ -361,15 +399,13 @@ def mark_data_reflection(qubits: list = None, mark_data=None):
         for j in range(n):
             if i[-(j + 1)] == '0':
                 flip_operator << X(qubits[j])
-            else:
-                flip_operator << BARRIER([qubits[j]])
+
         flip_operator << Z(qubits[-1]).control(qubits[:-1])
 
         for j in range(n):
             if i[-(j + 1)] == '0':
                 flip_operator << X(qubits[j])
-            else:
-                flip_operator << BARRIER([qubits[j]])
+
     return flip_operator
 
 
@@ -565,13 +601,12 @@ class GroverAdaptiveSearch:
                     if outcome not in indexes_measured:
                         indexes_measured.append(outcome)
                     if v == 0:
-                        if outcome not in indexes_measured:
+                        if outcome not in minimum_indexes:
                             minimum_indexes.append(outcome)
                         if process_show:
                             print('minimum Key Again: ', outcome)
                             print('minimum Value No Change: ', minimum_res)
-                    m = min(m * 1.34, 2 ** (self.n_index / 2)) if rotation_change == 'random' \
-                        else min(m * 1.34, 2 ** (self.n_index / 2))
+                    m = min(m * 1.34, 2 ** (self.n_index / 2))
                     if loops_with_no_improvement >= continue_times or \
                             len(indexes_measured) == num_all_solutions:
                         improvement_found = True
