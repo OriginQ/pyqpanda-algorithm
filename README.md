@@ -76,6 +76,9 @@ pyqpanda-algorithm 是由本源量子（Origin Quantum）开发的量子算法�
 
 用于求解物理建模、工程仿真中的本征值、线性方程组、矩阵分解等关键问题。
 
+- **VQE（变分量子特征值求解器）**  
+  混合量子-经典变分算法，通过参数化量子线路（Ansatz）最小化哈密顿量能量期望，求解分子基态能量（量子化学能级计算）及凝聚态物理模型（Ising、Heisenberg）的基态与低激发态能级。内置 Jordan-Wigner 变换、多种 Ansatz（hardware-efficient、UCC、对称守恒）与参数移位（parameter-shift）梯度。
+
 - **QSVD（量子变分奇异值分解）**  
   在变分框架下提取矩阵的奇异值与奇异向量，用于降维与推荐系统。
 
