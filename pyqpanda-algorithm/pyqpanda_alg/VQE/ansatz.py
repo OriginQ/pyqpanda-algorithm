@@ -82,6 +82,8 @@ def hardware_efficient_ansatz(n_qubits, params, layers=1,
     for r in rotations:
         if r not in gate_map:
             raise ValueError("rotation must be one of RX/RY/RZ, got %r" % (r,))
+    if entangler not in ("CNOT", "RXX", "RYY"):
+        raise ValueError("entangler must be CNOT/RXX/RYY, got %r" % (entangler,))
     n_rot = len(rotations)
     expected = n_qubits * n_rot * layers
     if len(params) < expected:
@@ -116,10 +118,6 @@ def hardware_efficient_n_params(n_qubits, layers=1,
     n_ent = (n_qubits - 1) * layers if n_qubits > 1 else 0
     extra = n_ent if entangler in ("RXX", "RYY") else 0
     return n_qubits * len(rotations) * layers + extra
-
-
-def _g(gate_name):
-    return {"RX": RX, "RY": RY, "RZ": RZ}[gate_name]
 
 
 def ucc_ansatz(n_qubits, params, excitations=None):

@@ -80,6 +80,15 @@ class Test_VQE_Ansatz:
         with pytest.raises(ValueError):
             ansatz.hardware_efficient_ansatz(3, [0.1, 0.2], layers=1)
 
+    def test_hardware_efficient_invalid_entangler_single_qubit(self):
+        """invalid entangler must be caught even when n_qubits=1 (no ladder)"""
+        with pytest.raises(ValueError):
+            ansatz.hardware_efficient_ansatz(1, [0.1, 0.2], entangler="BOGUS")
+
+    def test_hardware_efficient_invalid_rotation(self):
+        with pytest.raises(ValueError):
+            ansatz.hardware_efficient_ansatz(2, [0.1] * 4, rotations=("RX", "ZZ"))
+
     def test_ucc_ansatz_returns_circuit(self):
         from pyqpanda3.core import QCircuit
         circ = ansatz.ucc_ansatz(2, [0.5], excitations=[(0, 1)])
@@ -97,6 +106,33 @@ class Test_VQE_Solver:
         """非 PauliOperator 输入应抛出 TypeError"""
         with pytest.raises(TypeError):
             vqe.VQE("not a hamiltonian")
+
+    def test_vqe_custom_ansatz_requires_n_params(self):
+        """自定义 ansatz 必须显式给出 n_params"""
+        def noop(n, params):
+            return None
+        with pytest.raises(ValueError):
+            vqe.VQE(hamiltonian.h2_hamiltonian(), ansatz=noop)
+
+    def test_vqe_initial_para_length_checked(self):
+        """initial_para 长度不匹配应给出明确错误"""
+        solver = vqe.VQE(hamiltonian.h2_hamiltonian())
+        with pytest.raises(ValueError):
+            solver.run(initial_para=[0.1, 0.2], max_iter=5)
+
+    def test_vqe_gradient_free_optimizer_warns(self):
+        """gradient=True 配合无梯度优化器应发出 warning"""
+        solver = vqe.VQE(hamiltonian.h2_hamiltonian())
+        with pytest.warns(UserWarning):
+            solver.run(optimizer="COBYLA", gradient=True, max_iter=3)
+
+    def test_vqe_circuit_evals_not_doubled(self):
+        """circuit_evals 不应被 callback 重复计数 (每次迭代只算 1 次)"""
+        np.random.seed(0)
+        solver = vqe.VQE(hamiltonian.h2_hamiltonian())
+        _, _, history = solver.run(optimizer="COBYLA", max_iter=30)
+        # evals should be on the order of the iteration count, not 2x
+        assert solver.circuit_evals < 2 * len(history)
 
     def test_vqe_h2_ground_state(self):
         """VQE 应在化学精度 (1e-3 Hartree) 内求出 H2 基态能量"""

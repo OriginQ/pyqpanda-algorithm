@@ -44,6 +44,14 @@ from . import ansatz as ansatz_mod
 from . import hamiltonian as ham_mod
 
 
+# scipy.optimize.minimize methods that actually consume a gradient (jac).
+# Used to validate the ``gradient`` option of :meth:`VQE.run`.
+_GRADIENT_METHODS = {
+    "CG", "BFGS", "Newton-CG", "L-BFGS-B", "TNC", "SLSQP",
+    "dogleg", "trust-ncg", "trust-exact", "trust-krylov", "trust-constr",
+}
+
+
 class VQE:
     r"""Variational Quantum Eigensolver.
 
@@ -51,6 +59,22 @@ class VQE:
     an ansatz, :meth:`run` minimizes the variational energy and returns the
     ground-state energy estimate together with the optimal parameters and a
     convergence trace.
+
+    .. note::
+
+        Energies are evaluated as **exact state-vector expectation values**
+        :math:`\langle\psi|H|\psi\rangle` on the CPU simulator (no shot noise).
+        Gradients, when requested, are obtained with the hardware-measurable
+        **parameter-shift rule** rather than autodiff, so the same code path
+        would run on real quantum hardware.
+
+    .. note::
+
+        The result quality is bounded by the *expressivity* of the ansatz: a
+        single hardware-efficient layer is enough for ``H2`` but under-fits
+        larger systems (e.g. a 3-site Ising chain needs ~3 layers). Increase
+        ``layers`` or switch to a problem-tailored ansatz if VQE stalls above
+        the exact energy :func:`~pyqpanda_alg.VQE.hamiltonian.exact_ground_energy`.
 
     Parameters
         hamiltonian : ``PauliOperator``\n
@@ -64,8 +88,9 @@ class VQE:
             Number of qubits. If ``None`` it is inferred from ``hamiltonian``
             (``max_qbit_idx + 1``).
         n_params : ``int``, optional\n
-            Number of variational parameters expected by ``ansatz``. If
-            ``None`` it is derived from the default hardware-efficient ansatz.
+            Number of variational parameters expected by ``ansatz``. Required
+            when a custom ``ansatz`` is supplied (there is no reliable way to
+            infer it automatically); ignored for the default ansatz.
 
     Attributes
         energy_history : ``list`` of ``float``\n
@@ -112,8 +137,12 @@ class VQE:
             self.n_params = ansatz_mod.hardware_efficient_n_params(
                 n_qubits, layers=1, rotations=("RY", "RZ"), entangler="CNOT")
         else:
+            if n_params is None:
+                raise ValueError(
+                    "n_params must be provided when a custom ansatz is given "
+                    "(the parameter count cannot be inferred reliably).")
             self.ansatz = ansatz
-            self.n_params = n_params if n_params is not None else 2 * n_qubits
+            self.n_params = n_params
 
         self._qvm = CPUQVM()
         self.energy_history = []
@@ -143,22 +172,23 @@ class VQE:
         Examples
             >>> from pyqpanda_alg.VQE import vqe, hamiltonian
             >>> solver = vqe.VQE(hamiltonian.h2_hamiltonian())
-            >>> e = solver.expectation([0.0, 0.0, 0.0, 0.0])
+            >>> e = solver.expectation([0.0, 0.0, 0.0, 0.0])  # |00> reference
             >>> print(round(e, 4))
-                -0.5318
+                -1.0637
+        """
+        return self._eval_energy(params, count=True)
+
+    def _eval_energy(self, params, count=True):
+        """Core energy evaluation: build the circuit, run it, measure <H>.
+
+        ``count`` controls whether the call is added to ``circuit_evals``
+        (disabled for the redundant re-evaluations avoided in :meth:`run`).
         """
         prog = self._build_prog(params)
         self._qvm.run(prog, self.n_qubits)
         val = expval_pauli_operator(prog, self.hamiltonian)
-        self.circuit_evals += 1
-        return float(val.real)
-
-    def _expectation_raw(self, params):
-        """Energy without bookkeeping (used inside gradient evaluations)."""
-        prog = self._build_prog(params)
-        self._qvm.run(prog, self.n_qubits)
-        val = expval_pauli_operator(prog, self.hamiltonian)
-        self.circuit_evals += 1
+        if count:
+            self.circuit_evals += 1
         return float(val.real)
 
     def param_shift_gradient(self, params):
@@ -181,8 +211,8 @@ class VQE:
         for k in range(len(params)):
             plus = params.copy(); plus[k] += shift
             minus = params.copy(); minus[k] -= shift
-            grad[k] = 0.5 * (self._expectation_raw(plus)
-                             - self._expectation_raw(minus))
+            grad[k] = 0.5 * (self._eval_energy(plus)
+                             - self._eval_energy(minus))
         return grad
 
     def get_statevector(self, params):
@@ -238,23 +268,45 @@ class VQE:
             initial_para = np.random.uniform(0.0, 2 * np.pi, self.n_params)
         else:
             initial_para = np.asarray(initial_para, dtype=float)
+            if len(initial_para) != self.n_params:
+                raise ValueError(
+                    "initial_para has length %d but the ansatz expects %d "
+                    "parameter(s)." % (len(initial_para), self.n_params))
+
+        # validate gradient/optimizer compatibility up-front
+        if gradient and optimizer not in _GRADIENT_METHODS:
+            import warnings
+            warnings.warn(
+                "optimizer %r is gradient-free; the parameter-shift gradient "
+                "will be ignored. Use a gradient-aware method (e.g. 'L-BFGS-B', "
+                "'CG', 'SLSQP') to make use of it." % optimizer, stacklevel=2)
+
         self.circuit_evals = 0
         self.energy_history = []
 
         step = {"i": 0}
+        last = {"e": None}  # cache the most recent cost value for the callback
 
         def _cost(params):
-            e = self._expectation_raw(params)
+            e = self._eval_energy(params, count=True)
+            last["e"] = e
             return e
 
         def _callback(xk):
-            e = self._expectation_raw(xk)
+            # reuse the energy already computed at this iterate -- do NOT
+            # re-evaluate, which would double the circuit cost and inflate
+            # ``circuit_evals``.
+            e = last["e"]
+            if e is None:
+                e = self._eval_energy(xk, count=True)
             self.energy_history.append(e)
             step["i"] += 1
             if verbose and (step["i"] % 25 == 0 or step["i"] == 1):
                 print("  iter %4d   energy = %.8f" % (step["i"], e))
 
-        jac = self.param_shift_gradient if gradient else None
+        # only hand the gradient to optimizers that actually use it, otherwise
+        # scipy emits its own (confusing) "does not use gradient" warning.
+        jac = self.param_shift_gradient if (gradient and optimizer in _GRADIENT_METHODS) else None
         res = minimize(_cost, initial_para, method=optimizer,
                        jac=jac, tol=tol,
                        options={"maxiter": max_iter, "disp": False},
@@ -315,18 +367,15 @@ class VQE:
         for (i, j) in excitations:
             ops.append(ham_mod.jw_create(n, i) * ham_mod.jw_annihilate(n, j))
 
-        def _apply(op):
-            """Return <psi| op |psi> via a circuit expectation value."""
-            prog = self._build_prog(params)
-            self._qvm.run(prog, n)
-            return float(expval_pauli_operator(prog, op).real)
+        # Evaluate the ansatz circuit ONCE and reuse the state vector for every
+        # matrix element: <psi|O|psi> = psi^dagger . O . psi. This avoids
+        # rebuilding/rerunning the circuit for each of the dim**2 elements.
+        psi = self.get_statevector(params)
+        h_mat = _full_matrix(self.hamiltonian, n)
+        op_mats = [_full_matrix(op, n) for op in ops]
 
-        def _apply_pair(op_a, op_b):
-            r"""Return :math:`\langle\psi| A^\dagger B |\psi\rangle`."""
-            # A† B as a single PauliOperator; PauliOperator has no hermitian
-            # conjugate API, so build it from the complex-conjugate data.
-            adag_b = _dagger(op_a) * op_b
-            return _apply(adag_b)
+        def _expect(op_mat):
+            return complex(np.vdot(psi, op_mat @ psi))
 
         dim = len(ops)
         H_sub = np.zeros((dim, dim), dtype=complex)
@@ -335,10 +384,10 @@ class VQE:
             for b in range(dim):
                 # Hamiltonian matrix element <psi| A†_a H A_b |psi>.
                 # A_0 = I, so the (0,0) block reduces to the bare <psi|H|psi>.
-                adag_h_b = _dagger(ops[a]) * self.hamiltonian * ops[b]
-                H_sub[a, b] = float(_apply(adag_h_b).real)
+                adag_h_b = op_mats[a].conj().T @ h_mat @ op_mats[b]
+                H_sub[a, b] = _expect(adag_h_b)
                 # overlap matrix element <psi| A†_a A_b |psi>
-                S_sub[a, b] = _apply_pair(ops[a], ops[b])
+                S_sub[a, b] = _expect(op_mats[a].conj().T @ op_mats[b])
 
         # solve the generalized eigenvalue problem H c = E S c
         S_sub = 0.5 * (S_sub + S_sub.conj().T)  # symmetrize against numerical noise
@@ -358,12 +407,17 @@ class VQE:
         return energies
 
 
-def _dagger(op):
-    """Return the Hermitian conjugate of a PauliOperator."""
-    conj = PauliOperator({"": 0.0})
-    for term in op.terms():
-        coef = term.coef()
-        paulis = term.paulis()
-        label = " ".join("%s%d" % (p.pauli_char(), p.qbit()) for p in paulis)
-        conj = conj + np.conj(coef) * PauliOperator({label if label else "": 1.0})
-    return conj
+def _full_matrix(op, n_qubits):
+    """Return ``op`` as a dense ``2**n_qubits x 2**n_qubits`` matrix.
+
+    :meth:`PauliOperator.matrix` only spans the qubits an operator actually
+    touches (size ``2**(max_qbit_idx+1)``), so single-qubit / identity terms
+    must be padded with identities on the unused high-index qubits to live in
+    the full ``n_qubits`` Hilbert space. The padding uses
+    ``kron(I, op_matrix)`` which matches pyqpanda3's qubit ordering.
+    """
+    mat = np.array(op.matrix(), dtype=complex)
+    pad = n_qubits - (op.max_qbit_idx() + 1)
+    if pad > 0:
+        mat = np.kron(np.eye(2 ** pad, dtype=complex), mat)
+    return mat
