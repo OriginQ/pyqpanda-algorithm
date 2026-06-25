@@ -79,6 +79,9 @@ pyqpanda-algorithm 是由本源量子（Origin Quantum）开发的量子算法�
 - **QSVD（量子变分奇异值分解）**  
   在变分框架下提取矩阵的奇异值与奇异向量，用于降维与推荐系统。
 
+- **LindbladMagnus（Lindblad 动力学的随机 Magnus 变分模拟）**  
+  基于随机 Magnus 展开（Scheme I–IV）与 McLachlan 变分原理的开量子系统变分模拟算法，内置 FMO 光合复合体、阻尼 TFIM、自由基对模型及 Liouvillian 精确解参考。
+
 ### 4. **通用工具与基础组件**
 
 提供量子振幅估计算法、比较器、稀疏编码等底层工具。
