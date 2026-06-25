@@ -76,18 +76,20 @@ def sample_wiener_integrals(k: int, dt: float, approx_order: int = 1000,
     phis = rng.normal(loc=0.0, scale=1.0, size=k)
 
     idx = np.arange(1, p + 1, dtype=float)
-    R = np.diag(1.0 / idx)
+    inv_idx = 1.0 / idx
 
     # Tails of the zeta(2) and zeta(4) series; both tend to zero as p -> infty.
-    rho_p = 1.0 / 12.0 - np.sum(1.0 / idx ** 2) / (2.0 * np.pi ** 2)
-    alpha_p = np.pi ** 2 / 180.0 - np.sum(1.0 / idx ** 4) / (2.0 * np.pi ** 2)
+    rho_p = 1.0 / 12.0 - np.sum(inv_idx ** 2) / (2.0 * np.pi ** 2)
+    alpha_p = np.pi ** 2 / 180.0 - np.sum(inv_idx ** 4) / (2.0 * np.pi ** 2)
 
     a0 = (-(np.sqrt(2.0 * dt) / np.pi)
-          * np.sum(zetas / idx[None, :], axis=1)
+          * np.sum(zetas * inv_idx[None, :], axis=1)
           - 2.0 * np.sqrt(dt * rho_p) * mus)
-    aij = (zetas @ R @ etas.T - etas @ R @ zetas.T) / (2.0 * np.pi)
+    # Equivalent to (zetas @ diag(1/idx) @ etas.T - etas @ diag(1/idx) @
+    # zetas.T) / (2*pi) but avoids materialising the p*p diagonal matrix.
+    aij = ((zetas * inv_idx) @ etas.T - (etas * inv_idx) @ zetas.T) / (2.0 * np.pi)
     c0 = ((np.sqrt(2.0 * dt) / (8.0 * np.pi ** 3))
-          * np.sum(zetas / idx[None, :] ** 3, axis=1))
+          * np.sum(zetas * inv_idx[None, :] ** 3, axis=1))
 
     return {"xis": xis, "a0": a0, "aij": aij, "c0": c0, "phis": phis,
             "etas": etas, "alpha_p": alpha_p}

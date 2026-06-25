@@ -119,7 +119,8 @@ def test_solver_tfim_short_run():
                                   qsd_type="nonlinear",
                                   magnus_order=1,
                                   integrator="rk4")
-    mean, std = solver.solve(psi0, times, e_ops, traj_num=10, seed=0)
+    result = solver.solve(psi0, times, e_ops, traj_num=10, seed=0)
+    mean, std = result.expect, result.std
 
     assert mean.shape == (len(e_ops), len(times))
     assert std.shape == mean.shape
@@ -136,8 +137,9 @@ def test_solver_return_types_and_shapes():
     ansatz = HardwareEfficientAnsatz(n_qubits=2, layers=1, init_state=psi0)
     solver = LindbladMagnusSolver(H, c_ops, ansatz)
     times = np.linspace(0, 0.5, 6)
-    mean, std = solver.solve(psi0, times, e_ops, traj_num=2, seed=1)
+    result = solver.solve(psi0, times, e_ops, traj_num=2, seed=1)
+    mean = result.expect
     assert mean.shape == (len(e_ops), len(times))
-    assert std.shape == mean.shape
+    assert result.std.shape == mean.shape
     # Probabilities must remain non-negative (projector observables).
     assert np.all(mean >= -1e-9)

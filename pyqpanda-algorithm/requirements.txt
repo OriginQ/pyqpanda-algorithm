@@ -8,3 +8,4 @@ requests
 pycryptodome
 sphinx-autoapi
 pyqpanda3
+tqdm>=4.40

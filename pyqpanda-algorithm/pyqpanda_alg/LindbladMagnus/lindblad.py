@@ -31,10 +31,10 @@ The implementation follows
 
 from __future__ import annotations
 
-import warnings
+import logging
 from concurrent.futures import ProcessPoolExecutor
-from copy import deepcopy
-from typing import Callable, Sequence
+from dataclasses import dataclass, field
+from typing import Sequence
 
 import numpy as np
 
@@ -43,7 +43,70 @@ from .magnus import effective_hamiltonian, sample_wiener_integrals
 from .variational import (mclachlan_system, variational_step_euler,
                           variational_step_rk4)
 
-__all__ = ["LindbladMagnusSolver", "evolve_trajectory", "solve"]
+__all__ = ["LindbladMagnusSolver", "LindbladResult", "solve"]
+
+_LOGGER = logging.getLogger("pyqpanda_alg.LindbladMagnus")
+
+
+def _have_tqdm() -> bool:
+    """Return ``True`` if the optional :mod:`tqdm` dependency is available."""
+    try:
+        import tqdm  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
+# ----------------------------------------------------------------------
+#  Result container
+# ----------------------------------------------------------------------
+@dataclass
+class LindbladResult:
+    """Container for the output of :meth:`LindbladMagnusSolver.solve`.
+
+    Attributes
+    ----------
+    times : ``ndarray`` of shape ``(n_times,)``\n
+        Time grid used by the simulation.
+    expect : ``ndarray`` of shape ``(n_ops, n_times,)``\n
+        Trajectory-averaged expectation values of the requested observables.
+    std : ``ndarray`` of shape ``(n_ops, n_times,)``\n
+        Per-trajectory standard deviation of every observable (a measure of
+        the Monte-Carlo noise).
+    norms : ``ndarray`` of shape ``(n_times,)``\n
+        Mean wave-function norm across the trajectory ensemble.  Decays from
+        ``1.0`` for the *linear* QSD and stays close to ``1.0`` for the
+        *nonlinear* QSD.
+    traj_num : ``int``\n
+        Number of trajectories that were averaged.
+    seeds : ``list`` of ``int``\n
+        Random seeds used for each trajectory (for reproducibility).
+    solver_info : ``dict``\n
+        Read-only copy of the solver configuration (Hamiltonian shape,
+        Magnus order, QSD type, integrator, ...).
+    """
+
+    times: np.ndarray
+    expect: np.ndarray
+    std: np.ndarray
+    norms: np.ndarray = field(default_factory=lambda: np.empty(0))
+    traj_num: int = 0
+    seeds: list = field(default_factory=list)
+    solver_info: dict = field(default_factory=dict)
+
+    @property
+    def n_ops(self) -> int:
+        """Number of observables."""
+        return self.expect.shape[0]
+
+    @property
+    def n_times(self) -> int:
+        """Number of time-grid points."""
+        return self.expect.shape[1]
+
+    def __repr__(self) -> str:
+        return (f"LindbladResult(n_ops={self.n_ops}, "
+                f"n_times={self.n_times}, traj_num={self.traj_num})")
 
 
 class LindbladMagnusSolver:
@@ -52,7 +115,8 @@ class LindbladMagnusSolver:
     The solver describes the unravelling (``qsd_type``), the integration scheme
     (``magnus_order``) and the variational manifold (``ansatz``) once and for
     all.  Each call to :meth:`solve` then runs an independent ensemble of
-    trajectories and returns the averaged expectation values.
+    trajectories and returns the averaged expectation values wrapped in a
+    :class:`LindbladResult`.
 
     Parameters
     ----------
@@ -77,17 +141,23 @@ class LindbladMagnusSolver:
         and the ansatz is expected to prepare the desired initial state by
         itself (e.g. via :class:`~pyqpanda_alg.LindbladMagnus.ansatz.VariationalAnsatz`
         with a non-trivial ``init_state``).
+    eps : ``float``, optional (default=1e-12)\n
+        Tikhonov regularisation added to the McLachlan metric when solving the
+        linear system for ``dtheta/dt``.  Increase this value if the variational
+        dynamics becomes unstable.
 
     Examples
     --------
     >>> import numpy as np
     >>> from pyqpanda_alg.LindbladMagnus import (LindbladMagnusSolver,
-    ...                                          fmo_model, HardwareEfficientAnsatz)
-    >>> H, c_ops, e_ops, psi0 = fmo_model()
-    >>> ans = HardwareEfficientAnsatz(n_qubits=3, layers=2, init_state=psi0)
+    ...                                          tfim_model, HardwareEfficientAnsatz)
+    >>> H, c_ops, e_ops, psi0, _ = tfim_model()
+    >>> ans = HardwareEfficientAnsatz(n_qubits=2, layers=2, init_state=psi0)
     >>> solver = LindbladMagnusSolver(H, c_ops, ans, magnus_order=1)
-    >>> times = np.linspace(0, 50, 26)
-    >>> expect, std = solver.solve(psi0, times, e_ops, traj_num=4, seed=42)
+    >>> times = np.linspace(0, 1, 6)
+    >>> result = solver.solve(psi0, times, e_ops, traj_num=4, seed=42)
+    >>> result.expect.shape
+    (3, 6)
     """
 
     def __init__(self, H: np.ndarray, c_ops: Sequence[np.ndarray],
@@ -96,9 +166,23 @@ class LindbladMagnusSolver:
                  magnus_order: int = 1,
                  nonlinear_corr: bool = False,
                  integrator: str = "rk4",
-                 init_params: np.ndarray | None = None):
+                 init_params: np.ndarray | None = None,
+                 eps: float = 1e-12):
         self.H = np.asarray(H, dtype=complex)
+        if self.H.ndim != 2 or self.H.shape[0] != self.H.shape[1]:
+            raise ValueError(
+                f"H must be a square matrix, got shape {self.H.shape}")
+        expected_dim = 1 << ansatz.n_qubits
+        if self.H.shape[0] != expected_dim:
+            raise ValueError(
+                f"H has dimension {self.H.shape[0]} but the ansatz uses "
+                f"{ansatz.n_qubits} qubits (dimension {expected_dim})")
         self.c_ops = [np.asarray(op, dtype=complex) for op in c_ops]
+        for i, op in enumerate(self.c_ops):
+            if op.shape != self.H.shape:
+                raise ValueError(
+                    f"c_ops[{i}] has shape {op.shape} but must match H "
+                    f"shape {self.H.shape}")
         self.ansatz = ansatz
         if qsd_type not in ("nonlinear", "linear"):
             raise ValueError(
@@ -113,9 +197,22 @@ class LindbladMagnusSolver:
             raise ValueError(
                 f"integrator must be 'euler' or 'rk4', got {integrator!r}")
         self.integrator = integrator
+        self.eps = float(eps)
         self.init_params = (np.zeros(ansatz.n_parameters, dtype=float)
                             if init_params is None
                             else np.asarray(init_params, dtype=float).reshape(-1))
+        if self.init_params.size != ansatz.n_parameters:
+            raise ValueError(
+                f"init_params has length {self.init_params.size} but the "
+                f"ansatz expects {ansatz.n_parameters} parameters")
+
+    def __repr__(self) -> str:
+        return (f"LindbladMagnusSolver(H_dim={self.H.shape[0]}, "
+                f"n_c_ops={len(self.c_ops)}, "
+                f"qsd_type={self.qsd_type!r}, "
+                f"magnus_order={self.magnus_order}, "
+                f"integrator={self.integrator!r}, "
+                f"n_params={self.ansatz.n_parameters})")
 
     # ------------------------------------------------------------------ #
     #  Single-trajectory evolution                                       #
@@ -147,23 +244,29 @@ class LindbladMagnusSolver:
             ``"params"``.
         """
         tlist = np.asarray(tlist, dtype=float).reshape(-1)
+        if len(tlist) < 2:
+            raise ValueError(f"tlist must have >= 2 points, got {len(tlist)}")
         n_steps = len(tlist) - 1
-        dim = self.H.shape[0]
         ansatz = self.ansatz
+        e_ops_arr = [np.asarray(op, dtype=complex) for op in e_ops]
 
         theta = self.init_params.copy()
         psi_norm = 1.0
-        expect = np.zeros((len(e_ops), len(tlist)), dtype=float)
+        expect = np.zeros((len(e_ops_arr), len(tlist)), dtype=float)
         param_traj = np.zeros((len(tlist), ansatz.n_parameters), dtype=float)
         norm_traj = np.zeros(len(tlist), dtype=float)
 
         # Initial measurement.
-        expect[:, 0] = self._measure_observables(theta, e_ops, psi_norm)
+        expect[:, 0] = self._measure_observables(theta, e_ops_arr, psi_norm)
         param_traj[0] = theta
         norm_traj[0] = psi_norm
 
         for i in range(n_steps):
             dt = float(tlist[i + 1] - tlist[i])
+            if dt <= 0:
+                raise ValueError(
+                    f"tlist must be strictly increasing; got "
+                    f"tlist[{i+1}]={tlist[i+1]} <= tlist[{i}]={tlist[i]}")
             # Sample the stochastic integrals once per step (used for both the
             # predictor and the corrector step of the nonlinear QSD).
             rng = np.random.RandomState(seed + i)
@@ -181,19 +284,19 @@ class LindbladMagnusSolver:
             # predictor H_eff, then rebuild H_eff from the predicted state and
             # use it for the full step.
             if self.nonlinear_corr and self.qsd_type == "nonlinear":
-                theta_try, _ = variational_step_euler(ansatz, theta, H_eff, dt,
-                                                     psi_norm)
+                theta_try, _ = variational_step_euler(
+                    ansatz, theta, H_eff, dt, psi_norm, eps=self.eps)
                 psi_corr = ansatz.get_statevector(theta_try)
                 psi_corr = psi_corr / np.linalg.norm(psi_corr)
                 H_eff = self._build_H_eff(dt, theta, psi_corr, integrals)
 
             theta, psi_norm = self._integrate_step(theta, H_eff, dt, psi_norm)
 
-            expect[:, i + 1] = self._measure_observables(theta, e_ops, psi_norm)
+            expect[:, i + 1] = self._measure_observables(theta, e_ops_arr, psi_norm)
             param_traj[i + 1] = theta
             norm_traj[i + 1] = psi_norm
 
-        result = {
+        result: dict = {
             "times": tlist,
             "expect": expect,
             "norm": norm_traj,
@@ -210,64 +313,132 @@ class LindbladMagnusSolver:
               traj_num: int = 100,
               seed: int = 0,
               n_jobs: int = 1,
-              verbose: bool = False) -> tuple[np.ndarray, np.ndarray]:
+              verbose: bool | str = False) -> LindbladResult:
         """Run an ensemble of trajectories and return averaged observables.
 
         Parameters
         ----------
         psi0 : ``ndarray``\n
-            Initial wave-function (used only for validation of the
-            ``nonlinear`` unravelling against the ansatz initial state).
+            Initial wave-function.  When possible the solver checks that the
+            ansatz reproduces ``psi0`` at ``init_params`` and warns otherwise.
         tlist : ``ndarray``\n
-            Time grid.
+            Strictly increasing time grid.
         e_ops : ``list`` of ``ndarray``\n
             Observables whose expectation values are returned.
         traj_num : ``int``, optional (default=100)\n
             Number of independent Lindblad trajectories.
         seed : ``int``, optional (default=0)\n
-            Base random seed.  Trajectory ``k`` uses base ``seed + k *
-            ``traj_period`` with ``traj_period`` large enough to avoid
-            correlation.
+            Base random seed.  Trajectory ``k`` uses base
+            ``seed + k * traj_period`` with ``traj_period`` large enough to
+            avoid correlation.
         n_jobs : ``int``, optional (default=1)\n
             Number of parallel worker processes.  ``n_jobs <= 1`` runs
             serially in the current process.
-        verbose : ``bool``, optional (default=False)\n
-            Print progress information when running serially.
+        verbose : ``bool`` or ``str``, optional (default=False)\n
+            If ``True``, log a message after each trajectory.  If ``"tqdm"``,
+            display a :mod:`tqdm` progress bar (requires ``tqdm`` installed).
+            Use ``False`` for silent runs.
 
         Return
         ----------
-        expect : ``ndarray`` of shape ``(len(e_ops), len(tlist))``\n
-            Trajectory-averaged expectation values.
-        std : ``ndarray`` of shape ``(len(e_ops), len(tlist))``\n
-            Standard deviation across trajectories.
+        result : :class:`LindbladResult`\n
+            Container with the ensemble-averaged expectation values,
+            per-trajectory standard deviations, mean norms and metadata.
         """
         traj_num = int(traj_num)
         if traj_num <= 0:
             raise ValueError(f"traj_num must be positive, got {traj_num}")
-        e_ops = [np.asarray(op, dtype=complex) for op in e_ops]
+        tlist = np.asarray(tlist, dtype=float).reshape(-1)
+        if len(tlist) < 2:
+            raise ValueError(
+                f"tlist must have at least 2 points, got {len(tlist)}")
+        if np.any(np.diff(tlist) <= 0):
+            raise ValueError("tlist must be strictly increasing")
+        e_ops_arr = [np.asarray(op, dtype=complex) for op in e_ops]
+        for i, op in enumerate(e_ops_arr):
+            if op.shape != self.H.shape:
+                raise ValueError(
+                    f"e_ops[{i}] has shape {op.shape} but must match H "
+                    f"shape {self.H.shape}")
+
+        # Sanity check: ansatz(init_params) should reproduce psi0.
+        self._validate_initial_state(psi0)
+
         # Distinguish each trajectory by a large offset so the per-step seeds
         # do not overlap.
         traj_period = 10 * max(int(len(tlist)), 1)
         seeds = [seed + k * traj_period for k in range(traj_num)]
 
-        if n_jobs is None or n_jobs <= 1:
-            results = []
-            for k, s in enumerate(seeds):
-                res = self.evolve_trajectory(tlist, e_ops, seed=s)
-                results.append(res["expect"])
-                if verbose:
-                    print(f"[LindbladMagnus] trajectory {k + 1}/{traj_num} done")
-        else:
-            results = _run_parallel(self, tlist, e_ops, seeds, n_jobs)
+        if verbose == "tqdm" and not _have_tqdm():
+            _LOGGER.warning("verbose='tqdm' requested but tqdm is not "
+                            "installed; falling back to verbose=False.")
+            verbose = False
 
-        expects = np.stack(results, axis=0)  # (traj_num, n_ops, n_times)
+        if n_jobs is None or n_jobs <= 1:
+            results = list(self._iter_trajectories_serial(
+                tlist, e_ops_arr, seeds, verbose))
+        else:
+            results = _run_parallel(self, tlist, e_ops_arr, seeds,
+                                    n_jobs, verbose)
+
+        expects = np.stack([r["expect"] for r in results], axis=0)
+        norms = np.stack([r["norm"] for r in results], axis=0)
         mean = expects.mean(axis=0)
         std = expects.std(axis=0)
-        return mean, std
+        mean_norm = norms.mean(axis=0)
+
+        return LindbladResult(
+            times=tlist,
+            expect=mean,
+            std=std,
+            norms=mean_norm,
+            traj_num=traj_num,
+            seeds=seeds,
+            solver_info={
+                "qsd_type": self.qsd_type,
+                "magnus_order": self.magnus_order,
+                "integrator": self.integrator,
+                "nonlinear_corr": self.nonlinear_corr,
+                "n_c_ops": len(self.c_ops),
+                "n_params": self.ansatz.n_parameters,
+                "eps": self.eps,
+            },
+        )
+
+    def _iter_trajectories_serial(self, tlist, e_ops, seeds, verbose):
+        """Yield single-trajectory results, optionally reporting progress."""
+        total = len(seeds)
+        iterator = range(total)
+        if verbose == "tqdm":
+            import tqdm
+            iterator = tqdm.tqdm(range(total), desc="trajectories",
+                                 unit="traj")
+        elif verbose:
+            iterator = _LoggingIterator(range(total), total, _LOGGER)
+        for k in iterator:
+            yield self.evolve_trajectory(tlist, e_ops, seed=seeds[k])
 
     # ------------------------------------------------------------------ #
     #  Helpers                                                           #
     # ------------------------------------------------------------------ #
+    def _validate_initial_state(self, psi0: np.ndarray) -> None:
+        """Warn if the ansatz at ``init_params`` does not reproduce ``psi0``."""
+        try:
+            psi_ansatz = self.ansatz.get_statevector(self.init_params)
+            psi_ansatz = psi_ansatz / np.linalg.norm(psi_ansatz)
+            psi0_arr = np.asarray(psi0, dtype=complex).reshape(-1)
+            psi0_norm = psi0_arr / np.linalg.norm(psi0_arr)
+            if psi0_norm.size != psi_ansatz.size:
+                return  # different sizes, nothing to compare
+            overlap = abs(np.vdot(psi0_norm, psi_ansatz))
+            if overlap < 0.95:
+                _LOGGER.warning(
+                    "ansatz(init_params) overlaps psi0 by only %.3f; the "
+                    "simulation may not start from the requested state.",
+                    overlap)
+        except Exception:  # pragma: no cover - defensive, just logging
+            pass
+
     def _build_H_eff(self, dt: float, theta: np.ndarray,
                      psi: np.ndarray | None, integrals: dict) -> np.ndarray:
         """Wrap :func:`effective_hamiltonian` with the solver configuration."""
@@ -285,8 +456,10 @@ class LindbladMagnusSolver:
                         dt: float, psi_norm: float
                         ) -> tuple[np.ndarray, float]:
         if self.integrator == "rk4":
-            return variational_step_rk4(self.ansatz, theta, H_eff, dt, psi_norm)
-        return variational_step_euler(self.ansatz, theta, H_eff, dt, psi_norm)
+            return variational_step_rk4(self.ansatz, theta, H_eff, dt,
+                                        psi_norm, eps=self.eps)
+        return variational_step_euler(self.ansatz, theta, H_eff, dt,
+                                      psi_norm, eps=self.eps)
 
     def _measure_observables(self, theta: np.ndarray,
                              e_ops: Sequence[np.ndarray],
@@ -301,50 +474,72 @@ class LindbladMagnusSolver:
         psi = psi / np.linalg.norm(psi)
         vals = np.empty(len(e_ops), dtype=float)
         for i, op in enumerate(e_ops):
-            op = np.asarray(op, dtype=complex)
             vals[i] = float(np.real(np.vdot(psi, op @ psi)))
         if self.qsd_type == "linear":
             vals = vals * psi_norm
         return vals
 
 
-# ----------------------------------------------------------------------
-#  Functional interface
-# ----------------------------------------------------------------------
-def evolve_trajectory(solver: LindbladMagnusSolver, tlist, e_ops, seed):
-    """Top-level helper used by the worker processes."""
-    return solver.evolve_trajectory(tlist=tlist, e_ops=e_ops, seed=seed)
+class _LoggingIterator:
+    """Wrap an iterable and log progress every ``log_every`` items."""
+
+    def __init__(self, iterable, total, logger, log_every: int = 1):
+        self._iter = iter(iterable)
+        self._total = total
+        self._logger = logger
+        self._log_every = log_every
+        self._i = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        item = next(self._iter)
+        self._i += 1
+        if self._i % self._log_every == 0:
+            self._logger.info("trajectory %d/%d", self._i, self._total)
+        return item
 
 
-def _run_parallel(solver, tlist, e_ops, seeds, n_jobs):
-    """Run trajectories in separate processes."""
-    # The solver holds a CPUQVM which is not picklable; we defer to a
-    # ProcessPoolExecutor with a top-level helper that re-binds the solver.
+# ----------------------------------------------------------------------
+#  Parallel execution
+# ----------------------------------------------------------------------
+def _run_parallel(solver: LindbladMagnusSolver, tlist, e_ops, seeds,
+                  n_jobs: int, verbose):
+    """Run trajectories in separate processes.
+
+    The solver and its ansatz are picklable thanks to
+    :meth:`VariationalAnsatz.__getstate__` (which drops the non-picklable
+    :class:`CPUQVM` and lets the child process re-create one).
+    """
     try:
         with ProcessPoolExecutor(max_workers=n_jobs) as ex:
             futures = [ex.submit(_worker, solver, tlist, e_ops, s)
                        for s in seeds]
-            results = [f.result() for f in futures]
-    except Exception as exc:  # pragma: no cover - fallback path
-        warnings.warn(f"Parallel execution failed ({exc!r}); falling back to "
-                      "serial execution.")
-        results = [solver.evolve_trajectory(tlist, e_ops, seed=s)
-                   for s in seeds]
-    return [r["expect"] for r in results]
+            iterator = range(len(futures))
+            if verbose == "tqdm" and _have_tqdm():
+                import tqdm
+                iterator = tqdm.tqdm(range(len(futures)),
+                                     desc="trajectories", unit="traj")
+            results = []
+            for k in iterator:
+                results.append(futures[k].result())
+            return results
+    except Exception as exc:
+        _LOGGER.warning("Parallel execution failed (%r); falling back to "
+                        "serial execution.", exc)
+        return [solver.evolve_trajectory(tlist, e_ops, seed=s)
+                for s in seeds]
 
 
-def _worker(solver, tlist, e_ops, seed):
-    """Module-level worker that re-creates a per-process solver copy."""
-    # CPUQVM is cheap to instantiate; we strip the cached instance so the copy
-    # builds a fresh one lazily inside the child process.
-    local = deepcopy(solver)
-    local.ansatz._qvm = None  # type: ignore[attr-defined]
-    # Re-create the qvm lazily.
-    from pyqpanda3.core import CPUQVM
-    local.ansatz._qvm = CPUQVM()  # type: ignore[attr-defined]
-    return local.evolve_trajectory(tlist=tlist, e_ops=e_ops, seed=seed)
+def _worker(solver: LindbladMagnusSolver, tlist, e_ops, seed):
+    """Module-level worker used by :func:`_run_parallel`."""
+    return solver.evolve_trajectory(tlist=tlist, e_ops=e_ops, seed=seed)
 
 
+# ----------------------------------------------------------------------
+#  Functional API
+# ----------------------------------------------------------------------
 def solve(H: np.ndarray, c_ops: list[np.ndarray],
           ansatz: VariationalAnsatz,
           psi0: np.ndarray,
@@ -354,7 +549,8 @@ def solve(H: np.ndarray, c_ops: list[np.ndarray],
           magnus_order: int = 1,
           qsd_type: str = "nonlinear",
           seed: int = 0,
-          n_jobs: int = 1) -> tuple[np.ndarray, np.ndarray]:
+          n_jobs: int = 1,
+          **kwargs) -> LindbladResult:
     """Convenience functional API matching the reference package layout.
 
     Parameters
@@ -381,16 +577,18 @@ def solve(H: np.ndarray, c_ops: list[np.ndarray],
         Base random seed.
     n_jobs : ``int``, optional (default=1)\n
         Number of parallel workers.
+    **kwargs\n
+        Forwarded to :class:`LindbladMagnusSolver` (e.g. ``integrator``,
+        ``eps``, ``nonlinear_corr``).
 
     Return
     ----------
-    expect : ``ndarray`` of shape ``(len(e_ops), len(tlist))``\n
-        Ensemble-averaged expectation values.
-    std : ``ndarray`` of shape ``(len(e_ops), len(tlist))``\n
-        Per-trajectory standard deviation.
+    result : :class:`LindbladResult`\n
+        Ensemble-averaged expectation values and per-trajectory statistics.
     """
     solver = LindbladMagnusSolver(H, c_ops, ansatz,
                                   qsd_type=qsd_type,
-                                  magnus_order=magnus_order)
+                                  magnus_order=magnus_order,
+                                  **kwargs)
     return solver.solve(psi0, tlist, e_ops,
                         traj_num=traj_num, seed=seed, n_jobs=n_jobs)

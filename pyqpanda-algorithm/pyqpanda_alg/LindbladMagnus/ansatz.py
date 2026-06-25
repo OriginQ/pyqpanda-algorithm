@@ -22,14 +22,11 @@ McLachlan variational principle.
 
 from __future__ import annotations
 
-import copy
 from typing import Callable, Iterable
 
 import numpy as np
-from pyqpanda3.core import (CPUQVM, QCircuit, QProg, BARRIER, CNOT, CP, CR,
-                            CRX, CRY, CRZ, CU, CZ, H, I, ISWAP, RPhi, RX, RY,
-                            RZ, RXX, RYY, RZZ, RZX, S, SQISWAP, SWAP, T,
-                            TOFFOLI, X, X1, Y, Y1, Z, Z1)
+from pyqpanda3.core import (CPUQVM, QProg, CNOT, CZ, H, ISWAP, SWAP, RX, RY,
+                            RZ, RXX, RYY, RZZ, RZX, S, T, TOFFOLI, X, Y, Z)
 
 __all__ = ["VariationalAnsatz", "HardwareEfficientAnsatz"]
 
@@ -42,6 +39,30 @@ __all__ = ["VariationalAnsatz", "HardwareEfficientAnsatz"]
 # are both supported.
 _PARAM_GATES = {RX: "X", RY: "Y", RZ: "Z"}
 _PARAM_GATES_2Q = {RZZ: "ZZ", RXX: "XX", RYY: "YY", RZX: "ZX"}
+
+
+# Registry of all pyqpanda3 gate factories supported by ``add_gate``.  Storing
+# gate factories by name keeps ``_gates`` picklable (pybind11 gate factories
+# carry a PyCapsule that the standard pickler cannot serialise).
+_GATE_REGISTRY: dict[str, Callable] = {
+    "H": H, "X": X, "Y": Y, "Z": Z, "S": S, "T": T,
+    "CNOT": CNOT, "CZ": CZ, "SWAP": SWAP, "ISWAP": ISWAP, "TOFFOLI": TOFFOLI,
+    "RX": RX, "RY": RY, "RZ": RZ,
+    "RXX": RXX, "RYY": RYY, "RZZ": RZZ, "RZX": RZX,
+}
+_PARAM_GATE_NAMES = {name for name in
+                     ({f: n for f, n in _PARAM_GATES.items()} |
+                      {f: n for f, n in _PARAM_GATES_2Q.items()})
+                     for name in [f.__name__ for f in
+                                  list(_PARAM_GATES) + list(_PARAM_GATES_2Q)]}
+
+
+def _factory_name(factory: Callable) -> str:
+    """Return the registry name of a gate factory."""
+    try:
+        return factory.__name__
+    except AttributeError:
+        return str(factory)
 
 
 def _is_param_gate(factory: Callable) -> bool:
@@ -95,6 +116,26 @@ class VariationalAnsatz:
                     f"{init_state.shape}")
 
     # ------------------------------------------------------------------ #
+    #  Pickling support (CPUQVM is not picklable)                        #
+    # ------------------------------------------------------------------ #
+    def __getstate__(self) -> dict:
+        """Exclude the non-picklable :class:`CPUQVM` from the state dict."""
+        state = self.__dict__.copy()
+        state["_qvm"] = None
+        return state
+
+    def __setstate__(self, state: dict) -> None:
+        """Re-create a fresh :class:`CPUQVM` after unpickling."""
+        self.__dict__.update(state)
+        self._qvm = CPUQVM()
+
+    def __repr__(self) -> str:
+        cls = type(self).__name__
+        return (f"{cls}(n_qubits={self.n_qubits}, "
+                f"n_parameters={self.n_parameters}, "
+                f"n_gates={len(self._gates)})")
+
+    # ------------------------------------------------------------------ #
     #  Construction                                                       #
     # ------------------------------------------------------------------ #
     @property
@@ -111,8 +152,9 @@ class VariationalAnsatz:
         ----------
         factory : ``callable``\n
             A gate constructor from :mod:`pyqpanda3.core`, e.g. ``RX``, ``H``,
-            ``CNOT``.  Parameterised rotations (``RX``/``RY``/``RZ``) are
-            detected automatically and consume one parameter.
+            ``CNOT``.  Parameterised rotations (``RX``/``RY``/``RZ`` and
+            ``RZZ``/``RXX``/``RYY``) are detected automatically and consume one
+            parameter.
         qubits : ``int`` or ``tuple`` of ``int``\n
             Qubit index (or tuple of indices) the gate acts on.
         param_index : ``int``, optional\n
@@ -121,13 +163,18 @@ class VariationalAnsatz:
             next free index is used automatically.
         extra : ``float``, optional\n
             Constant offset added to ``theta[param_index]`` before being passed
-            to the gate, useful for parameterised :class:`RPhi`-style gates.
+            to the gate.
 
         Return
         ----------
         self : :class:`VariationalAnsatz`\n
             Enables chaining of ``add_gate`` calls.
         """
+        name = _factory_name(factory)
+        if name not in _GATE_REGISTRY:
+            raise ValueError(
+                f"unsupported gate factory {factory!r}; supported gates are: "
+                f"{sorted(_GATE_REGISTRY)}")
         if isinstance(qubits, int):
             qubits = (qubits,)
         else:
@@ -138,9 +185,9 @@ class VariationalAnsatz:
                 self._param_count += 1
             elif param_index + 1 > self._param_count:
                 self._param_count = param_index + 1
-            self._gates.append(("param", factory, qubits, param_index, extra))
+            self._gates.append(("param", name, qubits, param_index, extra))
         else:
-            self._gates.append(("static", factory, qubits, extra))
+            self._gates.append(("static", name, qubits, extra))
         return self
 
     def add_layer(self, gates: Iterable[tuple]) -> "VariationalAnsatz":
@@ -170,6 +217,24 @@ class VariationalAnsatz:
     # ------------------------------------------------------------------ #
     #  Circuit assembly                                                  #
     # ------------------------------------------------------------------ #
+    def to_qprog(self, theta: np.ndarray | None = None) -> QProg:
+        """Build the :class:`~pyqpanda3.core.QProg` for ``theta``.
+
+        Parameters
+        ----------
+        theta : ``ndarray``, optional\n
+            Variational parameters.  Defaults to a zero vector so that the
+            returned circuit prepares the reference state.
+
+        Return
+        ----------
+        prog : :class:`~pyqpanda3.core.QProg`\n
+            The concrete quantum program (can be drawn, transpiled, etc.).
+        """
+        if theta is None:
+            theta = np.zeros(self._param_count)
+        return self._build_prog(theta)
+
     def _build_prog(self, theta: np.ndarray) -> QProg:
         """Build the :class:`~pyqpanda3.core.QProg` corresponding to ``theta``."""
         theta = np.asarray(theta, dtype=float).reshape(-1)
@@ -179,20 +244,19 @@ class VariationalAnsatz:
                 f"{self._param_count} parameters")
         prog = QProg()
         if self.init_state is not None:
-            # Use the Encode facility of pyqpanda3 to load the reference state
-            # through X gates on the basis-bit positions only when the state
-            # happens to be computational-basis.  For general states we fall
-            # back to the ``Encode`` helper.
             prog << _prepare_state_prog(self.init_state, self.n_qubits)
         for entry in self._gates:
-            if entry[0] == "param":
-                _, factory, qubits, idx, extra = entry
+            kind = entry[0]
+            factory = _GATE_REGISTRY[entry[1]]
+            qubits = entry[2]
+            if kind == "param":
+                _, _, _, idx, extra = entry
                 angle = float(theta[idx])
                 if extra is not None:
                     angle += float(extra)
                 prog << factory(*qubits, angle)
             else:
-                _, factory, qubits, extra = entry
+                _, _, _, extra = entry
                 if extra is None:
                     prog << factory(*qubits)
                 else:
@@ -358,11 +422,30 @@ class HardwareEfficientAnsatz(VariationalAnsatz):
 
 
 def _prepare_state_prog(state: np.ndarray, n_qubits: int) -> QProg:
-    """Build a :class:`QProg` that prepares the basis state ``state``.
+    """Build a :class:`QProg` that prepares the reference ``state``.
 
-    Only computational-basis states are handled here (the only case used by the
-    bundled application models).  Arbitrary reference states should be prepared
-    by the caller through user-supplied gates.
+    Only computational-basis states (a single non-zero amplitude) are supported
+    through X gates.  This covers every model shipped with the module (FMO,
+    TFIM, RPM).  Applications needing an arbitrary superposition as reference
+    should prepare it through user-added static gates.
+
+    Parameters
+    ----------
+    state : ``ndarray``\n
+        Reference state-vector, length ``2**n_qubits``.
+    n_qubits : ``int``\n
+        Number of qubits.
+
+    Return
+    ----------
+    prog : :class:`~pyqpanda3.core.QProg`\n
+        Quantum program preparing the requested basis state.
+
+    Raises
+    ------
+    ValueError
+        If ``state`` is not a computational-basis state.  The caller is
+        expected to add the necessary preparation gates manually in that case.
     """
     prog = QProg()
     amp = np.asarray(state, dtype=complex).reshape(-1)
@@ -373,5 +456,8 @@ def _prepare_state_prog(state: np.ndarray, n_qubits: int) -> QProg:
             if (idx >> bit) & 1:
                 prog << X(bit)
         return prog
-    # Fallback: empty program; the caller is expected to add preparation gates.
-    return prog
+    raise ValueError(
+        "init_state must be a computational-basis state (exactly one "
+        "non-zero amplitude) to be prepared automatically; got a state "
+        f"with {nonzero.size} non-zero amplitudes. Either supply a basis "
+        "state or add preparation gates to the ansatz explicitly.")

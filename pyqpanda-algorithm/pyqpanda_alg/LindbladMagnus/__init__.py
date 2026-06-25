@@ -35,7 +35,7 @@ Examples
 '''
 
 from .ansatz import HardwareEfficientAnsatz, VariationalAnsatz
-from .lindblad import LindbladMagnusSolver, solve
+from .lindblad import LindbladMagnusSolver, LindbladResult, solve
 from .magnus import effective_hamiltonian, sample_wiener_integrals
 from .models import fmo_model, liouvillian, mesolve, rpm_model, tfim_model
 from .variational import (mclachlan_system, variational_step_euler,
@@ -43,6 +43,7 @@ from .variational import (mclachlan_system, variational_step_euler,
 
 __all__ = [
     "LindbladMagnusSolver",
+    "LindbladResult",
     "solve",
     "effective_hamiltonian",
     "sample_wiener_integrals",

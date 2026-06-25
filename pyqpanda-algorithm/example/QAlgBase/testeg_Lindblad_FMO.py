@@ -79,8 +79,10 @@ def main(out_dir: str = "test_outputs", traj_num: int = 30,
                                   qsd_type=qsd_type,
                                   magnus_order=magnus_order,
                                   integrator="rk4")
-    mean, std = solver.solve(psi0, times, e_ops,
-                             traj_num=traj_num, seed=42)
+    result = solver.solve(psi0, times, e_ops,
+                          traj_num=traj_num, seed=42, verbose=True)
+    mean = result.expect
+    std = result.std
     max_err = float(np.abs(mean - exact).max())
     print(f"  -> maximum error vs exact: {max_err:.4f}")
     print(f"  -> final populations:")

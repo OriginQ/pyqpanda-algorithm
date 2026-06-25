@@ -86,8 +86,9 @@ def main(out_dir: str = "test_outputs") -> None:
                                       qsd_type="nonlinear",
                                       magnus_order=order,
                                       integrator="rk4")
-        mean, std = solver.solve(psi0, times, e_ops,
-                                 traj_num=traj_num, seed=42)
+        result = solver.solve(psi0, times, e_ops,
+                              traj_num=traj_num, seed=42, verbose=True)
+        mean = result.expect
         max_err = float(np.abs(mean - exact).max())
         print(f"  -> maximum error vs exact: {max_err:.4f}")
         for i, lab in enumerate(labels):
