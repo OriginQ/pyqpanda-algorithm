@@ -61,9 +61,11 @@ def sample_wiener_integrals(k: int, dt: float, approx_order: int = 1000,
     Return
     ----------
     integrals : ``dict``\n
-        Dictionary with keys ``"xis"``, ``"mus"``, ``"phis"``, ``"a0"``,
-        ``"aij"`` and ``"c0"``, each holding the corresponding stochastic
-        multi-integrals.
+        Dictionary with keys ``"xis"`` (Wiener increments, shape ``(k,)``),
+        ``"a0"`` (Brownian bridge integrals), ``"aij"`` (Lévy area,
+        ``(k, k)``), ``"c0"`` (4th-order iterated integral), ``"phis"``
+        (Gaussian RVs, ``(k,)``), ``"etas"`` (Brownian bridge Fourier
+        modes, ``(k, p)``) and ``"alpha_p"`` (the truncated zeta(4) tail).
     """
     if rng is None:
         rng = np.random.RandomState()
@@ -122,6 +124,39 @@ def _drift_operator(H: np.ndarray, c_ops: list[np.ndarray],
     X_0 = -1j * H
     for op, e_op in zip(c_ops, channel_expects):
         X_0 = X_0 + (-0.5 * (op.conj().T + op) @ op + 2.0 * np.real(e_op) * op)
+    return X_0
+
+
+def _euler_maruyama_drift(H: np.ndarray, c_ops: list[np.ndarray],
+                          channel_expects: np.ndarray) -> np.ndarray:
+    """Build the Euler-Maruyama (Scheme 0) drift operator.
+
+    The Euler-Maruyama scheme of the reference uses a *different* drift from
+    the higher-order Magnus schemes: it employs the standard linear-QSD
+    drift :math:`-\\tfrac{1}{2}L_k^\\dagger L_k` together with the conjugate
+    feedback :math:`\\langle L_k\\rangle^* L_k` instead of the nonlinear drift
+    :math:`-\\tfrac{1}{2}(L_k^\\dagger + L_k)L_k + 2\\mathrm{Re}(\\langle
+    L_k\\rangle)L_k` used by Scheme I-IV.
+
+    Parameters
+    ----------
+    H : ``ndarray``\n
+        System Hamiltonian.
+    c_ops : ``list`` of ``ndarray``\n
+        List of collapse operators.
+    channel_expects : ``ndarray``\n
+        Complex array of length ``len(c_ops)`` with the expectation values
+        of each collapse operator (zero for the linear QSD).
+
+    Return
+    ----------
+    X_0 : ``ndarray``\n
+        The Euler-Maruyama drift :math:`X_0 = -iH + \\sum_k [-\\tfrac{1}{2}
+        L_k^\\dagger L_k + \\langle L_k\\rangle^* L_k]`.
+    """
+    X_0 = -1j * H
+    for op, e_op in zip(c_ops, channel_expects):
+        X_0 = X_0 + (-0.5 * op.conj().T @ op + np.conj(e_op) * op)
     return X_0
 
 
@@ -206,7 +241,8 @@ def effective_hamiltonian(H: np.ndarray, c_ops: list[np.ndarray], dt: float,
     else:
         expects_used = expects
 
-    X_0 = _drift_operator(H, c_ops, expects_used)
+    X_0 = _drift_operator(H, c_ops, expects_used) if magnus_order > 0 \
+        else _euler_maruyama_drift(H, c_ops, expects_used)
     Omega = X_0 * dt
 
     if magnus_order > 0:
@@ -261,5 +297,6 @@ def _channel_expectations(psi: np.ndarray,
         Complex array of expectation values.
     """
     psi = np.asarray(psi).reshape(-1)
-    rho = np.outer(psi.conj(), psi)
-    return np.array([np.trace(rho @ op) for op in c_ops], dtype=complex)
+    # Use vdot(Op @ psi, psi) (O(d^2)) instead of the equivalent
+    # trace(|psi><psi| @ Op) (O(d^3)); both compute <psi| Op |psi>.
+    return np.array([np.vdot(op @ psi, psi) for op in c_ops], dtype=complex)

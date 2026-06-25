@@ -50,11 +50,6 @@ _GATE_REGISTRY: dict[str, Callable] = {
     "RX": RX, "RY": RY, "RZ": RZ,
     "RXX": RXX, "RYY": RYY, "RZZ": RZZ, "RZX": RZX,
 }
-_PARAM_GATE_NAMES = {name for name in
-                     ({f: n for f, n in _PARAM_GATES.items()} |
-                      {f: n for f, n in _PARAM_GATES_2Q.items()})
-                     for name in [f.__name__ for f in
-                                  list(_PARAM_GATES) + list(_PARAM_GATES_2Q)]}
 
 
 def _factory_name(factory: Callable) -> str:

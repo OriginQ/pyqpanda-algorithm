@@ -28,7 +28,7 @@ integrates it with :mod:`scipy.integrate`, removing any external dependency on
 from __future__ import annotations
 
 import numpy as np
-from scipy.integrate import odeint, solve_ivp
+from scipy.integrate import solve_ivp
 
 __all__ = [
     "fmo_model",
