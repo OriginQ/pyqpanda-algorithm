@@ -67,14 +67,14 @@ def liouvillian(H: np.ndarray, c_ops: list[np.ndarray]) -> np.ndarray:
 
     Parameters
     ----------
-    H : ``ndarray``\n
+    H : ``ndarray``
         System Hamiltonian.
-    c_ops : ``list`` of ``ndarray``\n
+    c_ops : ``list`` of ``ndarray``
         Collapse operators.
 
     Return
     ----------
-    L : ``ndarray``\n
+    L : ``ndarray``
         The Liouvillian super-operator with shape ``(d**2, d**2)``.
     """
     H = np.asarray(H, dtype=complex)
@@ -101,23 +101,23 @@ def mesolve(H: np.ndarray, psi0: np.ndarray, tlist: np.ndarray,
 
     Parameters
     ----------
-    H : ``ndarray``\n
+    H : ``ndarray``
         System Hamiltonian.
-    psi0 : ``ndarray``\n
+    psi0 : ``ndarray``
         Initial pure state.  Mixed-state inputs are also accepted as long as
         they are square density matrices.
-    tlist : ``ndarray``\n
+    tlist : ``ndarray``
         Time grid.
-    c_ops : ``list`` of ``ndarray``\n
+    c_ops : ``list`` of ``ndarray``
         Collapse operators.
-    e_ops : ``list`` of ``ndarray``\n
+    e_ops : ``list`` of ``ndarray``
         Observables whose expectation values are returned.
-    method : ``str``, optional (default='RK45')\n
+    method : ``str``, optional (default='RK45')
         Integrator passed to :func:`scipy.integrate.solve_ivp`.
 
     Return
     ----------
-    expect : ``ndarray`` of shape ``(len(e_ops), len(tlist))``\n
+    expect : ``ndarray`` of shape ``(len(e_ops), len(tlist))``
         Expectation values of ``e_ops``.
     """
     H = np.asarray(H, dtype=complex)
@@ -138,6 +138,8 @@ def mesolve(H: np.ndarray, psi0: np.ndarray, tlist: np.ndarray,
 
     sol = solve_ivp(_rhs, (tlist[0], tlist[-1]), vec0, t_eval=tlist,
                     method=method, rtol=1e-9, atol=1e-11)
+    if not sol.success:
+        raise RuntimeError(f"scipy.integrate.solve_ivp failed: {sol.message}")
     traj = sol.y.T  # (len(tlist), d**2)
 
     expect = np.empty((len(e_ops), len(tlist)), dtype=float)
@@ -154,13 +156,13 @@ def mesolve(H: np.ndarray, psi0: np.ndarray, tlist: np.ndarray,
 # ----------------------------------------------------------------------
 def fmo_model() -> tuple[np.ndarray, list[np.ndarray], list[np.ndarray],
                           np.ndarray, list[str]]:
-    """Return the 5-site FMO sub-network used in the paper.
+    """Return the 5-state FMO sub-network used in the paper.
 
     The Hamiltonian describes the electronic exciton dynamics in the
-    Fenna-Matthews-Olson pigment-protein complex restricted to the three-site
-    sub-network coupled to a sink and to the electronic ground state.  The
-    returned matrices are padded to the nearest power of two so that they fit
-    in a 3-qubit Hilbert space.
+    Fenna-Matthews-Olson pigment-protein complex restricted to a three-site
+    exciton sub-network coupled to a sink and to the electronic ground state
+    (3 sites + ground + sink = 5 states).  The returned matrices are padded to
+    the nearest power of two so that they fit in a 3-qubit Hilbert space.
 
     The collapse operators describe pure dephasing on the three sites,
     radiative decay to the ground state and irreversible transfer to the sink.
@@ -170,16 +172,16 @@ def fmo_model() -> tuple[np.ndarray, list[np.ndarray], list[np.ndarray],
 
     Return
     ----------
-    H : ``ndarray`` of shape ``(8, 8)``\n
+    H : ``ndarray`` of shape ``(8, 8)``
         System Hamiltonian in atomic units.
-    c_ops : ``list`` of ``ndarray``\n
+    c_ops : ``list`` of ``ndarray``
         Seven collapse operators: three dephasing, three decay and one sink.
-    e_ops : ``list`` of ``ndarray``\n
+    e_ops : ``list`` of ``ndarray``
         Five population observables ``|site><site|`` for site 1, 2, 3, the
         sink and the ground state.
-    psi0 : ``ndarray``\n
+    psi0 : ``ndarray``
         Initial state ``|site 1>`` encoded in an 8-dimensional Hilbert space.
-    labels : ``list`` of ``str``\n
+    labels : ``list`` of ``str``
         Human-readable names of the observables in ``e_ops``.
     """
     # Hamiltonian in eV-like units then converted to angular-frequency units
@@ -246,20 +248,20 @@ def tfim_model() -> tuple[np.ndarray, list[np.ndarray], list[np.ndarray],
 
     Return
     ----------
-    H : ``ndarray``\n
+    H : ``ndarray``
         System Hamiltonian (4x4).
-    c_ops : ``list`` of ``ndarray``\n
+    c_ops : ``list`` of ``ndarray``
         Two amplitude-damping operators.
-    e_ops : ``list`` of ``ndarray``\n
+    e_ops : ``list`` of ``ndarray``
         Projectors on ``|00>, |11>`` and ``|01>``.
-    psi0 : ``ndarray``\n
+    psi0 : ``ndarray``
         Initial state ``|11>``.
-    labels : ``list`` of ``str``\n
+    labels : ``list`` of ``str``
         Names of the observables.
     """
     PX = np.array([[0, 1], [1, 0]], dtype=complex)
     PZ = np.array([[1, 0], [0, -1]], dtype=complex)
-    PL = np.array([[0, 1], [0, 0]], dtype=complex)  # lowering |1><0|
+    PL = np.array([[0, 1], [0, 0]], dtype=complex)  # lowering |0><1| (sigma_-)
     PJ0 = np.array([[1, 0], [0, 0]], dtype=complex)
     PJ1 = np.array([[0, 0], [0, 1]], dtype=complex)
     ID = np.eye(2, dtype=complex)
@@ -295,27 +297,27 @@ def rpm_model(k_recombine: float = 0.1,
 
     Parameters
     ----------
-    k_recombine : ``float``, optional (default=0.1)\n
+    k_recombine : ``float``, optional (default=0.1)
         Recombination rate (S/T decay into the product states).
-    k_escape : ``float``, optional (default=0.001)\n
+    k_escape : ``float``, optional (default=0.001)
         Slow escape rate from every radical-pair state.
-    omega : ``float``, optional (default=1.0)\n
+    omega : ``float``, optional (default=1.0)
         Singlet-triplet mixing frequency.  Set to ``1.0`` for normalised
         units; the physical hyperfine value is around :math:`2\\pi\\cdot10^7`.
 
     Return
     ----------
-    H : ``ndarray``\n
+    H : ``ndarray``
         System Hamiltonian padded to ``8 x 8`` (3 qubits) so it can be used
         directly with :class:`~pyqpanda_alg.LindbladMagnus.lindblad.LindbladMagnusSolver`.
-    c_ops : ``list`` of ``ndarray``\n
+    c_ops : ``list`` of ``ndarray``
         Collapse operators for singlet and triplet products plus escape,
         padded to the same ``8 x 8`` shape.
-    e_ops : ``list`` of ``ndarray``\n
+    e_ops : ``list`` of ``ndarray``
         Projectors on the singlet and triplet product states.
-    psi0 : ``ndarray``\n
+    psi0 : ``ndarray``
         Initial singlet radical pair state, length 8.
-    labels : ``list`` of ``str``\n
+    labels : ``list`` of ``str``
         Observable names.
     """
     # Two spin-1/2 particles: S, T0, T+, T- (S+T0 share the m=0 subspace,

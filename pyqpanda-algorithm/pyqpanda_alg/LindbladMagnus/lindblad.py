@@ -66,25 +66,25 @@ class LindbladResult:
 
     Attributes
     ----------
-    times : ``ndarray`` of shape ``(n_times,)``\n
+    times : ``ndarray`` of shape ``(n_times,)``
         Time grid used by the simulation.
-    expect : ``ndarray`` of shape ``(n_ops, n_times,)``\n
+    expect : ``ndarray`` of shape ``(n_ops, n_times,)``
         Trajectory-averaged expectation values of the requested observables.
-    std : ``ndarray`` of shape ``(n_ops, n_times,)``\n
+    std : ``ndarray`` of shape ``(n_ops, n_times,)``
         Per-trajectory standard deviation of every observable (a measure of
         the Monte-Carlo noise).
-    norms : ``ndarray`` of shape ``(n_times,)``\n
+    norms : ``ndarray`` of shape ``(n_times,)``
         Mean of the auxiliary norm :math:`N` tracked by the variational
         step.  For the *linear* QSD this is the physical wavefunction
         squared norm and decays from ``1.0``.  For the *nonlinear* QSD the
         ansatz state is always renormalised, so the reported value is a
         diagnostic of the non-Hermiticity of the effective Hamiltonian
         rather than the physical norm.
-    traj_num : ``int``\n
+    traj_num : ``int``
         Number of trajectories that were averaged.
-    seeds : ``list`` of ``int``\n
+    seeds : ``list`` of ``int``
         Random seeds used for each trajectory (for reproducibility).
-    solver_info : ``dict``\n
+    solver_info : ``dict``
         Read-only copy of the solver configuration (Hamiltonian shape,
         Magnus order, QSD type, integrator, ...).
     """
@@ -123,28 +123,28 @@ class LindbladMagnusSolver:
 
     Parameters
     ----------
-    H : ``ndarray``\n
+    H : ``ndarray``
         System Hamiltonian (Hermitian, shape ``(2**n, 2**n)``).
-    c_ops : ``list`` of ``ndarray``\n
+    c_ops : ``list`` of ``ndarray``
         Lindblad collapse operators.
-    ansatz : :class:`~pyqpanda_alg.LindbladMagnus.ansatz.VariationalAnsatz`\n
+    ansatz : :class:`~pyqpanda_alg.LindbladMagnus.ansatz.VariationalAnsatz`
         Parameterised variational ansatz describing the simulation manifold.
-    qsd_type : ``{'nonlinear', 'linear'}``, optional (default='nonlinear')\n
+    qsd_type : ``{'nonlinear', 'linear'}``, optional (default='nonlinear')
         Choice of unravelling.
-    magnus_order : ``int``, optional (default=1)\n
+    magnus_order : ``int``, optional (default=1)
         Order of the stochastic Magnus expansion.  ``0`` selects the
         Euler-Maruyama scheme and ``1``-``4`` enable the higher-order Magnus
         schemes of the paper.
-    nonlinear_corr : ``bool``, optional (default=False)\n
+    nonlinear_corr : ``bool``, optional (default=False)
         Predictor-corrector flag for the nonlinear QSD drift.
-    integrator : ``{'euler', 'rk4'}``, optional (default='rk4')\n
+    integrator : ``{'euler', 'rk4'}``, optional (default='rk4')
         Classical integrator used for the variational equation of motion.
-    init_params : ``ndarray``, optional\n
+    init_params : ``ndarray``, optional
         Initial variational parameters.  When ``None`` a zero vector is used
         and the ansatz is expected to prepare the desired initial state by
         itself (e.g. via :class:`~pyqpanda_alg.LindbladMagnus.ansatz.VariationalAnsatz`
         with a non-trivial ``init_state``).
-    eps : ``float``, optional (default=1e-12)\n
+    eps : ``float``, optional (default=1e-12)
         Tikhonov regularisation added to the McLachlan metric when solving the
         linear system for ``dtheta/dt``.  Increase this value if the variational
         dynamics becomes unstable.
@@ -232,20 +232,20 @@ class LindbladMagnusSolver:
 
         Parameters
         ----------
-        tlist : ``ndarray``\n
+        tlist : ``ndarray``
             Time grid.  The first entry is taken as ``t_0``.
-        e_ops : ``list`` of ``ndarray``\n
+        e_ops : ``list`` of ``ndarray``
             Observables whose expectation values are returned at every time.
-        seed : ``int``, optional (default=0)\n
+        seed : ``int``, optional (default=0)
             Base random seed for this trajectory.  The actual seed used at
             step ``i`` is ``seed + i`` so that the same ``seed`` reproduces the
             same Wiener path.
-        return_params : ``bool``, optional (default=False)\n
+        return_params : ``bool``, optional (default=False)
             If ``True`` the dictionary also contains the parameter trajectory.
 
         Return
         ----------
-        result : ``dict``\n
+        result : ``dict``
             Dictionary with keys ``"times"`` (the input time grid),
             ``"expect"`` (array of shape ``(len(e_ops), len(tlist))``),
             ``"norm"`` (wavefunction norm at every time) and, optionally,
@@ -291,8 +291,8 @@ class LindbladMagnusSolver:
 
             H_eff = self._build_H_eff(dt, theta, psi_pred, integrals)
 
-            # Optional predictor-corrector: do an Euler half-step with the
-            # predictor H_eff to obtain a predicted state, then *average* the
+            # Optional predictor-corrector: do a full forward-Euler step with
+            # the predictor H_eff to obtain a predicted state, then *average* the
             # drift expectations of the predictor and the predicted state and
             # rebuild H_eff.  This matches the reference implementation of
             # the paper, where the corrected drift uses
@@ -341,30 +341,30 @@ class LindbladMagnusSolver:
 
         Parameters
         ----------
-        psi0 : ``ndarray``\n
+        psi0 : ``ndarray``
             Initial wavefunction.  When possible the solver checks that the
             ansatz reproduces ``psi0`` at ``init_params`` and warns otherwise.
-        tlist : ``ndarray``\n
+        tlist : ``ndarray``
             Strictly increasing time grid.
-        e_ops : ``list`` of ``ndarray``\n
+        e_ops : ``list`` of ``ndarray``
             Observables whose expectation values are returned.
-        traj_num : ``int``, optional (default=100)\n
+        traj_num : ``int``, optional (default=100)
             Number of independent Lindblad trajectories.
-        seed : ``int``, optional (default=0)\n
+        seed : ``int``, optional (default=0)
             Base random seed.  Trajectory ``k`` uses base
             ``seed + k * traj_period`` with ``traj_period`` large enough to
             avoid correlation.
-        n_jobs : ``int``, optional (default=1)\n
+        n_jobs : ``int``, optional (default=1)
             Number of parallel worker processes.  ``n_jobs <= 1`` runs
             serially in the current process.
-        verbose : ``bool`` or ``str``, optional (default=False)\n
+        verbose : ``bool`` or ``str``, optional (default=False)
             If ``True``, log a message after each trajectory.  If ``"tqdm"``,
             display a :mod:`tqdm` progress bar (requires ``tqdm`` installed).
             Use ``False`` for silent runs.
 
         Return
         ----------
-        result : :class:`LindbladResult`\n
+        result : :class:`LindbladResult`
             Container with the ensemble-averaged expectation values,
             per-trajectory standard deviations, mean norms and metadata.
         """
@@ -594,35 +594,35 @@ def solve(H: np.ndarray, c_ops: list[np.ndarray],
 
     Parameters
     ----------
-    H : ``ndarray``\n
+    H : ``ndarray``
         System Hamiltonian.
-    c_ops : ``list`` of ``ndarray``\n
+    c_ops : ``list`` of ``ndarray``
         Collapse operators.
-    ansatz : :class:`~pyqpanda_alg.LindbladMagnus.ansatz.VariationalAnsatz`\n
+    ansatz : :class:`~pyqpanda_alg.LindbladMagnus.ansatz.VariationalAnsatz`
         Parameterised variational ansatz.
-    psi0 : ``ndarray``\n
+    psi0 : ``ndarray``
         Initial wavefunction.
-    tlist : ``ndarray``\n
+    tlist : ``ndarray``
         Time grid.
-    e_ops : ``list`` of ``ndarray``\n
+    e_ops : ``list`` of ``ndarray``
         Observables.
-    traj_num : ``int``, optional (default=100)\n
+    traj_num : ``int``, optional (default=100)
         Number of trajectories.
-    magnus_order : ``int``, optional (default=1)\n
+    magnus_order : ``int``, optional (default=1)
         Magnus expansion order.
-    qsd_type : ``{'nonlinear', 'linear'}``, optional (default='nonlinear')\n
+    qsd_type : ``{'nonlinear', 'linear'}``, optional (default='nonlinear')
         Unravelling of the Lindblad master equation.
-    seed : ``int``, optional (default=0)\n
+    seed : ``int``, optional (default=0)
         Base random seed.
-    n_jobs : ``int``, optional (default=1)\n
+    n_jobs : ``int``, optional (default=1)
         Number of parallel workers.
-    **kwargs\n
+    **kwargs
         Forwarded to :class:`LindbladMagnusSolver` (e.g. ``integrator``,
         ``eps``, ``nonlinear_corr``).
 
     Return
     ----------
-    result : :class:`LindbladResult`\n
+    result : :class:`LindbladResult`
         Ensemble-averaged expectation values and per-trajectory statistics.
     """
     solver = LindbladMagnusSolver(H, c_ops, ansatz,

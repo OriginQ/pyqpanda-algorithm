@@ -67,9 +67,12 @@ print(f"最大误差: {np.abs(result.expect - exact).max():.4f}")
 
 ## 应用案例
 
-- `example/QAlgBase/testeg_Lindblad_TFIM.py` — TFIM 阻尼模型端到端 demo
-- `example/QAlgBase/testeg_Lindblad_FMO.py` — FMO 光合复合体能量传输 demo
-- `test/11-LindbladMagnus/demo01-LindbladMagnus-TFIM_FMO.ipynb` — notebook 教程
+以下路径均相对仓库根目录：
+
+- `pyqpanda-algorithm/example/QAlgBase/testeg_Lindblad_TFIM.py` — TFIM 阻尼模型端到端 demo
+- `pyqpanda-algorithm/example/QAlgBase/testeg_Lindblad_FMO.py` — FMO 光合复合体能量传输 demo
+- `pyqpanda-algorithm/test/11-LindbladMagnus/demo01-LindbladMagnus-TFIM_FMO.ipynb` — notebook 教程
+- `test/LindbladMagnus/` — 单元测试与回归测试（`pytest`，已在 `test/pytest.ini` 注册）
 
 ## 参数调优建议
 

@@ -48,25 +48,27 @@ def sample_wiener_integrals(k: int, dt: float, approx_order: int = 1000,
 
     Parameters
     ----------
-    k : ``int``\n
+    k : ``int``
         Number of independent Wiener processes, i.e. the number of Lindblad
         collapse operators.
-    dt : ``float``\n
+    dt : ``float``
         Length of the time step.
-    approx_order : ``int``, optional (default=1000)\n
+    approx_order : ``int``, optional (default=1000)
         Truncation order :math:`p` of the Brownian bridge Fourier expansion.
-    rng : ``numpy.random.RandomState``, optional\n
+    rng : ``numpy.random.RandomState``, optional
         Random number generator.  If ``None`` a fresh generator is created.
 
     Return
     ----------
-    integrals : ``dict``\n
+    integrals : ``dict``
         Dictionary with keys ``"xis"`` (Wiener increments, shape ``(k,)``),
         ``"a0"`` (Brownian bridge integrals), ``"aij"`` (Lévy area,
         ``(k, k)``), ``"c0"`` (4th-order iterated integral), ``"phis"``
         (Gaussian RVs, ``(k,)``), ``"etas"`` (Brownian bridge Fourier
         modes, ``(k, p)``) and ``"alpha_p"`` (the truncated zeta(4) tail).
     """
+    if dt <= 0:
+        raise ValueError(f"dt must be positive, got {dt}")
     if rng is None:
         rng = np.random.RandomState()
     p = int(approx_order)
@@ -105,19 +107,31 @@ def _drift_operator(H: np.ndarray, c_ops: list[np.ndarray],
     state-dependent expectations :math:`\\langle L_k \\rangle`, while for the
     *linear* unravelling they are zero.
 
+    .. note::
+
+        Scheme I-IV of the reference use this *modified* nonlinear drift
+        rather than the textbook :math:`-\\tfrac{1}{2}L_k^\\dagger L_k`.  The
+        extra :math:`-\\tfrac{1}{2}L_k^2` piece coming from the
+        :math:`-\\tfrac{1}{2}(L_k^\\dagger + L_k)L_k` prefactor is compensated
+        by the :math:`L_k\\,d\\xi_k` diffusion term, and the ensemble average
+        of the trajectories still reproduces the Lindblad master equation.
+        The Euler-Maruyama scheme (Scheme 0) instead uses the standard drift
+        :math:`-\\tfrac{1}{2}L_k^\\dagger L_k`; see
+        :func:`_euler_maruyama_drift`.
+
     Parameters
     ----------
-    H : ``ndarray``\n
+    H : ``ndarray``
         System Hamiltonian.
-    c_ops : ``list`` of ``ndarray``\n
+    c_ops : ``list`` of ``ndarray``
         List of collapse operators.
-    channel_expects : ``ndarray``\n
+    channel_expects : ``ndarray``
         Complex array of length ``len(c_ops)`` with the expectation values of
         each collapse operator (zero for the linear QSD).
 
     Return
     ----------
-    X_0 : ``ndarray``\n
+    X_0 : ``ndarray``
         The drift operator :math:`X_0 = -iH + \\sum_k [-\\tfrac{1}{2}(L_k^\\dagger
         + L_k)L_k + 2\\mathrm{Re}(\\langle L_k \\rangle) L_k]`.
     """
@@ -140,17 +154,17 @@ def _euler_maruyama_drift(H: np.ndarray, c_ops: list[np.ndarray],
 
     Parameters
     ----------
-    H : ``ndarray``\n
+    H : ``ndarray``
         System Hamiltonian.
-    c_ops : ``list`` of ``ndarray``\n
+    c_ops : ``list`` of ``ndarray``
         List of collapse operators.
-    channel_expects : ``ndarray``\n
+    channel_expects : ``ndarray``
         Complex array of length ``len(c_ops)`` with the expectation values
         of each collapse operator (zero for the linear QSD).
 
     Return
     ----------
-    X_0 : ``ndarray``\n
+    X_0 : ``ndarray``
         The Euler-Maruyama drift :math:`X_0 = -iH + \\sum_k [-\\tfrac{1}{2}
         L_k^\\dagger L_k + \\langle L_k\\rangle^* L_k]`.
     """
@@ -176,35 +190,35 @@ def effective_hamiltonian(H: np.ndarray, c_ops: list[np.ndarray], dt: float,
 
     Parameters
     ----------
-    H : ``ndarray``\n
+    H : ``ndarray``
         System Hamiltonian.
-    c_ops : ``list`` of ``ndarray``\n
+    c_ops : ``list`` of ``ndarray``
         List of collapse operators.
-    dt : ``float``\n
+    dt : ``float``
         Time step.
-    magnus_order : ``int``, optional (default=1)\n
+    magnus_order : ``int``, optional (default=1)
         Order of the stochastic Magnus expansion.  ``0`` selects the
         Euler-Maruyama scheme.
-    qsd_type : ``{'nonlinear', 'linear'}``, optional (default='nonlinear')\n
+    qsd_type : ``{'nonlinear', 'linear'}``, optional (default='nonlinear')
         Unravelling of the Lindblad master equation.
-    nonlinear_corr : ``bool``, optional (default=False)\n
+    nonlinear_corr : ``bool``, optional (default=False)
         If ``True`` a predictor-corrector is used: the drift operator is
         re-evaluated using the predicted state ``psi_p`` and averaged with the
         drift computed from ``psi``.
-    psi, psi_p : ``ndarray``, optional\n
+    psi, psi_p : ``ndarray``, optional
         Current and predicted wavefunctions.  Used to evaluate the
         state-dependent expectations for the nonlinear QSD.
-    rng : ``numpy.random.RandomState``, optional\n
+    rng : ``numpy.random.RandomState``, optional
         Random number generator used to sample the Wiener integrals.  Ignored
         when ``integrals`` is provided.
-    integrals : ``dict``, optional\n
+    integrals : ``dict``, optional
         Pre-sampled stochastic integrals as returned by
         :func:`sample_wiener_integrals`.  When ``None`` the integrals are
         sampled internally using ``rng``.
 
     Return
     ----------
-    H_eff : ``ndarray``\n
+    H_eff : ``ndarray``
         Effective Hamiltonian such that :math:`\\exp(-iH_{\\mathrm{eff}}\\Delta t)`
         propagates the wavefunction over one step.
     """
@@ -212,6 +226,8 @@ def effective_hamiltonian(H: np.ndarray, c_ops: list[np.ndarray], dt: float,
         raise ValueError(f"qsd_type must be 'nonlinear' or 'linear', got {qsd_type!r}")
     if magnus_order < 0 or magnus_order > 4:
         raise ValueError(f"magnus_order must be in [0, 4], got {magnus_order}")
+    if dt <= 0:
+        raise ValueError(f"dt must be positive, got {dt}")
 
     k = len(c_ops)
     if integrals is None:
@@ -255,7 +271,7 @@ def effective_hamiltonian(H: np.ndarray, c_ops: list[np.ndarray], dt: float,
                 Omega = Omega + comm * a0[i] * dt / 2.0
                 for j in range(i + 1, k):
                     comm_ij = c_ops[i] @ c_ops[j] - c_ops[j] @ c_ops[i]
-                    if np.abs(comm_ij).sum() != 0:
+                    if np.any(comm_ij):
                         Omega = Omega + 0.5 * comm_ij * (
                             (a0[j] * xis[i] - a0[i] * xis[j]) * sqrt_dt
                             + 2.0 * dt * aij[j, i]
@@ -286,17 +302,20 @@ def _channel_expectations(psi: np.ndarray,
 
     Parameters
     ----------
-    psi : ``ndarray``\n
+    psi : ``ndarray``
         Normalised wavefunction.
-    c_ops : ``list`` of ``ndarray``\n
+    c_ops : ``list`` of ``ndarray``
         List of collapse operators.
 
     Return
     ----------
-    expects : ``ndarray``\n
+    expects : ``ndarray``
         Complex array of expectation values.
     """
     psi = np.asarray(psi).reshape(-1)
-    # Use vdot(Op @ psi, psi) (O(d^2)) instead of the equivalent
-    # trace(|psi><psi| @ Op) (O(d^3)); both compute <psi| Op |psi>.
-    return np.array([np.vdot(op @ psi, psi) for op in c_ops], dtype=complex)
+    # Compute <psi| Op |psi> = vdot(psi, Op @ psi) in O(d^2), which is cheaper
+    # than the equivalent Tr(|psi><psi| @ Op) in O(d^3).  Mind the argument
+    # order: vdot(a, b) = sum(conj(a) * b), so the seemingly symmetric
+    # ``vdot(Op @ psi, psi)`` actually returns the complex conjugate
+    # <psi| Op^\dagger |psi> and must not be used here.
+    return np.array([np.vdot(psi, op @ psi) for op in c_ops], dtype=complex)

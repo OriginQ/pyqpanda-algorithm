@@ -76,9 +76,9 @@ class VariationalAnsatz:
 
     Parameters
     ----------
-    n_qubits : ``int``\n
+    n_qubits : ``int``
         Number of qubits in the ansatz circuit.
-    init_state : ``ndarray``, optional\n
+    init_state : ``ndarray``, optional
         Initial wavefunction to be loaded before the parameterised gates are
         applied.  If ``None`` the all-zero state is used and an optional set of
         preparation gates (added by the user) defines the reference state.
@@ -146,24 +146,24 @@ class VariationalAnsatz:
 
         Parameters
         ----------
-        factory : ``callable``\n
+        factory : ``callable``
             A gate constructor from :mod:`pyqpanda3.core`, e.g. ``RX``, ``H``,
             ``CNOT``.  Parameterised rotations (``RX``/``RY``/``RZ`` and
             ``RZZ``/``RXX``/``RYY``) are detected automatically and consume one
             parameter.
-        qubits : ``int`` or ``tuple`` of ``int``\n
+        qubits : ``int`` or ``tuple`` of ``int``
             Qubit index (or tuple of indices) the gate acts on.
-        param_index : ``int``, optional\n
+        param_index : ``int``, optional
             Explicit index of the variational parameter the gate should
             consume.  When ``None`` (the default) for a parameterised gate, the
             next free index is used automatically.
-        extra : ``float``, optional\n
+        extra : ``float``, optional
             Constant offset added to ``theta[param_index]`` before being passed
             to the gate.
 
         Return
         ----------
-        self : :class:`VariationalAnsatz`\n
+        self : :class:`VariationalAnsatz`
             Enables chaining of ``add_gate`` calls.
         """
         name = _factory_name(factory)
@@ -175,6 +175,10 @@ class VariationalAnsatz:
             qubits = (qubits,)
         else:
             qubits = tuple(qubits)
+        if not all(0 <= q < self.n_qubits for q in qubits):
+            raise ValueError(
+                f"qubit indices {qubits} out of range for a "
+                f"{self.n_qubits}-qubit ansatz (valid: 0..{self.n_qubits - 1})")
         if _is_param_gate(factory):
             if param_index is None:
                 param_index = self._param_count
@@ -192,7 +196,7 @@ class VariationalAnsatz:
         Parameters
         ----------
         gates : iterable of ``(factory, qubits)`` or
-                ``(factory, qubits, param_index)``\n
+                ``(factory, qubits, param_index)``
             Gates to append.  The ``param_index`` entry is optional and follows
             the convention of :meth:`add_gate`.
 
@@ -218,13 +222,13 @@ class VariationalAnsatz:
 
         Parameters
         ----------
-        theta : ``ndarray``, optional\n
+        theta : ``ndarray``, optional
             Variational parameters.  Defaults to a zero vector so that the
             returned circuit prepares the reference state.
 
         Return
         ----------
-        prog : :class:`~pyqpanda3.core.QProg`\n
+        prog : :class:`~pyqpanda3.core.QProg`
             The concrete quantum program (can be drawn, transpiled, etc.).
         """
         if theta is None:
@@ -267,12 +271,12 @@ class VariationalAnsatz:
 
         Parameters
         ----------
-        theta : ``ndarray`` of shape ``(n_parameters,)``\n
+        theta : ``ndarray`` of shape ``(n_parameters,)``
             Variational parameters.
 
         Return
         ----------
-        statevector : ``ndarray``\n
+        statevector : ``ndarray``
             Complex statevector of length ``2**n_qubits``.
         """
         prog = self._build_prog(theta)
@@ -293,12 +297,12 @@ class VariationalAnsatz:
 
         Parameters
         ----------
-        theta : ``ndarray`` of shape ``(n_parameters,)``\n
+        theta : ``ndarray`` of shape ``(n_parameters,)``
             Variational parameters.
 
         Return
         ----------
-        jac : ``ndarray`` of shape ``(2**n_qubits, n_parameters)``\n
+        jac : ``ndarray`` of shape ``(2**n_qubits, n_parameters)``
             Complex Jacobian whose ``i``-th column is
             :math:`\\partial|\\psi\\rangle/\\partial\\theta_i`.
         """
@@ -325,7 +329,7 @@ class VariationalAnsatz:
 
         Parameters
         ----------
-        theta : ``ndarray``, optional\n
+        theta : ``ndarray``, optional
             Concrete parameters used when drawing.  When ``None`` a zero
             parameter vector is used.
         """
@@ -355,18 +359,18 @@ class HardwareEfficientAnsatz(VariationalAnsatz):
 
     Parameters
     ----------
-    n_qubits : ``int``\n
+    n_qubits : ``int``
         Number of qubits.
-    layers : ``int``, optional (default=1)\n
+    layers : ``int``, optional (default=1)
         Number of repeated rotation + entangling layers.
-    rotations : ``str``, optional (default='rxz')\n
+    rotations : ``str``, optional (default='rxz')
         Per-qubit rotation pattern.  Supported values are ``'rxz'``,
         ``'ryz'`` and ``'rxryrz'``.
-    entangler : ``{'rzz', 'rxx', 'ryy'}``, optional (default='rzz')\n
+    entangler : ``{'rzz', 'rxx', 'ryy'}``, optional (default='rzz')
         Parameterised two-qubit entangling gate.  ``RZZ(0)=I`` and similarly
         for the other options, which is what guarantees the
         identity-at-zero-parameters property.
-    init_state : ``ndarray``, optional\n
+    init_state : ``ndarray``, optional
         Computational-basis state the ansatz is initialised in.
 
     Examples
@@ -427,14 +431,14 @@ def _prepare_state_prog(state: np.ndarray, n_qubits: int) -> QProg:
 
     Parameters
     ----------
-    state : ``ndarray``\n
+    state : ``ndarray``
         Reference statevector, length ``2**n_qubits``.
-    n_qubits : ``int``\n
+    n_qubits : ``int``
         Number of qubits.
 
     Return
     ----------
-    prog : :class:`~pyqpanda3.core.QProg`\n
+    prog : :class:`~pyqpanda3.core.QProg`
         Quantum program preparing the requested basis state.
 
     Raises

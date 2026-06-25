@@ -27,7 +27,8 @@ Covers:
 import numpy as np
 
 from pyqpanda_alg.LindbladMagnus import (effective_hamiltonian,
-                                         fmo_model, sample_wiener_integrals,
+                                         fmo_model, mesolve,
+                                         sample_wiener_integrals,
                                          tfim_model)
 
 
@@ -71,18 +72,22 @@ def test_euler_maruyama_coincides_with_magnus_for_lowering_ops():
 
 def test_euler_maruyama_drift_matches_reference_formula():
     """Hand-check the Euler-Maruyama drift against the reference formula
-    ``-iH + sum[-0.5 L^\\dagger L + <L>* L]``."""
+    ``-iH + sum[-0.5 L^\\dagger L + <L>* L]`` using a state with a *complex*
+    ``<L>`` so that the conjugation of the feedback term is actually
+    exercised (a real ``<L>`` would hide a sign error)."""
     H = np.array([[1.0, 0.3], [0.3, -1.0]], dtype=complex)
     L = np.array([[0, 0.2], [0, 0]], dtype=complex)
     c_ops = [L]
-    psi = np.array([1.0, 0.0], dtype=complex)
+    # Relative i-phase so that <L> = 0.1j is purely imaginary.
+    psi = np.array([1.0, 1.0j], dtype=complex) / np.sqrt(2)
     dt = 0.05
     integ = sample_wiener_integrals(1, dt, rng=np.random.RandomState(0))
     H_em = effective_hamiltonian(H, c_ops, dt, magnus_order=0,
                                  qsd_type="nonlinear", psi=psi,
                                  integrals=integ)
-    # Manual reference
-    expect_L = np.vdot(L @ psi, psi)
+    # Manual reference built from the true <psi|L|psi> = vdot(psi, L @ psi).
+    expect_L = np.vdot(psi, L @ psi)
+    assert abs(expect_L.imag) > 1e-9  # guard: <L> must be complex
     X_em = -1j * H + (-0.5 * L.conj().T @ L + np.conj(expect_L) * L)
     Omega = X_em * dt + L * np.sqrt(dt) * integ["xis"][0]
     H_em_ref = 1j * Omega / dt
@@ -98,14 +103,20 @@ def test_sample_wiener_integrals_returns_documented_keys():
 
 def test_channel_expectations_matches_trace_formula():
     """The ``vdot``-based implementation must match the canonical
-    ``Tr(|psi><psi| @ L)`` trace formula."""
+    ``Tr(|psi><psi| @ L)`` trace formula, including the complex phase."""
     from pyqpanda_alg.LindbladMagnus.magnus import _channel_expectations
     psi = np.array([0.6, 0.8j, 0, 0], dtype=complex)
     psi /= np.linalg.norm(psi)
     H, c_ops, *_ = tfim_model()
     expects_new = _channel_expectations(psi, c_ops)
-    rho = np.outer(psi.conj(), psi)
+    # True density matrix |psi><psi| = outer(psi, psi.conj()).  Using
+    # outer(psi.conj(), psi) here would silently compare against the conjugate
+    # and mask a sign error in the implementation.
+    rho = np.outer(psi, psi.conj())
     expects_ref = np.array([np.trace(rho @ op) for op in c_ops], dtype=complex)
+    # The state must yield genuinely complex expectations so that returning the
+    # complex conjugate (the historical bug) would be detected.
+    assert np.any(np.abs(expects_ref.imag) > 1e-9)
     np.testing.assert_allclose(expects_new, expects_ref, atol=1e-12)
 
 
@@ -119,3 +130,93 @@ def test_no_unused_odeint_import():
     """The unused ``odeint`` import was removed from ``models``."""
     import pyqpanda_alg.LindbladMagnus.models as models_mod
     assert not hasattr(models_mod, "odeint")
+
+
+# ----------------------------------------------------------------------
+#  Unravelling correctness (exact trajectories, no variational ansatz)
+# ----------------------------------------------------------------------
+def _exact_trajectory_ensemble(H, c_ops, psi0, e_ops, times,
+                               magnus_order=1, qsd_type="nonlinear",
+                               traj_num=200, seed=0):
+    """Propagate raw wavefunctions with exact matrix exponentials of H_eff.
+
+    Bypasses the variational ansatz entirely so that any drift / unravelling
+    error in :func:`effective_hamiltonian` shows up directly against
+    :func:`mesolve`.  For the *nonlinear* QSD the state is renormalised every
+    step (so trajectories stay on the unit sphere and the ensemble average of
+    ``<psi|O|psi>`` recovers the open-system observable); for the *linear* QSD
+    the decaying norm weights the observable instead.
+    """
+    from scipy.linalg import expm
+
+    H = np.asarray(H, dtype=complex)
+    psi0 = np.asarray(psi0, dtype=complex).reshape(-1)
+    psi0 = psi0 / np.linalg.norm(psi0)
+    k = len(c_ops)
+    acc = np.zeros((len(e_ops), len(times)), dtype=float)
+    t0_vals = np.array([float(np.vdot(psi0, op @ psi0).real) for op in e_ops])
+    for tr in range(traj_num):
+        psi = psi0.copy()
+        # t = 0 is identical for every trajectory; accumulate it ``traj_num``
+        # times so that the final ``acc / traj_num`` recovers the true value.
+        acc[:, 0] += t0_vals
+        base = seed + tr * 100003
+        for i in range(len(times) - 1):
+            dt = float(times[i + 1] - times[i])
+            rng = np.random.RandomState(base + i)
+            integ = sample_wiener_integrals(k, dt, rng=rng)
+            heff = effective_hamiltonian(
+                H, c_ops, dt, magnus_order=magnus_order, qsd_type=qsd_type,
+                psi=psi if qsd_type == "nonlinear" else None, integrals=integ)
+            psi = expm(-1j * heff * dt) @ psi
+            if qsd_type == "nonlinear":
+                psi = psi / np.linalg.norm(psi)
+                nrm = 1.0
+            else:
+                nrm = float(np.vdot(psi, psi).real)
+            for oi, op in enumerate(e_ops):
+                acc[oi, i + 1] += nrm * float(np.vdot(psi, op @ psi).real)
+    return acc / traj_num
+
+
+def test_unravelling_reproduces_lindblad_for_hermitian_collapse():
+    """The stochastic Magnus unravelling must reproduce the exact Lindblad
+    solution for a *Hermitian* collapse operator (pure dephasing).
+
+    This is the case that distinguishes the Magnus drift
+    ``-1/2(L^dagger+L)L`` from the textbook ``-1/2 L^dagger L``: for Hermitian
+    ``L`` the two differ by a factor of two, so a wrong drift would make the
+    coherence decay at twice the physical rate and blow the tolerance.  Raw
+    trajectories are propagated with exact matrix exponentials (no ansatz), so
+    the bound is set by Monte-Carlo noise only.
+    """
+    gamma = 0.3
+    H = np.array([[0.5, 0.1], [0.1, -0.5]], dtype=complex)
+    # Hermitian dephasing operator sqrt(gamma) |1><1|.
+    L = np.sqrt(gamma) * np.array([[0, 0], [0, 1]], dtype=complex)
+    psi0 = np.array([1.0, 0.0], dtype=complex)
+    e_ops = [np.array([[1, 0], [0, 0]], dtype=complex),    # |0><0|
+             np.array([[0, 1], [1, 0]], dtype=complex)]    # sigma_x (coherence)
+    times = np.linspace(0.0, 8.0, 41)
+
+    exact = mesolve(H, psi0, times, [L], e_ops)
+    sim = _exact_trajectory_ensemble(H, [L], psi0, e_ops, times,
+                                     magnus_order=1, traj_num=200, seed=0)
+    err = float(np.abs(sim - exact).max())
+    # A correct unravelling is limited by MC noise (~1e-2 for 200 trajectories).
+    # A factor-of-two dephasing-rate error would push this well above 0.1.
+    assert err < 0.08, f"Hermitian-collapse unravelling error {err} too large"
+
+
+def test_unravelling_reproduces_lindblad_for_lowering_ops():
+    """The unravelling must also reproduce the exact solution for nilpotent
+    lowering operators (the TFIM amplitude-damping channels).  This guards the
+    other collapse-operator family at the unravelling level, complementing the
+    variational solver test which is restricted to a short horizon."""
+    H, c_ops, e_ops, psi0, _ = tfim_model()
+    times = np.linspace(0.0, 3.0, 31)
+    exact = mesolve(H, psi0, times, c_ops, e_ops)
+    sim = _exact_trajectory_ensemble(H, c_ops, psi0, e_ops, times,
+                                     magnus_order=1, traj_num=200, seed=1)
+    err = float(np.abs(sim - exact).max())
+    assert err < 0.08, f"Lowering-op unravelling error {err} too large"

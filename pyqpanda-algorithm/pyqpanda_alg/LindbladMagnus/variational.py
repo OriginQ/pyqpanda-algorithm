@@ -61,22 +61,22 @@ def mclachlan_system(ansatz, theta: np.ndarray, H_eff: np.ndarray,
 
     Parameters
     ----------
-    ansatz : object with ``get_statevector`` and ``get_jacobian``\n
+    ansatz : object with ``get_statevector`` and ``get_jacobian``
         The parameterised ansatz describing the variational manifold.
-    theta : ``ndarray`` of shape ``(n_parameters,)``\n
+    theta : ``ndarray`` of shape ``(n_parameters,)``
         Current variational parameters.
-    H_eff : ``ndarray``\n
+    H_eff : ``ndarray``
         Effective (possibly non-Hermitian) Hamiltonian.
-    eps : ``float``, optional (default=1e-12)\n
+    eps : ``float``, optional (default=1e-12)
         Regularisation added to the diagonal of the metric before solving.
 
     Return
     ----------
-    dtheta : ``ndarray`` of shape ``(n_parameters,)``\n
+    dtheta : ``ndarray`` of shape ``(n_parameters,)``
         Time derivative :math:`\\dot{\\boldsymbol\\theta}` of the parameters.
-    M : ``ndarray`` of shape ``(n_parameters, n_parameters)``\n
+    M : ``ndarray`` of shape ``(n_parameters, n_parameters)``
         Real part of the Fubini-Study metric (returned for diagnostics).
-    imag_norm_rate : ``float``\n
+    imag_norm_rate : ``float``
         Instantaneous rate :math:`\\mathrm{Im}\\langle H_{\\mathrm{eff}}\\rangle`
         driving the wavefunction norm evolution of the underlying trajectory.
         The norm obeys :math:`\\dot N = 2N\\cdot` ``imag_norm_rate``.
@@ -123,24 +123,24 @@ def variational_step_euler(ansatz, theta: np.ndarray, H_eff: np.ndarray,
 
     Parameters
     ----------
-    ansatz : ansatz object\n
+    ansatz : ansatz object
         Parameterised variational ansatz.
-    theta : ``ndarray``\n
+    theta : ``ndarray``
         Current variational parameters.
-    H_eff : ``ndarray``\n
+    H_eff : ``ndarray``
         Effective Hamiltonian for this step.
-    dt : ``float``\n
+    dt : ``float``
         Time step.
-    psi_norm : ``float``\n
+    psi_norm : ``float``
         Current wavefunction norm :math:`N` tracked for the linear QSD.
-    eps : ``float``, optional\n
+    eps : ``float``, optional
         Regularisation passed to :func:`mclachlan_system`.
 
     Return
     ----------
-    theta_new : ``ndarray``\n
+    theta_new : ``ndarray``
         Updated variational parameters.
-    psi_norm_new : ``float``\n
+    psi_norm_new : ``float``
         Updated wavefunction norm.
     """
     dtheta, _, rate = mclachlan_system(ansatz, theta, H_eff, eps=eps)
@@ -160,25 +160,25 @@ def variational_step_rk4(ansatz, theta: np.ndarray, H_eff: np.ndarray,
 
     Parameters
     ----------
-    ansatz : ansatz object\n
+    ansatz : ansatz object
         Parameterised variational ansatz.
-    theta : ``ndarray``\n
+    theta : ``ndarray``
         Current variational parameters.
-    H_eff : ``ndarray``\n
+    H_eff : ``ndarray``
         Effective Hamiltonian for this step (kept constant across the RK4
         sub-steps).
-    dt : ``float``\n
+    dt : ``float``
         Time step.
-    psi_norm : ``float``\n
+    psi_norm : ``float``
         Current wavefunction norm.
-    eps : ``float``, optional\n
+    eps : ``float``, optional
         Regularisation passed to :func:`mclachlan_system`.
 
     Return
     ----------
-    theta_new : ``ndarray``\n
+    theta_new : ``ndarray``
         Updated variational parameters.
-    psi_norm_new : ``float``\n
+    psi_norm_new : ``float``
         Updated wavefunction norm.
     """
     # Stage 1 at theta.
