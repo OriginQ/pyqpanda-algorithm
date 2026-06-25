@@ -74,9 +74,12 @@ class LindbladResult:
         Per-trajectory standard deviation of every observable (a measure of
         the Monte-Carlo noise).
     norms : ``ndarray`` of shape ``(n_times,)``\n
-        Mean wave-function norm across the trajectory ensemble.  Decays from
-        ``1.0`` for the *linear* QSD and stays close to ``1.0`` for the
-        *nonlinear* QSD.
+        Mean of the auxiliary norm :math:`N` tracked by the variational
+        step.  For the *linear* QSD this is the physical wave-function
+        squared norm and decays from ``1.0``.  For the *nonlinear* QSD the
+        ansatz state is always renormalised, so the reported value is a
+        diagnostic of the non-Hermiticity of the effective Hamiltonian
+        rather than the physical norm.
     traj_num : ``int``\n
         Number of trajectories that were averaged.
     seeds : ``list`` of ``int``\n
@@ -193,6 +196,11 @@ class LindbladMagnusSolver:
                 f"magnus_order must be in [0, 4], got {magnus_order}")
         self.magnus_order = int(magnus_order)
         self.nonlinear_corr = bool(nonlinear_corr)
+        if self.nonlinear_corr and qsd_type != "nonlinear":
+            _LOGGER.warning(
+                "nonlinear_corr=True has no effect with qsd_type=%r; the "
+                "predictor-corrector only applies to the nonlinear QSD.",
+                qsd_type)
         if integrator not in ("euler", "rk4"):
             raise ValueError(
                 f"integrator must be 'euler' or 'rk4', got {integrator!r}")
@@ -248,6 +256,9 @@ class LindbladMagnusSolver:
             raise ValueError(f"tlist must have >= 2 points, got {len(tlist)}")
         n_steps = len(tlist) - 1
         ansatz = self.ansatz
+        # Accept either raw arrays or pre-converted ndarrays; the conversion
+        # is idempotent so it is safe when called from ``solve()`` which has
+        # already validated the shapes.
         e_ops_arr = [np.asarray(op, dtype=complex) for op in e_ops]
 
         theta = self.init_params.copy()
@@ -281,14 +292,26 @@ class LindbladMagnusSolver:
             H_eff = self._build_H_eff(dt, theta, psi_pred, integrals)
 
             # Optional predictor-corrector: do an Euler half-step with the
-            # predictor H_eff, then rebuild H_eff from the predicted state and
-            # use it for the full step.
+            # predictor H_eff to obtain a predicted state, then *average* the
+            # drift expectations of the predictor and the predicted state and
+            # rebuild H_eff.  This matches the reference implementation of
+            # the paper, where the corrected drift uses
+            # ``Re(<L>_psi + <L>_psi_p)`` (equivalent to averaging through
+            # the ``2 Re(<L>)`` prefactor of the nonlinear QSD drift).
             if self.nonlinear_corr and self.qsd_type == "nonlinear":
                 theta_try, _ = variational_step_euler(
                     ansatz, theta, H_eff, dt, psi_norm, eps=self.eps)
                 psi_corr = ansatz.get_statevector(theta_try)
                 psi_corr = psi_corr / np.linalg.norm(psi_corr)
-                H_eff = self._build_H_eff(dt, theta, psi_corr, integrals)
+                H_eff = effective_hamiltonian(
+                    self.H, self.c_ops, dt,
+                    magnus_order=self.magnus_order,
+                    qsd_type=self.qsd_type,
+                    nonlinear_corr=True,
+                    psi=psi_pred,
+                    psi_p=psi_corr,
+                    integrals=integrals,
+                )
 
             theta, psi_norm = self._integrate_step(theta, H_eff, dt, psi_norm)
 
@@ -422,22 +445,30 @@ class LindbladMagnusSolver:
     #  Helpers                                                           #
     # ------------------------------------------------------------------ #
     def _validate_initial_state(self, psi0: np.ndarray) -> None:
-        """Warn if the ansatz at ``init_params`` does not reproduce ``psi0``."""
+        """Warn if the ansatz at ``init_params`` does not reproduce ``psi0``.
+
+        The check is best-effort: if anything goes wrong (e.g. the user
+        supplied a non-basis ``init_state`` that the ansatz cannot prepare),
+        the warning is skipped but a debug-level message is emitted so the
+        issue can still be diagnosed through ``logging.DEBUG``.
+        """
         try:
             psi_ansatz = self.ansatz.get_statevector(self.init_params)
             psi_ansatz = psi_ansatz / np.linalg.norm(psi_ansatz)
             psi0_arr = np.asarray(psi0, dtype=complex).reshape(-1)
             psi0_norm = psi0_arr / np.linalg.norm(psi0_arr)
             if psi0_norm.size != psi_ansatz.size:
-                return  # different sizes, nothing to compare
+                _LOGGER.debug("Skipping initial-state check: dimension mismatch"
+                              " (%d vs %d).", psi0_norm.size, psi_ansatz.size)
+                return
             overlap = abs(np.vdot(psi0_norm, psi_ansatz))
             if overlap < 0.95:
                 _LOGGER.warning(
                     "ansatz(init_params) overlaps psi0 by only %.3f; the "
                     "simulation may not start from the requested state.",
                     overlap)
-        except Exception:  # pragma: no cover - defensive, just logging
-            pass
+        except Exception as exc:  # pragma: no cover - defensive, just logging
+            _LOGGER.debug("Initial-state check failed: %r", exc)
 
     def _build_H_eff(self, dt: float, theta: np.ndarray,
                      psi: np.ndarray | None, integrals: dict) -> np.ndarray:
@@ -510,21 +541,29 @@ def _run_parallel(solver: LindbladMagnusSolver, tlist, e_ops, seeds,
 
     The solver and its ansatz are picklable thanks to
     :meth:`VariationalAnsatz.__getstate__` (which drops the non-picklable
-    :class:`CPUQVM` and lets the child process re-create one).
+    :class:`CPUQVM` and lets the child process re-create one).  Results are
+    collected with :func:`concurrent.futures.as_completed` so that the
+    progress bar advances smoothly regardless of per-trajectory wall time.
     """
+    from concurrent.futures import as_completed
     try:
         with ProcessPoolExecutor(max_workers=n_jobs) as ex:
-            futures = [ex.submit(_worker, solver, tlist, e_ops, s)
-                       for s in seeds]
-            iterator = range(len(futures))
+            future_for_seed = {ex.submit(_worker, solver, tlist, e_ops, s): s
+                               for s in seeds}
+            # Preserve the submission order so that the returned list is
+            # indexed by trajectory index (matches the serial path).
+            result_by_seed: dict = {}
+            pending = as_completed(future_for_seed)
             if verbose == "tqdm" and _have_tqdm():
                 import tqdm
-                iterator = tqdm.tqdm(range(len(futures)),
+                pending = tqdm.tqdm(pending, total=len(future_for_seed),
                                      desc="trajectories", unit="traj")
-            results = []
-            for k in iterator:
-                results.append(futures[k].result())
-            return results
+            elif verbose:
+                _LOGGER.info("Running %d trajectories across %d workers",
+                             len(seeds), n_jobs)
+            for fut in pending:
+                result_by_seed[future_for_seed[fut]] = fut.result()
+            return [result_by_seed[s] for s in seeds]
     except Exception as exc:
         _LOGGER.warning("Parallel execution failed (%r); falling back to "
                         "serial execution.", exc)

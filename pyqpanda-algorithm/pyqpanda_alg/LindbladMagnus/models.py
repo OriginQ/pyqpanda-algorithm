@@ -277,40 +277,44 @@ def tfim_model() -> tuple[np.ndarray, list[np.ndarray], list[np.ndarray],
 # ----------------------------------------------------------------------
 #  Radical pair model
 # ----------------------------------------------------------------------
-def rpm_model(k_recombine: float = 1.0,
-              k_escape: float = 0.01,
-              k_S: float = 1.0e9,
-              k_T: float = 1.0e9,
-              omega: float = 2.0 * np.pi * 1.0e7) -> tuple[
+def rpm_model(k_recombine: float = 0.1,
+              k_escape: float = 0.001,
+              omega: float = 1.0) -> tuple[
         np.ndarray, list[np.ndarray], list[np.ndarray], np.ndarray, list[str]]:
-    """Return the radical pair model for the avian compass.
+    """Return a *normalised* radical pair model for the avian compass.
 
-    The state space is the singlet/triplet spin state of the radical pair
-    coupled to the singlet and triplet reaction products.  The defaults match
-    the parameter set used in the paper.
+    The radical pair model (RPM) describes the singlet-triplet spin dynamics
+    that is believed to underlie the magnetic compass of migratory birds.
+    The full physical model of the paper lives in a 3-qubit spin space and
+    uses hyperfine couplings of order :math:`10^7` (rad/s), which require
+    dedicated time-step choices.  For convenience we expose here a
+    **normalised** version in which the S–T0 mixing frequency ``omega`` is
+    set to ``1.0``; this lets the model be used directly with the default
+    solver settings (``dt`` of order 0.1–1.0).  Rescale ``omega`` together
+    with the rates and the time grid if absolute physical units are needed.
 
     Parameters
     ----------
-    k_recombine : ``float``, optional (default=1.0)\n
-        Recombination rate.
-    k_escape : ``float``, optional (default=0.01)\n
-        Escape rate.
-    k_S, k_T : ``float``, optional\n
-        Singlet / triplet spin-conversion rates (only used for the Hamiltonian
-        off-diagonal coupling).
-    omega : ``float``, optional\n
-        Hyperfine-like precession frequency.
+    k_recombine : ``float``, optional (default=0.1)\n
+        Recombination rate (S/T decay into the product states).
+    k_escape : ``float``, optional (default=0.001)\n
+        Slow escape rate from every radical-pair state.
+    omega : ``float``, optional (default=1.0)\n
+        Singlet-triplet mixing frequency.  Set to ``1.0`` for normalised
+        units; the physical hyperfine value is around :math:`2\\pi\\cdot10^7`.
 
     Return
     ----------
     H : ``ndarray``\n
-        System Hamiltonian.
+        System Hamiltonian padded to ``8 x 8`` (3 qubits) so it can be used
+        directly with :class:`~pyqpanda_alg.LindbladMagnus.lindblad.LindbladMagnusSolver`.
     c_ops : ``list`` of ``ndarray``\n
-        Collapse operators for singlet and triplet products plus escape.
+        Collapse operators for singlet and triplet products plus escape,
+        padded to the same ``8 x 8`` shape.
     e_ops : ``list`` of ``ndarray``\n
         Projectors on the singlet and triplet product states.
     psi0 : ``ndarray``\n
-        Initial singlet radical pair state.
+        Initial singlet radical pair state, length 8.
     labels : ``list`` of ``str``\n
         Observable names.
     """
@@ -318,23 +322,23 @@ def rpm_model(k_recombine: float = 1.0,
     # T+ and T- are the polarised triplets).  We label the basis as
     # (|S>, |T0>, |T+>, |T->) and add two product states |PS>, |PT>.
     basis_states = ["S", "T0", "T+", "T-", "PS", "PT"]
-    dim = len(basis_states)
-    H = np.zeros((dim, dim), dtype=complex)
+    dim_raw = len(basis_states)
+    H = np.zeros((dim_raw, dim_raw), dtype=complex)
     # S <-> T0 mixing driven by the hyperfine frequency.
     H[0, 1] = omega
     H[1, 0] = omega
 
-    def basis(k: int) -> np.ndarray:
+    def basis(k: int, dim: int) -> np.ndarray:
         v = np.zeros((dim, 1), dtype=complex)
         v[k, 0] = 1.0
         return v
 
-    PS = basis(4)
-    PT = basis(5)
-    S = basis(0)
-    T0 = basis(1)
-    Tp = basis(2)
-    Tm = basis(3)
+    PS = basis(4, dim_raw)
+    PT = basis(5, dim_raw)
+    S = basis(0, dim_raw)
+    T0 = basis(1, dim_raw)
+    Tp = basis(2, dim_raw)
+    Tm = basis(3, dim_raw)
 
     # Collapse operators: singlet / triplet recombination into the products
     # and a slow escape from every radical-pair state.
@@ -348,4 +352,15 @@ def rpm_model(k_recombine: float = 1.0,
     e_ops = [PS @ PS.conj().T, PT @ PT.conj().T]
     labels = ["Singlet product", "Triplet product"]
     psi0 = S.reshape(-1)
+
+    # Pad everything to the nearest power of two so that the model can be
+    # used directly with the variational solver (whose Hilbert space must be
+    # a tensor product of qubits).
+    H, n_qubits = _pad_to_power_of_two(H)
+    dim = 1 << n_qubits
+    c_ops = [_pad_to_power_of_two(op)[0] for op in c_ops]
+    e_ops = [_pad_to_power_of_two(op)[0] for op in e_ops]
+    psi_full = np.zeros(dim, dtype=complex)
+    psi_full[:psi0.size] = psi0
+    psi0 = psi_full
     return H, c_ops, e_ops, psi0, labels
