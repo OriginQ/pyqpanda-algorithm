@@ -1,4 +1,4 @@
-numpy>=1.17
+numpy>=1.21
 matplotlib>=3.3
 pydot
 scipy
@@ -8,3 +8,4 @@ requests
 pycryptodome
 sphinx-autoapi
 pyqpanda3
+tqdm>=4.40
