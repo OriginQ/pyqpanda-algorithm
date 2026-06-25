@@ -31,7 +31,9 @@ Examples
 >>> ansatz = HardwareEfficientAnsatz(n_qubits=3, layers=2, init_state=psi0)
 >>> solver = LindbladMagnusSolver(H, c_ops, ansatz, magnus_order=1)
 >>> times = np.linspace(0, 50, 11)
->>> expect, std = solver.solve(psi0, times, e_ops, traj_num=4, seed=0)
+>>> result = solver.solve(psi0, times, e_ops, traj_num=4, seed=0)
+>>> result.expect.shape
+(5, 11)
 '''
 
 from .ansatz import HardwareEfficientAnsatz, VariationalAnsatz

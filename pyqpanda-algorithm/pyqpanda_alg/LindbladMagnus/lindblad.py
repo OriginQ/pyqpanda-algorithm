@@ -75,7 +75,7 @@ class LindbladResult:
         the Monte-Carlo noise).
     norms : ``ndarray`` of shape ``(n_times,)``\n
         Mean of the auxiliary norm :math:`N` tracked by the variational
-        step.  For the *linear* QSD this is the physical wave-function
+        step.  For the *linear* QSD this is the physical wavefunction
         squared norm and decays from ``1.0``.  For the *nonlinear* QSD the
         ansatz state is always renormalised, so the reported value is a
         diagnostic of the non-Hermiticity of the effective Hamiltonian
@@ -248,7 +248,7 @@ class LindbladMagnusSolver:
         result : ``dict``\n
             Dictionary with keys ``"times"`` (the input time grid),
             ``"expect"`` (array of shape ``(len(e_ops), len(tlist))``),
-            ``"norm"`` (wave-function norm at every time) and, optionally,
+            ``"norm"`` (wavefunction norm at every time) and, optionally,
             ``"params"``.
         """
         tlist = np.asarray(tlist, dtype=float).reshape(-1)
@@ -342,7 +342,7 @@ class LindbladMagnusSolver:
         Parameters
         ----------
         psi0 : ``ndarray``\n
-            Initial wave-function.  When possible the solver checks that the
+            Initial wavefunction.  When possible the solver checks that the
             ansatz reproduces ``psi0`` at ``init_params`` and warns otherwise.
         tlist : ``ndarray``\n
             Strictly increasing time grid.
@@ -497,7 +497,7 @@ class LindbladMagnusSolver:
                              psi_norm: float) -> np.ndarray:
         """Return the (real) expectation values of ``e_ops`` at ``theta``.
 
-        For the *linear* QSD the wave-function norm is non-trivial and the
+        For the *linear* QSD the wavefunction norm is non-trivial and the
         observable expectation is scaled by ``psi_norm`` so that the ensemble
         average recovers the open-system density matrix element.
         """
@@ -601,7 +601,7 @@ def solve(H: np.ndarray, c_ops: list[np.ndarray],
     ansatz : :class:`~pyqpanda_alg.LindbladMagnus.ansatz.VariationalAnsatz`\n
         Parameterised variational ansatz.
     psi0 : ``ndarray``\n
-        Initial wave-function.
+        Initial wavefunction.
     tlist : ``ndarray``\n
         Time grid.
     e_ops : ``list`` of ``ndarray``\n

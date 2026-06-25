@@ -18,7 +18,7 @@ unravelled Lindblad dynamics.  Given a system Hamiltonian :math:`H`, a list of
 collapse (Lindblad) operators :math:`\\{L_k\\}` and a time step ``dt``, the
 routines in this module return the (generally non-Hermitian) effective
 Hamiltonian :math:`H_{\\mathrm{eff}}` whose exponential :math:`\\exp(-i H_{\\mathrm{eff}}
-\\Delta t)` propagates a single wave-function trajectory over ``dt``.
+\\Delta t)` propagates a single wavefunction trajectory over ``dt``.
 
 The implementation follows
     J.-C. Huang, H.-E. Li, Y.-C. Wang, G.-Z. Zhang, J. Li, H.-S. Hu,
@@ -192,7 +192,7 @@ def effective_hamiltonian(H: np.ndarray, c_ops: list[np.ndarray], dt: float,
         re-evaluated using the predicted state ``psi_p`` and averaged with the
         drift computed from ``psi``.
     psi, psi_p : ``ndarray``, optional\n
-        Current and predicted wave-functions.  Used to evaluate the
+        Current and predicted wavefunctions.  Used to evaluate the
         state-dependent expectations for the nonlinear QSD.
     rng : ``numpy.random.RandomState``, optional\n
         Random number generator used to sample the Wiener integrals.  Ignored
@@ -206,7 +206,7 @@ def effective_hamiltonian(H: np.ndarray, c_ops: list[np.ndarray], dt: float,
     ----------
     H_eff : ``ndarray``\n
         Effective Hamiltonian such that :math:`\\exp(-iH_{\\mathrm{eff}}\\Delta t)`
-        propagates the wave-function over one step.
+        propagates the wavefunction over one step.
     """
     if qsd_type not in ("nonlinear", "linear"):
         raise ValueError(f"qsd_type must be 'nonlinear' or 'linear', got {qsd_type!r}")
@@ -287,7 +287,7 @@ def _channel_expectations(psi: np.ndarray,
     Parameters
     ----------
     psi : ``ndarray``\n
-        Normalised wave-function.
+        Normalised wavefunction.
     c_ops : ``list`` of ``ndarray``\n
         List of collapse operators.
 

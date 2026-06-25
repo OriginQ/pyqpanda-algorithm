@@ -78,7 +78,7 @@ def mclachlan_system(ansatz, theta: np.ndarray, H_eff: np.ndarray,
         Real part of the Fubini-Study metric (returned for diagnostics).
     imag_norm_rate : ``float``\n
         Instantaneous rate :math:`\\mathrm{Im}\\langle H_{\\mathrm{eff}}\\rangle`
-        driving the wave-function norm evolution of the underlying trajectory.
+        driving the wavefunction norm evolution of the underlying trajectory.
         The norm obeys :math:`\\dot N = 2N\\cdot` ``imag_norm_rate``.
     """
     theta = np.asarray(theta, dtype=float).reshape(-1)
@@ -132,7 +132,7 @@ def variational_step_euler(ansatz, theta: np.ndarray, H_eff: np.ndarray,
     dt : ``float``\n
         Time step.
     psi_norm : ``float``\n
-        Current wave-function norm :math:`N` tracked for the linear QSD.
+        Current wavefunction norm :math:`N` tracked for the linear QSD.
     eps : ``float``, optional\n
         Regularisation passed to :func:`mclachlan_system`.
 
@@ -141,7 +141,7 @@ def variational_step_euler(ansatz, theta: np.ndarray, H_eff: np.ndarray,
     theta_new : ``ndarray``\n
         Updated variational parameters.
     psi_norm_new : ``float``\n
-        Updated wave-function norm.
+        Updated wavefunction norm.
     """
     dtheta, _, rate = mclachlan_system(ansatz, theta, H_eff, eps=eps)
     theta_new = theta + dt * dtheta
@@ -170,7 +170,7 @@ def variational_step_rk4(ansatz, theta: np.ndarray, H_eff: np.ndarray,
     dt : ``float``\n
         Time step.
     psi_norm : ``float``\n
-        Current wave-function norm.
+        Current wavefunction norm.
     eps : ``float``, optional\n
         Regularisation passed to :func:`mclachlan_system`.
 
@@ -179,7 +179,7 @@ def variational_step_rk4(ansatz, theta: np.ndarray, H_eff: np.ndarray,
     theta_new : ``ndarray``\n
         Updated variational parameters.
     psi_norm_new : ``float``\n
-        Updated wave-function norm.
+        Updated wavefunction norm.
     """
     # Stage 1 at theta.
     k1, _, r1 = mclachlan_system(ansatz, theta, H_eff, eps=eps)

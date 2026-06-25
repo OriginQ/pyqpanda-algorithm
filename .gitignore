@@ -44,3 +44,4 @@ pyqpanda-algorithm/pyqpanda_alg/QSolver/*.lib
 /pyqpanda-algorithm/pyqpanda_alg/QSolver/libcurl.dll
 
 .ccls-cache
+test_outputs/

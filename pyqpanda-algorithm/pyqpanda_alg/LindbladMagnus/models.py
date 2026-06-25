@@ -162,7 +162,7 @@ def fmo_model() -> tuple[np.ndarray, list[np.ndarray], list[np.ndarray],
     returned matrices are padded to the nearest power of two so that they fit
     in a 3-qubit Hilbert space.
 
-    The Lindblad operators describe pure dephasing on the three sites,
+    The collapse operators describe pure dephasing on the three sites,
     radiative decay to the ground state and irreversible transfer to the sink.
 
     Parameters
