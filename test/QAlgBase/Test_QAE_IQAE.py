@@ -1,30 +1,44 @@
-# import pytest
-# import numpy as np
-# from pyqpanda_alg.QAE.QAE import IQAE
-# from pyqpanda3.core import QCircuit, RY, X, RZ
-#
-#
-# class Test_QAE_IQAE:
-#
-#     def create_cir_basic(self, qlist):
-#         cir = QCircuit()
-#         cir << RY(qlist[0], np.pi / 3) << X(qlist[1]).control(qlist[0])
-#         return cir
-#
-#     def test_iqae_basic_functionality(self):
-#         W = IQAE(
-#             operator_in=self.create_cir_basic,
-#             qnumber=2,
-#             epsilon=0.01,
-#             res_index=-1
-#         ).run()
-#
-#         # 断言验证
-#         assert W is not None, "振幅估计结果不应为None"
-#         assert isinstance(W, (float, np.floating)), f"振幅应为数值类型，实际为{type(W)}"
-#         assert 0.2 <= W <= 0.3, f"振幅应在[0,1]范围内，实际为{W}"
-#
-#
-# if __name__ == "__main__":
-#     # 运行测试
-#     pytest.main([__file__, "-v", "-s"])
+import numpy as np
+from pyqpanda3.core import QCircuit, RY
+
+from pyqpanda_alg.QAE import IQAE
+
+
+def asymmetric_two_qubit_state(qlist):
+    cir = QCircuit()
+    cir << RY(qlist[0], np.pi / 5)
+    cir << RY(qlist[1], np.pi / 3)
+    return cir
+
+
+def test_iqae_estimates_non_last_result_qubit():
+    prob = IQAE(
+        operator_in=asymmetric_two_qubit_state,
+        qnumber=2,
+        epsilon=0.005,
+        res_index=0,
+    ).run()
+
+    assert np.isclose(prob, np.sin(np.pi / 10) ** 2, atol=0.08)
+
+
+def test_iqae_estimates_last_result_qubit():
+    prob = IQAE(
+        operator_in=asymmetric_two_qubit_state,
+        qnumber=2,
+        epsilon=0.005,
+        res_index=1,
+    ).run()
+
+    assert np.isclose(prob, np.sin(np.pi / 6) ** 2, atol=0.08)
+
+
+def test_iqae_negative_index_keeps_last_qubit_default():
+    prob = IQAE(
+        operator_in=asymmetric_two_qubit_state,
+        qnumber=2,
+        epsilon=0.005,
+        res_index=-1,
+    ).run()
+
+    assert np.isclose(prob, np.sin(np.pi / 6) ** 2, atol=0.08)

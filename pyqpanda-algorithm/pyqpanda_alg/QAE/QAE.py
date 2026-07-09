@@ -82,20 +82,14 @@ class QAE:
     def __del__(self):
         pass
 
+    def _target_indices(self):
+        return [(list(range(self.qnumber)))[i] for i in self.res_index]
+
     def _Q_cir(self, q_operator):
-        if type(self.res_index) != list:
-            self.res_index = [self.res_index]
-        q_target = []
-        q_else = []
+        index = self._target_indices()
+        q_target = [q_operator[i] for i in index]
         q1 = []
-        index = []
-        for i in self.res_index:
-            index += [(list(range(self.qnumber)))[i]]
         for i in range(self.qnumber):
-            if i in index:
-                q_target += [q_operator[i]]
-            else:
-                q_else += [q_operator[i]]
             if i != index[-1]:
                 q1 += [q_operator[i]]
 
@@ -107,7 +101,7 @@ class QAE:
 
         for k in range(len(self.target_state)):
             if self.target_state[k] == '0':
-                Qcir << X(q_target[-k-1])
+                Qcir << X(q_target[k])
         Qcir << self.operator(q_operator).dagger()
 
         for q1idx in q1:
@@ -120,7 +114,7 @@ class QAE:
         Qcir << self.operator(q_operator)
         for k in range(len(self.target_state)):
             if self.target_state[k] == '0':
-                Qcir << X(q_target[-k-1])
+                Qcir << X(q_target[k])
         return Qcir
 
     def run(self):
@@ -154,20 +148,15 @@ class QAE:
         """
         q_operator = QProg(self.qnumber + self.n_anc).qubits()
 
-        q_target = []
-        index = []
-        for i in self.res_index:
-            index += [(list(range(self.qnumber)))[i]]
-        for i in range(self.qnumber):
-            if i in index:
-                q_target += [q_operator[i]]
+        index = self._target_indices()
+        q_target = [q_operator[i] for i in index]
 
         prog = QProg()
 
         prog << self.operator(q_operator[:self.qnumber])
         for k in range(len(self.target_state)):
             if self.target_state[k] == '0':
-                prog << X(q_target[-k-1])
+                prog << X(q_target[k])
 
         for qidx in q_operator[self.qnumber:]:
             prog << H(qidx)
@@ -230,7 +219,7 @@ class IQAE:
         self.method = method
         self.ratio = ratio
         self.qnumber = qnumber
-        self.res_index = res_index
+        self.res_index = (list(range(self.qnumber)))[res_index]
         self.machine_type = machine_type
         self.n_sum = 0
 
@@ -349,16 +338,18 @@ class IQAE:
     def _measure(self, k: int, n_round: int) -> int:
         machine = self.machine
         qlist = self.qlist
-        clist = self.clist
-
-        operator_g = amp_operator(in_operator=self.operatorA, q_input=qlist)
+        operator_g = amp_operator(
+            in_operator=self.operatorA,
+            q_input=qlist,
+            q_flip=[qlist[self.res_index]],
+        )
         prog = QProg()
         prog << self.operatorA(qlist)
         for i in range(k):
             prog << operator_g
         if self.draw:
             print(prog)
-        prog << measure_all([qlist[self.res_index]], [qlist[self.qnumber - 1]]) 
+        prog << measure_all([qlist[self.res_index]], [0])
         if self.machine_type == 'CPU':
             machine.run(prog, n_round)
             res = machine.result().get_counts()
