@@ -1,0 +1,272 @@
+{
+  "schema_version": 1,
+  "run_id": "qshadow-wukong-xyz-20260726",
+  "created_at_beijing": "2026-07-26T12:31:43+08:00",
+  "backend": "WK_C180",
+  "service_url": "https://qpanda3-runtime.qpanda.cn",
+  "sdk_versions": {
+    "qpanda3_runtime": "1.0.0",
+    "pyqpanda3": "0.3.4"
+  },
+  "budget": {
+    "max_jobs": 3,
+    "shots_per_job": 512,
+    "max_total_shots": 1536,
+    "automatic_retry": false
+  },
+  "state_preparation": {
+    "initial_state": "|0>",
+    "gates": [
+      "RY(0.9) q[0]",
+      "RZ(0.7) q[0]"
+    ]
+  },
+  "measurement_plan": {
+    "q0_first": true,
+    "basis_order": [
+      "X",
+      "Y",
+      "Z"
+    ],
+    "basis_probabilities_xyz": [
+      0.3333333333333333,
+      0.3333333333333333,
+      0.3333333333333333
+    ],
+    "shots_by_basis": {
+      "X": 512,
+      "Y": 512,
+      "Z": 512
+    }
+  },
+  "jobs": [
+    {
+      "basis": "X",
+      "task_id": "DF28F46A7519E69A1B1DF8307414D621",
+      "shots_requested": 512,
+      "submitted_at_beijing": "2026-07-26T12:31:53+08:00",
+      "status": "completed",
+      "originir": "QINIT 1\nCREG 1\nRY q[0],(0.90000000)\nRZ q[0],(0.70000000)\nH q[0]\nMEASURE q[0],c[0]\n",
+      "counts_before_reconciliation": {
+        "0": 486,
+        "1": 26
+      },
+      "count_reconciliation_delta": 0,
+      "counts": {
+        "0": 486,
+        "1": 26
+      },
+      "raw_payload": [
+        [
+          {
+            "value": [
+              0.9484847,
+              0.0515153
+            ],
+            "key": [
+              "0x0",
+              "0x1"
+            ]
+          }
+        ]
+      ],
+      "completed_at_beijing": "2026-07-26T12:32:03+08:00"
+    },
+    {
+      "basis": "Y",
+      "task_id": "134099D5F971D3B25B49213513CD11BA",
+      "shots_requested": 512,
+      "submitted_at_beijing": "2026-07-26T12:32:29+08:00",
+      "status": "completed",
+      "originir": "QINIT 1\nCREG 1\nRY q[0],(0.90000000)\nRZ q[0],(0.70000000)\nRX q[0],(1.57079633)\nMEASURE q[0],c[0]\n",
+      "counts_before_reconciliation": {
+        "0": 469,
+        "1": 43
+      },
+      "count_reconciliation_delta": 0,
+      "counts": {
+        "0": 469,
+        "1": 43
+      },
+      "raw_payload": [
+        [
+          {
+            "value": [
+              0.9164126,
+              0.0835874
+            ],
+            "key": [
+              "0x0",
+              "0x1"
+            ]
+          }
+        ]
+      ],
+      "completed_at_beijing": "2026-07-26T12:32:36+08:00"
+    },
+    {
+      "basis": "Z",
+      "task_id": "D2CEDD69C365796F932599738FC3C0C6",
+      "shots_requested": 512,
+      "submitted_at_beijing": "2026-07-26T12:33:00+08:00",
+      "status": "completed",
+      "originir": "QINIT 1\nCREG 1\nRY q[0],(0.90000000)\nRZ q[0],(0.70000000)\nMEASURE q[0],c[0]\n",
+      "counts_before_reconciliation": {
+        "0": 495,
+        "1": 17
+      },
+      "count_reconciliation_delta": 0,
+      "counts": {
+        "0": 495,
+        "1": 17
+      },
+      "raw_payload": [
+        [
+          {
+            "value": [
+              0.9676203,
+              0.0323797
+            ],
+            "key": [
+              "0x0",
+              "0x1"
+            ]
+          }
+        ]
+      ],
+      "completed_at_beijing": "2026-07-26T12:33:14+08:00"
+    }
+  ],
+  "analysis": {
+    "analysed_at_beijing": "2026-07-26T12:33:30+08:00",
+    "family_confidence": 0.95,
+    "observables": {
+      "X": {
+        "hardware": {
+          "value": 0.8984375,
+          "standard_error": 0.03779604152268068,
+          "lower": 0.7157765395198192,
+          "upper": 1.0810984604801808,
+          "half_width": 0.18266096048018077,
+          "shots": 1536,
+          "empirical_variance": 2.1942385993485343,
+          "value_range": 6.0,
+          "failure_probability": 0.01666666666666668,
+          "minimum_term_matches": 512,
+          "ideal": 0.5991214669182833,
+          "absolute_error_from_ideal": 0.2993160330817167,
+          "ideal_in_statistical_interval": false
+        },
+        "cpuqvm": {
+          "value": 0.60546875,
+          "standard_error": 0.04141949998497684,
+          "lower": 0.4111304033651358,
+          "upper": 0.7998070966348643,
+          "half_width": 0.19433834663486424,
+          "shots": 1536,
+          "empirical_variance": 2.635123167752443,
+          "value_range": 6.0,
+          "failure_probability": 0.01666666666666668,
+          "minimum_term_matches": 512,
+          "ideal": 0.5991214669182833,
+          "absolute_error_from_ideal": 0.006347283081716726,
+          "ideal_in_statistical_interval": true
+        }
+      },
+      "Y": {
+        "hardware": {
+          "value": 0.83203125,
+          "standard_error": 0.03877374442445291,
+          "lower": 0.6462194284164429,
+          "upper": 1.0178430715835571,
+          "half_width": 0.18581182158355714,
+          "shots": 1536,
+          "empirical_variance": 2.3092274022801305,
+          "value_range": 6.0,
+          "failure_probability": 0.01666666666666668,
+          "minimum_term_matches": 512,
+          "ideal": 0.5046330500712651,
+          "absolute_error_from_ideal": 0.32739819992873487,
+          "ideal_in_statistical_interval": false
+        },
+        "cpuqvm": {
+          "value": 0.46484375,
+          "standard_error": 0.04258672154760506,
+          "lower": 0.2667437769916833,
+          "upper": 0.6629437230083167,
+          "half_width": 0.19809997300831672,
+          "shots": 1536,
+          "empirical_variance": 2.785733916938111,
+          "value_range": 6.0,
+          "failure_probability": 0.01666666666666668,
+          "minimum_term_matches": 512,
+          "ideal": 0.5046330500712651,
+          "absolute_error_from_ideal": 0.03978930007126513,
+          "ideal_in_statistical_interval": true
+        }
+      },
+      "Z": {
+        "hardware": {
+          "value": 0.93359375,
+          "standard_error": 0.03723683082657714,
+          "lower": 0.7527349681036721,
+          "upper": 1.1144525318963279,
+          "half_width": 0.18085878189632787,
+          "shots": 1536,
+          "empirical_variance": 2.1297892915309444,
+          "value_range": 6.0,
+          "failure_probability": 0.01666666666666668,
+          "minimum_term_matches": 512,
+          "ideal": 0.6216099682706644,
+          "absolute_error_from_ideal": 0.3119837817293356,
+          "ideal_in_statistical_interval": false
+        },
+        "cpuqvm": {
+          "value": 0.640625,
+          "standard_error": 0.041073538636694856,
+          "lower": 0.44740158935806107,
+          "upper": 0.8338484106419389,
+          "half_width": 0.19322341064193893,
+          "shots": 1536,
+          "empirical_variance": 2.5912866449511403,
+          "value_range": 6.0,
+          "failure_probability": 0.01666666666666668,
+          "minimum_term_matches": 512,
+          "ideal": 0.6216099682706644,
+          "absolute_error_from_ideal": 0.019015031729335607,
+          "ideal_in_statistical_interval": true
+        }
+      }
+    },
+    "disclosure": "Empirical Bernstein intervals quantify finite-shot statistical uncertainty only; they do not cover gate noise, readout error, calibration drift, or other systematic bias.",
+    "readout_mitigation": false,
+    "hardware_bloch_vector": {
+      "X": 0.8984375,
+      "Y": 0.83203125,
+      "Z": 0.93359375
+    },
+    "hardware_bloch_norm": 1.5398257149501937,
+    "validation_outcome": {
+      "cloud_authentication_and_device_discovery": "passed",
+      "three_job_budget_and_no_retry_guard": "passed",
+      "qshadow_ingestion_and_estimation_pipeline": "passed",
+      "hardware_statistical_accuracy_against_ideal": "not demonstrated"
+    },
+    "interpretation": "The run validates authenticated cloud integration, q0-first count ingestion, per-shot propensity records, simultaneous X/Y/Z estimation with family-wise empirical-Bernstein intervals, and the three-job/1536-shot/no-retry budget. All three hardware intervals exclude their ideal values and the estimated Bloch-vector norm exceeds one, so hardware accuracy is not demonstrated. The run used platform is_amend=True, while platform amendment, gate/readout noise, mapping, and calibration drift are outside QShadow statistical intervals. Because the symmetric X/Y/Z target used a balanced one-third plan, this run does not compare the observable-aware planner against uniform hardware sampling.",
+    "qshadow_builtin_readout_mitigation": false,
+    "platform_is_amend": true
+  },
+  "completed_at_beijing": "2026-07-26T12:33:30+08:00",
+  "runtime_submission_configuration": {
+    "is_amend": true,
+    "is_mapping": true,
+    "is_optimization": true,
+    "specified_block": null,
+    "automatic_retry": false
+  },
+  "credential_handling": {
+    "source": "Windows User environment variable ORIGINQ_API_KEY",
+    "recorded_in_evidence": false,
+    "printed_or_logged": false
+  }
+}

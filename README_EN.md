@@ -59,6 +59,8 @@ Provides underlying tools for quantum computing workflows.
   Implements numerical comparison or threshold judgment to build quantum decision logic.
 - **SparseAmp (Sparse Amplitude Encoding)**  
   Efficiently encodes sparse vectors into quantum states, reducing quantum resource consumption (for data preprocessing).
+- **QShadow (Observable-Aware Classical Shadows)**
+  Estimates many observables from locally biased Pauli measurements with simultaneous confidence intervals and explicit shot-budget control.
 
 ------
 
