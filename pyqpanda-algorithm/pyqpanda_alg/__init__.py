@@ -46,6 +46,7 @@ from . import QSVM
 from . import QUBO
 from . import QCmp
 from . import QAE
+from . import QShadow
 from . import QSVD
 from . import QSVR
 from . import Grover
