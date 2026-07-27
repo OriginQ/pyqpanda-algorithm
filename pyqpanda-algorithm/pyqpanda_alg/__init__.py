@@ -37,6 +37,7 @@ from . import QARM
 from . import QKmeans
 # from . import QLuoShu
 from . import QPCA
+from . import QPE
 # from . import QSolver
 from . import QSVM
 # from . import extensions
