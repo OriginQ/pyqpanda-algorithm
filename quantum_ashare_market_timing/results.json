@@ -289,5 +289,77 @@
       "max_drawdown": -14.6,
       "calmar": 0.88
     }
+  },
+  "cross_strategy_validation": {
+    "description": "量子NOOP在不同策略上的泛化验证",
+    "v4_ex1": {
+      "description": "V4_EX1高级策略(4层内置风控: BIAS13/EX1/DHU65/半卖)",
+      "baseline": {
+        "final_equity": 33316467,
+        "total_return": 33127.47,
+        "n_trades": 437,
+        "win_rate": 52.86,
+        "max_drawdown": 28.77,
+        "pf": 1.65
+      },
+      "best_zp_trained_quantum": {
+        "final_equity": 4516056,
+        "vs_baseline_pct": -86.44,
+        "noop_th": 0.30,
+        "n_noop": 95
+      },
+      "best_native_quantum": {
+        "final_equity": 33316467,
+        "vs_baseline_pct": 0.0,
+        "noop_th": 0.30,
+        "n_noop": 0,
+        "note": "NOOP=0, model predicts all days as tradeable"
+      },
+      "best_native_classical": {
+        "final_equity": 20059530,
+        "vs_baseline_pct": -39.78,
+        "noop_th": 0.30,
+        "n_noop": 8
+      },
+      "n_configs_tested": 40,
+      "n_configs_beat_baseline": 0,
+      "conclusion": "阴性结果: V4_EX1内置4层风控已吸收量子择时信号, 外部NOOP成为冗余"
+    },
+    "wp_stab6": {
+      "description": "WP涨停破板企稳反弹策略(尾盘买入隐含择时)",
+      "baseline": {
+        "final_equity": 60986712,
+        "total_return": 60787.0,
+        "n_trades": 630,
+        "win_rate": 52.2
+      },
+      "best_quantum": {
+        "final_equity": 62571720,
+        "vs_baseline_pct": 2.59,
+        "label_threshold": 0.02,
+        "noop_th": 0.35,
+        "n_trades": 615,
+        "win_rate": 52.5
+      },
+      "best_classical": {
+        "final_equity": 60886712,
+        "vs_baseline_pct": -0.16,
+        "label_threshold": 0.0,
+        "noop_th": 0.30
+      },
+      "conclusion": "量子击败经典(+2.6% vs -0.2%), 改善小于ZP因WP已有尾盘隐含择时"
+    },
+    "cross_strategy_transfer": {
+      "description": "ZP-trained模型迁移到WP策略",
+      "result": "全部阈值降低WP收益(最优th=0.30仍降-28%)",
+      "conclusion": "量子核捕获策略特异性信号, 非通用市场噪音"
+    },
+    "boundary_summary": {
+      "basic_zp": {"built_in_risk_control": false, "quantum_noop_effect": "+39.03%", "effective": true},
+      "wp_stab6": {"built_in_risk_control": "implicit", "quantum_noop_effect": "+2.59%", "effective": true},
+      "v4_ex1": {"built_in_risk_control": "4-layer", "quantum_noop_effect": "0/40 beat baseline", "effective": false},
+      "zp_to_wp_transfer": {"built_in_risk_control": null, "quantum_noop_effect": "all negative", "effective": false},
+      "key_finding": "量子择时信号真实有效(无风控策略+39%), 但增量价值取决于策略是否已有内置择时——信号冗余而非模型缺陷"
+    }
   }
 }
