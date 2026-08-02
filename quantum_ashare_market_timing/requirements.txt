@@ -1,0 +1,7 @@
+# 量子增强A股选股系统 — 依赖
+# Quantum-Enhanced A-Share Market Timing via QPanda3
+
+pyqpanda3>=0.4.0
+scikit-learn>=1.5.0
+numpy>=1.26.0
+pandas>=2.0.0
