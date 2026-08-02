@@ -225,18 +225,24 @@ def extract_zp_signals(closes, opens, highs, lows, vols, share_map,
     return sig_df
 
 
-def build_daily_labels(signals_df):
+def build_daily_labels(signals_df, ret_threshold=0.005):
     """
     按日聚合ZP信号 → 市场择时标签
     
     对每个交易日:
-      - label = 1 (好天): 该日所有ZP信号的平均收益 > 0
-      - label = 0 (坏天): 该日所有ZP信号的平均收益 <= 0
+      - label = 1 (好天): 该日所有ZP信号的平均收益 > ret_threshold
+      - label = 0 (坏天): 该日所有ZP信号的平均收益 <= ret_threshold
     
     标签降噪原理:
       个股盈利预测(单笔)噪声大(AUC≈0.5)
-      但日均收益: 好天+4.28% vs 坏天-4.17% (巨大分离)
-      跨信号平均显著降噪, 使分类器可学习
+      但日均收益跨信号平均显著降噪, 使分类器可学习
+      ret_threshold=0.5% 过滤掉"微涨"噪音日, 只标记有意义的上涨日
+    
+    参数:
+      signals_df: DataFrame ZP信号
+      ret_threshold: float 正标签阈值(日均收益率), 默认0.5%
+                     0%太弱(4年正样本率45%, 分离度仅0.1%)
+                     0.5%最优(正样本率41%, 模型可学到有效信号)
     
     返回:
       daily: DataFrame(n_signals, avg_ret_pct, label, ...)
@@ -248,7 +254,7 @@ def build_daily_labels(signals_df):
         avg_ret_pct=('sell_ret', lambda x: np.mean(x) - 1.0),
         wr=('label', 'mean'),
     )
-    daily['label'] = (daily['avg_sell_ret'] > 1.0).astype(int)
+    daily['label'] = (daily['avg_ret_pct'] > ret_threshold).astype(int)
     
     return daily
 
