@@ -323,7 +323,7 @@
       },
       "n_configs_tested": 40,
       "n_configs_beat_baseline": 0,
-      "conclusion": "阴性结果: V4_EX1内置4层风控已吸收量子择时信号, 外部NOOP成为冗余"
+      "conclusion": "阴性结果: V4_EX1内置4层风控可能吸收部分信号, 但标签退化(正样本率55.9%/概率std=0.052)和训练不足(335天vs979天)是更主要原因, 见significance_test.experiment_c"
     },
     "wp_stab6": {
       "description": "WP涨停破板企稳反弹策略(尾盘买入隐含择时)",
@@ -359,7 +359,52 @@
       "wp_stab6": {"built_in_risk_control": "implicit", "quantum_noop_effect": "+2.59%", "effective": true},
       "v4_ex1": {"built_in_risk_control": "4-layer", "quantum_noop_effect": "0/40 beat baseline", "effective": false},
       "zp_to_wp_transfer": {"built_in_risk_control": null, "quantum_noop_effect": "all negative", "effective": false},
-      "key_finding": "量子择时信号真实有效(无风控策略+39%), 但增量价值取决于策略是否已有内置择时——信号冗余而非模型缺陷"
+      "key_finding": "量子择时在ZP(+39.03%)和WP(+2.6%)上有效, 多seed检验统计显著优于经典(p=0.00004). 但量子核SVM对超参数敏感(3/12跑赢基线), V4_EX1阴性源于标签退化+训练不足的复合效应而非单一信号冗余"
+    }
+  },
+  "significance_test": {
+    "description": "统计显著性与鲁棒性验证 (基于V4_PY_0720回测引擎, 基线187046元)",
+    "experiment_a_multiseed": {
+      "description": "多seed配对检验: 10个random_state, 量子NOOP(th=0.45) vs 经典NOOP(th=0.50)",
+      "n_seeds": 10,
+      "quantum": {"mean_final": 190449.14, "std_final": 28294.84, "min_final": 147360.36, "max_final": 243250.78},
+      "classical": {"mean_final": 119738.94, "std_final": 0.0, "note": "LogReg对random_state不敏感, 10次结果完全一致"},
+      "paired_t_test": {"t_stat": 7.497, "p_value": 0.000037, "significant": true},
+      "quantum_win_rate": 1.0,
+      "caveat": "经典侧std=0, 非严格多seed对照, 但量子侧稳定性有参考价值"
+    },
+    "experiment_b_hyperparams": {
+      "description": "超参数鲁棒性扫描: 4个C(0.01/0.1/1.0/10.0) x 3个n_reps(1/2/3) = 12组",
+      "baseline_final": 187045.99,
+      "n_configs_beat_baseline": 3,
+      "n_configs_total": 12,
+      "best_config": {"C": 0.01, "n_reps": 3, "final": 214127.73, "vs_baseline_pct": 14.48},
+      "finding": "仅n_reps=3跑赢基线(3/4), C=10.0全部低于基线(过拟合). 量子核SVM对超参数敏感."
+    },
+    "experiment_c_label_degradation": {
+      "description": "V4_EX1标签退化分析: NOOP=0是信号冗余还是标签退化?",
+      "v4_ex1_baseline": 33316467,
+      "label_threshold_0pct": {
+        "quantum_prob": {"mean": 0.522, "std": 0.052, "min": 0.425, "max": 0.667},
+        "quantum_noop_trigger": {"th_0.30": 0, "th_0.40": 0, "th_0.45": 31, "th_0.50": 101},
+        "quantum_prob_above_0.45_pct": 88.8,
+        "classical_prob": {"mean": 0.543, "std": 0.112},
+        "classical_noop_trigger": {"th_0.30": 8, "th_0.50": 79}
+      },
+      "label_threshold_1pct": {
+        "quantum_prob": {"mean": 0.511, "std": 0.053, "min": 0.434, "max": 0.644},
+        "quantum_prob_above_0.45_pct": 88.1
+      },
+      "label_threshold_2pct": {
+        "quantum_prob": {"mean": 0.515, "std": 0.063, "min": 0.373, "max": 0.679},
+        "quantum_prob_above_0.45_pct": 96.8,
+        "note": "标签退化: 96.8%判为可交易, 模型无法区分好天坏天"
+      },
+      "label_quality_comparison": {
+        "zp": {"n_label_days": 979, "positive_rate": 0.412, "avg_ret_mean_pct": -0.27},
+        "v4_ex1": {"n_label_days": 335, "positive_rate_l0pct": 0.559, "prediction_days": 277}
+      },
+      "conclusion": "V4_EX1阴性结果最可能是标签退化+训练不足的复合效应, 而非单一信号冗余. 量子概率分布极端集中(std=0.052, 88.8%判为可交易)更像是模型在退化标签上无法学习, 而非学到了与内置风控重复的真信号."
     }
   }
 }
