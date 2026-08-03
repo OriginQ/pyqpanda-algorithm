@@ -29,7 +29,7 @@ def run_backtest(signals_df, trading_days, noop_dates=None,
       4. 卖出: 持仓hold_days天后以收盘价卖出
     
     参数:
-      signals_df: DataFrame(code, gap_pct, sell_ret, ...) ZP信号
+      signals_df: DataFrame(code, gap_pct, sell_ret, ...) 交易信号
       trading_days: list 交易日列表 (pd.Timestamp)
       noop_dates: set NOOP日期集合 (字符串 "YYYY-MM-DD")
       initial_capital: 初始资金
@@ -44,7 +44,7 @@ def run_backtest(signals_df, trading_days, noop_dates=None,
     """
     noop_dates = noop_dates or set()
 
-    # 按日分组 + 跳空%降序排序 (ZP铁律)
+    # 按日分组 + 信号强度降序排序
     signals_df = signals_df.copy()
     signals_df['_date'] = signals_df.index.normalize()
     signals_df = signals_df.sort_values(['_date', 'gap_pct'], ascending=[True, False])
@@ -87,7 +87,7 @@ def run_backtest(signals_df, trading_days, noop_dates=None,
             equity_curve.append({'date': today, 'equity': current_equity})
             continue
 
-        # 5. 买入 (跳空%降序已排好)
+        # 5. 买入 (信号强度降序已排好)
         day_sigs = day_sigs.head(available)
         alloc = portfolio / max_positions
 

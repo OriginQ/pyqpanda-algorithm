@@ -5,35 +5,35 @@
 Market Data & Feature Engineering for A-Share Market Timing
 
 功能:
-  1. 构建上证指数6维市场特征 (零前视: T-1收盘数据, 09:25前可见)
-  2. 提取ZP跳空策略信号 (均线多头+跳空2-5%+温和放量)
-  3. 按日聚合信号 → 市场择时标签
+  1. 构建11维市场特征 (零前视: T-1收盘数据, 09:25前可见)
+  2. 加载交易信号 → 按日聚合 → 市场择时标签
+  3. 市场广度计算 (涨跌家数比/涨停家数/跌停家数)
+
+注: 交易信号由外部策略引擎预计算并持久化，
+    本模块仅负责加载信号 + 构建市场特征 + 生成标签，
+    不包含任何策略选股/择时逻辑。
 
 作者: 周勋洪 (中国电信资阳分公司)
-日期: 2026-08-02
+日期: 2026-08-03
 """
 import numpy as np
 import pandas as pd
 
 
-def build_market_features(sh_df):
+def build_market_features(sh_df, all_data=None, signals_daily=None):
     """
-    构建6维市场特征 (全部T-1口径, 次日09:25前100%可见, 零前视偏差)
+    构建市场特征 (全部T-1口径, 次日09:25前100%可见, 零前视偏差)
     
-    特征清单:
-      1. bias20: (close-MA20)/MA20*100  — 均值回归偏离度
-                 ★BIAS_Hi13保险丝的核心(>13%时大盘过热)
-      2. ret_5d: 5日涨幅%                — 短期动量
-      3. vol_ratio: 成交量/5日均量        — 量能变化
-      4. rsi_5: 5日RSI                   — 超买超卖指标
-      5. ma_align: (MA5-MA10)/MA10*100  — 短期趋势方向
-      6. range_5d: (5日最高-5日最低)/close*100 — 近期波动率
+    基础6维 + 扩展5维 (上证指数T-1) + 市场广度3维 (全市场T-1) + 信号层面2维 (交易信号T-1)
+    向后兼容: 不传all_data/signals_daily时仅输出基础+扩展11维
     
     参数:
       sh_df: DataFrame(open, high, low, close, volume) 上证指数日线
+      all_data: dict (可选) 个股K线数据, 用于计算市场广度
+      signals_daily: DataFrame (可选) 按日聚合的交易信号(含n_signals, avg_gap_pct), 用于信号层面特征
     
     返回:
-      features: DataFrame, 6列特征, index=日期
+      features: DataFrame, 11~16列特征, index=日期
     """
     sh = sh_df.copy()
     sh.index = sh.index.normalize()
@@ -44,20 +44,23 @@ def build_market_features(sh_df):
     ma5 = sh['close'].rolling(5).mean()
     ma10 = sh['close'].rolling(10).mean()
     ma20 = sh['close'].rolling(20).mean()
+    ma60 = sh['close'].rolling(60).mean()
 
-    # 特征1: bias20 (T-1)
+    # ========== 基础6维 (T-1 shifted) ==========
+
+    # 1. bias20 (T-1)
     bias20 = (sh['close'] - ma20) / ma20 * 100
     feat_bias20 = bias20.shift(1)
 
-    # 特征2: 5日涨幅 (T-1)
+    # 2. 5日涨幅 (T-1)
     ret_5d = (sh['close'] / sh['close'].shift(5) - 1) * 100
     feat_ret_5d = ret_5d.shift(1)
 
-    # 特征3: 量比 = 今日量 / 5日均量 (T-1)
+    # 3. 量比 = 今日量 / 5日均量 (T-1)
     vol_5d = sh['volume'].rolling(5).mean()
     feat_vol_ratio = (sh['volume'] / vol_5d).shift(1)
 
-    # 特征4: RSI(5) (T-1)
+    # 4. RSI(5) (T-1)
     delta = sh['close'].diff()
     gain = delta.clip(lower=0)
     loss = (-delta).clip(lower=0)
@@ -67,10 +70,10 @@ def build_market_features(sh_df):
     rsi = 100 - 100 / (1 + rs)
     feat_rsi = rsi.shift(1)
 
-    # 特征5: MA5偏离MA10 (T-1)
+    # 5. MA5偏离MA10 (T-1)
     feat_ma_align = ((ma5 - ma10) / ma10 * 100).shift(1)
 
-    # 特征6: 5日振幅 (T-1)
+    # 6. 5日振幅 (T-1)
     high_5d = sh['high'].rolling(5).max()
     low_5d = sh['low'].rolling(5).min()
     feat_range = ((high_5d - low_5d) / sh['close'] * 100).shift(1)
@@ -82,156 +85,157 @@ def build_market_features(sh_df):
         'rsi_5': feat_rsi,
         'ma_align': feat_ma_align,
         'range_5d': feat_range,
-    }).dropna()
+    })
 
+    # ========== 扩展5维 (上证指数, T-1 shifted) ==========
+
+    # 7. ret_20d: 20日涨幅%
+    ret_20d = (sh['close'] / sh['close'].shift(20) - 1) * 100
+    feat_ret_20d = ret_20d.shift(1)
+
+    # 8. vol_ratio_20d: 成交量/20日均量
+    vol_20d = sh['volume'].rolling(20).mean()
+    feat_vol_ratio_20d = (sh['volume'] / vol_20d).shift(1)
+
+    # 9. ma_trend: (MA20-MA60)/MA60*100
+    feat_ma_trend = ((ma20 - ma60) / ma60 * 100).shift(1)
+
+    # 10. vol_rank_60: 20日已实现波动率在过去60日的分位
+    daily_ret = sh['close'].pct_change()
+    real_vol_20d = daily_ret.rolling(20).std() * np.sqrt(252) * 100
+    vol_rank = real_vol_20d.rolling(60).rank(pct=True)
+    feat_vol_rank = vol_rank.shift(1)
+
+    # 11. rsi_14: 14日RSI
+    delta14 = sh['close'].diff()
+    gain14 = delta14.clip(lower=0)
+    loss14 = (-delta14).clip(lower=0)
+    avg_gain14 = gain14.rolling(14).mean()
+    avg_loss14 = loss14.rolling(14).mean()
+    rs14 = avg_gain14 / avg_loss14.replace(0, np.nan)
+    rsi14 = 100 - 100 / (1 + rs14)
+    feat_rsi_14 = rsi14.shift(1)
+
+    features['ret_20d'] = feat_ret_20d
+    features['vol_ratio_20d'] = feat_vol_ratio_20d
+    features['ma_trend'] = feat_ma_trend
+    features['vol_rank_60'] = feat_vol_rank
+    features['rsi_14'] = feat_rsi_14
+
+    # ========== 市场广度3维 (全市场主板个股, T-1 shifted) ==========
+    if all_data is not None:
+        closes_dict = all_data.get('close', {})
+        breadth = compute_market_breadth(closes_dict)
+        if breadth is not None:
+            breadth_shifted = breadth.shift(1)
+            features = features.join(breadth_shifted, how='inner')
+
+    # ========== 信号层面2维 (交易信号聚合, T-1 shifted) ==========
+    if signals_daily is not None:
+        sig_feat = pd.DataFrame(index=signals_daily.index)
+        sig_feat['n_sig_prev'] = signals_daily['n_signals']
+        if 'avg_gap_pct' in signals_daily.columns:
+            sig_feat['avg_gap_prev'] = signals_daily['avg_gap_pct']
+        else:
+            sig_feat['avg_gap_prev'] = np.nan
+        sig_feat_shifted = sig_feat.shift(1)
+        features = features.join(sig_feat_shifted, how='inner')
+
+    features = features.dropna()
     return features
 
 
-def extract_zp_signals(closes, opens, highs, lows, vols, share_map,
-                       market_bias, gap_min=2.0, gap_max=5.0,
-                       mcap_min=50, mcap_max=2000, min_price=3.0,
-                       hold_days=3):
+def compute_market_breadth(closes_dict):
     """
-    提取ZP跳空策略买入信号
+    计算市场广度指标 (全部T-1口径, 次日09:25前可见)
     
-    ZP策略买入条件 (全部09:25可见, 零前视):
-      1. 均线多头: MA5 > MA10 > MA20, MA20上行
-      2. 温和放量: 近5日/近10日量比 ∈ [0.8, 1.5]
-      3. 站稳MA5: T-1收盘 >= T-1 MA5
-      4. 跳空2.0~5.0%: T日open / T-1 close - 1 ∈ [2%, 5%]
-      5. 市值50~2000亿 (排除微盘股和超大盘)
-      6. 股价 >= 3元
-      7. 排除一字板/300创业板/688科创板/8开头北交所/ST
+    从个股收盘价计算每日:
+    - adv_dec_ratio: 上涨家数/下跌家数
+    - limit_up_count: 涨停家数 (主板≥9.5%涨幅)
+    - limit_down_count: 跌停家数 (主板≤-9.5%跌幅)
     
-    卖出: 固定持仓hold_days天后以收盘价卖出
-    排序: 跳空%降序 (ZP铁律: 跳空越大=信号越强)
+    仅使用主板股票 (排除300创业板/688科创板/8开头北交所)
     
     参数:
-      closes/opens/highs/lows/vols: dict {code: pd.Series} 个股OHLCV
-      share_map: dict {code: total_share} 总股本(亿股)
-      market_bias: pd.Series 上证bias20 (用于BIAS_Hi13保险丝)
-      gap_min/gap_max: 跳空区间
-      mcap_min/mcap_max: 市值区间(亿)
-      min_price: 最低股价
-      hold_days: 持仓天数
+      closes_dict: dict {code: pd.Series} 个股收盘价
     
     返回:
-      signals: DataFrame(code, gap_pct, sell_ret, label, ...)
+      breadth: DataFrame(adv_dec_ratio, limit_up_count, limit_down_count)
     """
-    signals = []
-    
-    for code in closes:
-        # 排除创业板/科创板/北交所/ST
+    # 收集主板股票收盘价
+    close_cols = {}
+    for code in closes_dict:
         if code.startswith('300') or code.startswith('688') or code.startswith('8'):
             continue
-        if 'ST' in code.upper():
+        s = closes_dict[code].dropna()
+        if len(s) < 30:
             continue
+        close_cols[code] = s
 
-        close_s = closes[code]
-        open_s = opens[code]
-        high_s = highs[code]
-        low_s = lows[code]
-        vol_s = vols[code]
-
-        if len(close_s) < 30:
-            continue
-
-        # 个股数据
-        df = pd.DataFrame({
-            'open': open_s, 'high': high_s, 'low': low_s,
-            'close': close_s, 'vol': vol_s
-        }).dropna()
-        df.index = df.index.normalize()
-
-        # 均线
-        ma5 = df['close'].rolling(5).mean()
-        ma10 = df['close'].rolling(10).mean()
-        ma20 = df['close'].rolling(20).mean()
-
-        # 总股本
-        code_6 = code.split('.')[0]
-        total_share = share_map.get(code_6)
-        if total_share is None:
-            continue
-
-        for i in range(21, len(df) - hold_days - 1):
-            # T-1数据 (i)
-            pc = df['close'].iloc[i]
-            pv = df['vol'].iloc[i]
-
-            # 均线多头
-            if not (ma5.iloc[i] > ma10.iloc[i] > ma20.iloc[i]):
-                continue
-            # MA20上行
-            if ma20.iloc[i] <= ma20.iloc[i - 1]:
-                continue
-            # 站稳MA5
-            if pc < ma5.iloc[i]:
-                continue
-            # 温和放量
-            v5 = df['vol'].iloc[i - 4:i + 1].mean()
-            v10 = df['vol'].iloc[i - 9:i + 1].mean()
-            if v5 <= 0 or v10 <= 0:
-                continue
-            vr = v5 / v10
-            if vr < 0.8 or vr > 1.5:
-                continue
-
-            # T日跳空 (i+1)
-            t_open = df['open'].iloc[i + 1]
-            gap_pct = (t_open / pc - 1) * 100
-            if gap_pct < gap_min or gap_pct > gap_max:
-                continue
-
-            # 一字板排除
-            t_high = df['high'].iloc[i + 1]
-            t_low = df['low'].iloc[i + 1]
-            if t_open >= t_high * 0.999 and t_open <= t_low * 1.001:
-                continue
-
-            # 市值过滤
-            mcap = pc * total_share / 1e8  # 亿
-            if mcap < mcap_min or mcap > mcap_max:
-                continue
-
-            # 股价过滤
-            if pc < min_price:
-                continue
-
-            # 卖出: hold_days后收盘价
-            sell_idx = min(i + 1 + hold_days, len(df) - 1)
-            sell_price = df['close'].iloc[sell_idx]
-            buy_price = t_open
-            sell_ret = sell_price / buy_price  # 卖出价/买入价
-            label = 1 if sell_ret > 1.0 else 0
-
-            date = df.index[i + 1]
-            signals.append({
-                'date': date,
-                'code': code,
-                'gap_pct': gap_pct,
-                'buy_price': buy_price,
-                'sell_price': sell_price,
-                'sell_ret': sell_ret,
-                'label': label,
-            })
-
-    if len(signals) == 0:
+    if len(close_cols) < 100:
         return None
 
-    sig_df = pd.DataFrame(signals)
-    sig_df.set_index('date', inplace=True)
-    sig_df.sort_index(inplace=True)
-    return sig_df
+    # 构建宽表 (日期 × 股票), pandas自动对齐索引
+    close_df = pd.DataFrame(close_cols)
+    close_df.index = close_df.index.normalize()
+    close_df = close_df.sort_index()
+
+    # 日收益率
+    ret_df = close_df.pct_change()
+
+    # 市场广度
+    adv = (ret_df > 0).sum(axis=1)
+    dec = (ret_df < 0).sum(axis=1)
+    adv_dec_ratio = adv / dec.replace(0, np.nan)
+
+    # 涨停/跌停 (主板10%限制, 用9.5%作为阈值避免四舍五入差异)
+    limit_up = (ret_df >= 0.095).sum(axis=1)
+    limit_down = (ret_df <= -0.095).sum(axis=1)
+
+    breadth = pd.DataFrame({
+        'adv_dec_ratio': adv_dec_ratio,
+        'limit_up_count': limit_up,
+        'limit_down_count': limit_down,
+    }).dropna()
+
+    return breadth
+
+
+def load_zp_signals(signals_path):
+    """
+    加载预计算的交易信号
+    
+    交易信号由外部策略引擎预计算并通过pickle持久化，
+    本函数仅负责反序列化加载。信号包含:
+      - date (index): 信号触发日期
+      - code: 股票代码
+      - gap_pct: 信号强度指标
+      - buy_price: 买入价格
+      - sell_price: 卖出价格
+      - sell_ret: 收益率(卖出/买入)
+      - label: 盈亏标签(1=盈利, 0=亏损)
+    
+    信号生成逻辑属于独立商业策略，不在本模块中实现。
+    
+    参数:
+      signals_path: str 信号pickle文件路径
+    
+    返回:
+      signals_df: DataFrame(code, gap_pct, buy_price, sell_price, sell_ret, label)
+    """
+    with open(signals_path, 'rb') as f:
+        import pickle
+        signals_df = pickle.load(f)
+    return signals_df
 
 
 def build_daily_labels(signals_df, ret_threshold=0.005):
     """
-    按日聚合ZP信号 → 市场择时标签
+    按日聚合交易信号 → 市场择时标签
     
     对每个交易日:
-      - label = 1 (好天): 该日所有ZP信号的平均收益 > ret_threshold
-      - label = 0 (坏天): 该日所有ZP信号的平均收益 <= ret_threshold
+      - label = 1 (好天): 该日所有信号的平均收益 > ret_threshold
+      - label = 0 (坏天): 该日所有信号的平均收益 <= ret_threshold
     
     标签降噪原理:
       个股盈利预测(单笔)噪声大(AUC≈0.5)
@@ -239,7 +243,7 @@ def build_daily_labels(signals_df, ret_threshold=0.005):
       ret_threshold=0.5% 过滤掉"微涨"噪音日, 只标记有意义的上涨日
     
     参数:
-      signals_df: DataFrame ZP信号
+      signals_df: DataFrame 交易信号
       ret_threshold: float 正标签阈值(日均收益率), 默认0.5%
                      0%太弱(4年正样本率45%, 分离度仅0.1%)
                      0.5%最优(正样本率41%, 模型可学到有效信号)
@@ -252,6 +256,7 @@ def build_daily_labels(signals_df, ret_threshold=0.005):
         n_profit=('label', 'sum'),
         avg_sell_ret=('sell_ret', 'mean'),
         avg_ret_pct=('sell_ret', lambda x: np.mean(x) - 1.0),
+        avg_gap_pct=('gap_pct', 'mean'),
         wr=('label', 'mean'),
     )
     daily['label'] = (daily['avg_ret_pct'] > ret_threshold).astype(int)
@@ -276,7 +281,8 @@ def prepare_dataset(signals_df, market_features, train_end='2025-06-30'):
     daily = build_daily_labels(signals_df)
     daily = daily.join(market_features, how='inner')
     
-    feature_cols = ['bias20', 'ret_5d', 'vol_ratio', 'rsi_5', 'ma_align', 'range_5d']
+    # 动态特征列: market_features的全部列即为特征 (向后兼容6~16维)
+    feature_cols = list(market_features.columns)
     X = daily[feature_cols].values.astype(np.float64)
     y = daily['label'].values.astype(np.int32)
     daily_rets = daily['avg_ret_pct'].values

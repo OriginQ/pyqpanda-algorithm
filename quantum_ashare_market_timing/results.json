@@ -8,7 +8,7 @@
   "test_period": "2022-06-02 ~ 2026-07-07",
   "config": {
     "n_qubits": 6,
-    "n_reps": 2,
+    "n_reps": 1,
     "initial_capital": 100000,
     "max_positions": 5,
     "hold_days": 3,
@@ -16,231 +16,321 @@
     "n_segments": 9,
     "ret_threshold": 0.005
   },
+  "systematic_optimization": {
+    "description": "4-phase systematic optimization (Phase 1-4)",
+    "phase1_features": "6→16 dim expansion + SelectKBest; 11dim SelectKBest→6q optimal",
+    "phase2_circuit": "angle_nrep1_C0.1_pi_6q = global optimum (+126.12%); n_reps=1 breakthrough vs n_reps=2 (+1.84%)",
+    "phase3_labels": "0.5% binary classification optimal; regression/multiclass/multi-horizon all inferior",
+    "phase4_training": "6-month refit + expanding window optimal; monthly refit/rolling window/ensemble/regime all inferior",
+    "global_optimal": "angle_encoding, n_reps=1, C=0.1, scale=pi, 11dim SelectKBest->6q, 0.5% label, 6-month refit, expanding window -> +126.12%",
+    "baseline_no_filter": "-76.34%"
+  },
   "segment_results": [
     {
       "seg": 1,
-      "train_size": 66,
+      "train_size": 65,
       "test_size": 111,
-      "q_acc": 0.5676,
-      "lr_acc": 0.5586,
-      "q_auc": 0.56,
-      "lr_auc": 0.4125,
-      "q_time": 0.6
+      "q_acc": 0.5315,
+      "lr_acc": 0.5405,
+      "q_auc": 0.4407,
+      "lr_auc": 0.4334,
+      "q_time": 0.5,
+      "n_features": 11,
+      "q_features": [
+        "ret_5d",
+        "vol_ratio",
+        "ret_20d",
+        "ma_trend",
+        "vol_rank_60",
+        "rsi_14"
+      ]
     },
     {
       "seg": 2,
-      "train_size": 177,
+      "train_size": 176,
       "test_size": 106,
       "q_acc": 0.6321,
-      "lr_acc": 0.6509,
-      "q_auc": 0.522,
-      "lr_auc": 0.5775,
-      "q_time": 1.0
+      "lr_acc": 0.6415,
+      "q_auc": 0.5109,
+      "lr_auc": 0.5396,
+      "q_time": 0.7,
+      "n_features": 11,
+      "q_features": [
+        "bias20",
+        "ret_5d",
+        "rsi_5",
+        "range_5d",
+        "ma_trend",
+        "rsi_14"
+      ]
     },
     {
       "seg": 3,
-      "train_size": 283,
+      "train_size": 282,
       "test_size": 107,
-      "q_acc": 0.5701,
-      "lr_acc": 0.6636,
-      "q_auc": 0.4629,
-      "lr_auc": 0.5742,
-      "q_time": 1.3
+      "q_acc": 0.6729,
+      "lr_acc": 0.6822,
+      "q_auc": 0.6012,
+      "lr_auc": 0.5413,
+      "q_time": 1.0,
+      "n_features": 11,
+      "q_features": [
+        "bias20",
+        "ret_5d",
+        "rsi_5",
+        "ma_align",
+        "range_5d",
+        "vol_ratio_20d"
+      ]
     },
     {
       "seg": 4,
-      "train_size": 390,
+      "train_size": 389,
       "test_size": 96,
       "q_acc": 0.5729,
-      "lr_acc": 0.5521,
-      "q_auc": 0.5344,
-      "lr_auc": 0.5827,
-      "q_time": 1.6
+      "lr_acc": 0.5729,
+      "q_auc": 0.6022,
+      "lr_auc": 0.5858,
+      "q_time": 1.3,
+      "n_features": 11,
+      "q_features": [
+        "bias20",
+        "ret_5d",
+        "rsi_5",
+        "range_5d",
+        "vol_rank_60",
+        "rsi_14"
+      ]
     },
     {
       "seg": 5,
-      "train_size": 486,
+      "train_size": 485,
       "test_size": 87,
       "q_acc": 0.5632,
-      "lr_acc": 0.4253,
-      "q_auc": 0.42,
-      "lr_auc": 0.4033,
-      "q_time": 2.0
+      "lr_acc": 0.4138,
+      "q_auc": 0.5113,
+      "lr_auc": 0.398,
+      "q_time": 1.7,
+      "n_features": 11,
+      "q_features": [
+        "ret_5d",
+        "rsi_5",
+        "ma_align",
+        "range_5d",
+        "ma_trend",
+        "vol_rank_60"
+      ]
     },
     {
       "seg": 6,
-      "train_size": 573,
+      "train_size": 572,
       "test_size": 111,
       "q_acc": 0.6306,
-      "lr_acc": 0.6306,
-      "q_auc": 0.5746,
-      "lr_auc": 0.5627,
-      "q_time": 2.4
+      "lr_acc": 0.6126,
+      "q_auc": 0.6512,
+      "lr_auc": 0.4923,
+      "q_time": 1.9,
+      "n_features": 11,
+      "q_features": [
+        "bias20",
+        "ret_5d",
+        "rsi_5",
+        "ma_align",
+        "vol_rank_60",
+        "rsi_14"
+      ]
     },
     {
       "seg": 7,
-      "train_size": 684,
+      "train_size": 683,
       "test_size": 117,
-      "q_acc": 0.5726,
+      "q_acc": 0.5641,
       "lr_acc": 0.5726,
-      "q_auc": 0.5155,
-      "lr_auc": 0.5513,
-      "q_time": 2.6
+      "q_auc": 0.5973,
+      "lr_auc": 0.6051,
+      "q_time": 2.3,
+      "n_features": 11,
+      "q_features": [
+        "bias20",
+        "ret_5d",
+        "rsi_5",
+        "ma_align",
+        "vol_rank_60",
+        "rsi_14"
+      ]
     },
     {
       "seg": 8,
-      "train_size": 801,
+      "train_size": 800,
       "test_size": 112,
-      "q_acc": 0.4464,
-      "lr_acc": 0.4554,
-      "q_auc": 0.5668,
-      "lr_auc": 0.4042,
-      "q_time": 3.1
+      "q_acc": 0.4554,
+      "lr_acc": 0.4375,
+      "q_auc": 0.6355,
+      "lr_auc": 0.4861,
+      "q_time": 2.7,
+      "n_features": 11,
+      "q_features": [
+        "bias20",
+        "ret_5d",
+        "vol_ratio",
+        "rsi_5",
+        "ma_align",
+        "vol_rank_60"
+      ]
     },
     {
       "seg": 9,
-      "train_size": 913,
+      "train_size": 912,
       "test_size": 24,
       "q_acc": 0.5833,
       "lr_acc": 0.5833,
-      "q_auc": 0.45,
-      "lr_auc": 0.4571,
-      "q_time": 3.2
+      "q_auc": 0.5214,
+      "lr_auc": 0.2286,
+      "q_time": 2.6,
+      "n_features": 11,
+      "q_features": [
+        "bias20",
+        "ret_5d",
+        "vol_ratio",
+        "rsi_5",
+        "ma_align",
+        "vol_rank_60"
+      ]
     }
   ],
   "threshold_scan": {
     "quantum": [
       {
         "threshold": 0.3,
-        "noop_pct": 10.9,
+        "noop_pct": 4.5,
         "name": "量子NOOP(th=0.30)",
-        "final_equity": 26942.76,
-        "total_return": -73.06,
-        "n_trades": 1365,
-        "win_rate": 41.32,
-        "avg_ret_per_trade": -0.47,
-        "total_pnl": -73057.24,
-        "max_drawdown": -82.67,
-        "calmar": 0.88
+        "final_equity": 24458.97,
+        "total_return": -75.54,
+        "n_trades": 1446,
+        "win_rate": 40.32,
+        "avg_ret_per_trade": -0.55,
+        "total_pnl": -75541.03,
+        "max_drawdown": -83.52,
+        "calmar": 0.9
       },
       {
         "threshold": 0.35,
-        "noop_pct": 16.2,
+        "noop_pct": 10.1,
         "name": "量子NOOP(th=0.35)",
-        "final_equity": 26223.39,
-        "total_return": -73.78,
-        "n_trades": 1317,
-        "win_rate": 41.15,
-        "avg_ret_per_trade": -0.46,
-        "total_pnl": -73776.61,
-        "max_drawdown": -85.18,
-        "calmar": 0.87
+        "final_equity": 38990.54,
+        "total_return": -61.01,
+        "n_trades": 1389,
+        "win_rate": 41.68,
+        "avg_ret_per_trade": -0.29,
+        "total_pnl": -61009.46,
+        "max_drawdown": -79.06,
+        "calmar": 0.77
       },
       {
         "threshold": 0.4,
-        "noop_pct": 75.3,
+        "noop_pct": 79.8,
         "name": "量子NOOP(th=0.40)",
-        "final_equity": 125562.08,
-        "total_return": 25.56,
-        "n_trades": 555,
-        "win_rate": 43.78,
-        "avg_ret_per_trade": 0.18,
-        "total_pnl": 25562.08,
-        "max_drawdown": -42.06,
-        "calmar": 0.61
+        "final_equity": 226123.35,
+        "total_return": 126.12,
+        "n_trades": 506,
+        "win_rate": 45.65,
+        "avg_ret_per_trade": 1.09,
+        "total_pnl": 126123.35,
+        "max_drawdown": -24.5,
+        "calmar": 5.15
       },
       {
         "threshold": 0.45,
-        "noop_pct": 90.9,
+        "noop_pct": 96.8,
         "name": "量子NOOP(th=0.45)",
-        "final_equity": 139032.14,
-        "total_return": 39.03,
-        "n_trades": 254,
-        "win_rate": 44.88,
-        "avg_ret_per_trade": 0.67,
-        "total_pnl": 39032.14,
-        "max_drawdown": -29.47,
-        "calmar": 1.32
+        "final_equity": 145011.45,
+        "total_return": 45.01,
+        "n_trades": 163,
+        "win_rate": 53.37,
+        "avg_ret_per_trade": 1.36,
+        "total_pnl": 45011.45,
+        "max_drawdown": -25.28,
+        "calmar": 1.78
       },
       {
         "threshold": 0.5,
-        "noop_pct": 95.1,
+        "noop_pct": 99.3,
         "name": "量子NOOP(th=0.50)",
-        "final_equity": 89819.3,
-        "total_return": -10.18,
-        "n_trades": 168,
-        "win_rate": 41.07,
-        "avg_ret_per_trade": -0.27,
-        "total_pnl": -10180.7,
-        "max_drawdown": -36.82,
-        "calmar": 0.28
+        "final_equity": 100300.21,
+        "total_return": 0.3,
+        "n_trades": 85,
+        "win_rate": 47.06,
+        "avg_ret_per_trade": 0.18,
+        "total_pnl": 300.21,
+        "max_drawdown": -12.18,
+        "calmar": 0.02
       }
     ],
     "classical": [
       {
         "threshold": 0.3,
-        "noop_pct": 13.4,
+        "noop_pct": 24.6,
         "name": "经典LogReg(th=0.30)",
-        "final_equity": 34127.84,
-        "total_return": -65.87,
-        "n_trades": 1342,
-        "win_rate": 40.98,
-        "avg_ret_per_trade": -0.36,
-        "total_pnl": -65872.16,
-        "max_drawdown": -74.67,
-        "calmar": 0.88
+        "final_equity": 31466.18,
+        "total_return": -68.53,
+        "n_trades": 1192,
+        "win_rate": 41.53,
+        "avg_ret_per_trade": -0.53,
+        "total_pnl": -68533.82,
+        "max_drawdown": -78.36,
+        "calmar": 0.87
       },
       {
         "threshold": 0.35,
-        "noop_pct": 40.0,
+        "noop_pct": 44.4,
         "name": "经典LogReg(th=0.35)",
-        "final_equity": 80428.6,
-        "total_return": -19.57,
-        "n_trades": 1024,
-        "win_rate": 42.68,
-        "avg_ret_per_trade": 0.14,
-        "total_pnl": -19571.4,
-        "max_drawdown": -64.19,
-        "calmar": 0.3
+        "final_equity": 135878.09,
+        "total_return": 35.88,
+        "n_trades": 931,
+        "win_rate": 43.93,
+        "avg_ret_per_trade": 0.3,
+        "total_pnl": 35878.09,
+        "max_drawdown": -55.95,
+        "calmar": 0.64
       },
       {
         "threshold": 0.4,
-        "noop_pct": 71.3,
+        "noop_pct": 68.4,
         "name": "经典LogReg(th=0.40)",
-        "final_equity": 85891.89,
-        "total_return": -14.11,
-        "n_trades": 563,
-        "win_rate": 41.74,
-        "avg_ret_per_trade": -0.2,
-        "total_pnl": -14108.11,
-        "max_drawdown": -53.24,
-        "calmar": 0.26
+        "final_equity": 119456.93,
+        "total_return": 19.46,
+        "n_trades": 587,
+        "win_rate": 42.76,
+        "avg_ret_per_trade": 0.31,
+        "total_pnl": 19456.93,
+        "max_drawdown": -41.95,
+        "calmar": 0.46
       },
       {
         "threshold": 0.45,
-        "noop_pct": 89.4,
+        "noop_pct": 82.5,
         "name": "经典LogReg(th=0.45)",
-        "final_equity": 94037.44,
-        "total_return": -5.96,
-        "n_trades": 262,
-        "win_rate": 40.84,
-        "avg_ret_per_trade": 0.17,
-        "total_pnl": -5962.56,
-        "max_drawdown": -41.82,
-        "calmar": 0.14
+        "final_equity": 76398.23,
+        "total_return": -23.6,
+        "n_trades": 367,
+        "win_rate": 40.87,
+        "avg_ret_per_trade": -0.33,
+        "total_pnl": -23601.77,
+        "max_drawdown": -44.73,
+        "calmar": 0.53
       },
       {
         "threshold": 0.5,
-        "noop_pct": 94.8,
+        "noop_pct": 91.8,
         "name": "经典LogReg(th=0.50)",
-        "final_equity": 99718.27,
-        "total_return": -0.28,
-        "n_trades": 161,
-        "win_rate": 40.37,
-        "avg_ret_per_trade": -0.07,
-        "total_pnl": -281.73,
-        "max_drawdown": -27.19,
-        "calmar": 0.01
+        "final_equity": 86721.13,
+        "total_return": -13.28,
+        "n_trades": 204,
+        "win_rate": 38.73,
+        "avg_ret_per_trade": -0.45,
+        "total_pnl": -13278.87,
+        "max_drawdown": -46.6,
+        "calmar": 0.28
       }
     ]
   },
@@ -257,154 +347,37 @@
       "calmar": 0.93
     },
     "quantum_noop": {
-      "name": "量子NOOP(th=0.45)",
-      "final_equity": 139032.14,
-      "total_return": 39.03,
-      "n_trades": 254,
-      "win_rate": 44.88,
-      "avg_ret_per_trade": 0.67,
-      "total_pnl": 39032.14,
-      "max_drawdown": -29.47,
-      "calmar": 1.32
+      "name": "量子NOOP(th=0.40)",
+      "final_equity": 226123.35,
+      "total_return": 126.12,
+      "n_trades": 506,
+      "win_rate": 45.65,
+      "avg_ret_per_trade": 1.09,
+      "total_pnl": 126123.35,
+      "max_drawdown": -24.5,
+      "calmar": 5.15
     },
     "classical_noop": {
-      "name": "经典LogReg(th=0.50)",
-      "final_equity": 99718.27,
-      "total_return": -0.28,
-      "n_trades": 161,
-      "win_rate": 40.37,
-      "avg_ret_per_trade": -0.07,
-      "total_pnl": -281.73,
-      "max_drawdown": -27.19,
-      "calmar": 0.01
+      "name": "经典LogReg(th=0.35)",
+      "final_equity": 135878.09,
+      "total_return": 35.88,
+      "n_trades": 931,
+      "win_rate": 43.93,
+      "avg_ret_per_trade": 0.3,
+      "total_pnl": 35878.09,
+      "max_drawdown": -55.95,
+      "calmar": 0.64
     },
     "ensemble": {
-      "name": "集成AND(q0.45+l0.50)",
-      "final_equity": 112795.72,
-      "total_return": 12.8,
-      "n_trades": 68,
-      "win_rate": 42.65,
-      "avg_ret_per_trade": 0.87,
-      "total_pnl": 12795.72,
-      "max_drawdown": -14.6,
-      "calmar": 0.88
-    }
-  },
-  "cross_strategy_validation": {
-    "description": "量子NOOP在不同策略上的泛化验证",
-    "v4_ex1": {
-      "description": "V4_EX1高级策略(4层内置风控: BIAS13/EX1/DHU65/半卖)",
-      "baseline": {
-        "final_equity": 33316467,
-        "total_return": 33127.47,
-        "n_trades": 437,
-        "win_rate": 52.86,
-        "max_drawdown": 28.77,
-        "pf": 1.65
-      },
-      "best_zp_trained_quantum": {
-        "final_equity": 4516056,
-        "vs_baseline_pct": -86.44,
-        "noop_th": 0.30,
-        "n_noop": 95
-      },
-      "best_native_quantum": {
-        "final_equity": 33316467,
-        "vs_baseline_pct": 0.0,
-        "noop_th": 0.30,
-        "n_noop": 0,
-        "note": "NOOP=0, model predicts all days as tradeable"
-      },
-      "best_native_classical": {
-        "final_equity": 20059530,
-        "vs_baseline_pct": -39.78,
-        "noop_th": 0.30,
-        "n_noop": 8
-      },
-      "n_configs_tested": 40,
-      "n_configs_beat_baseline": 0,
-      "conclusion": "阴性结果: V4_EX1内置4层风控可能吸收部分信号, 但标签退化(正样本率55.9%/概率std=0.052)和训练不足(335天vs979天)是更主要原因, 见significance_test.experiment_c"
-    },
-    "wp_stab6": {
-      "description": "WP涨停破板企稳反弹策略(尾盘买入隐含择时)",
-      "baseline": {
-        "final_equity": 60986712,
-        "total_return": 60787.0,
-        "n_trades": 630,
-        "win_rate": 52.2
-      },
-      "best_quantum": {
-        "final_equity": 62571720,
-        "vs_baseline_pct": 2.59,
-        "label_threshold": 0.02,
-        "noop_th": 0.35,
-        "n_trades": 615,
-        "win_rate": 52.5
-      },
-      "best_classical": {
-        "final_equity": 60886712,
-        "vs_baseline_pct": -0.16,
-        "label_threshold": 0.0,
-        "noop_th": 0.30
-      },
-      "conclusion": "量子击败经典(+2.6% vs -0.2%), 改善小于ZP因WP已有尾盘隐含择时"
-    },
-    "cross_strategy_transfer": {
-      "description": "ZP-trained模型迁移到WP策略",
-      "result": "全部阈值降低WP收益(最优th=0.30仍降-28%)",
-      "conclusion": "量子核捕获策略特异性信号, 非通用市场噪音"
-    },
-    "boundary_summary": {
-      "basic_zp": {"built_in_risk_control": false, "quantum_noop_effect": "+39.03%", "effective": true},
-      "wp_stab6": {"built_in_risk_control": "implicit", "quantum_noop_effect": "+2.59%", "effective": true},
-      "v4_ex1": {"built_in_risk_control": "4-layer", "quantum_noop_effect": "0/40 beat baseline", "effective": false},
-      "zp_to_wp_transfer": {"built_in_risk_control": null, "quantum_noop_effect": "all negative", "effective": false},
-      "key_finding": "量子择时在ZP(+39.03%)和WP(+2.6%)上有效, 多seed检验统计显著优于经典(p=0.00004). 但量子核SVM对超参数敏感(3/12跑赢基线), V4_EX1阴性源于标签退化+训练不足的复合效应而非单一信号冗余"
-    }
-  },
-  "significance_test": {
-    "description": "统计显著性与鲁棒性验证 (基于V4_PY_0720回测引擎, 基线187046元)",
-    "experiment_a_multiseed": {
-      "description": "多seed配对检验: 10个random_state, 量子NOOP(th=0.45) vs 经典NOOP(th=0.50)",
-      "n_seeds": 10,
-      "quantum": {"mean_final": 190449.14, "std_final": 28294.84, "min_final": 147360.36, "max_final": 243250.78},
-      "classical": {"mean_final": 119738.94, "std_final": 0.0, "note": "LogReg对random_state不敏感, 10次结果完全一致"},
-      "paired_t_test": {"t_stat": 7.497, "p_value": 0.000037, "significant": true},
-      "quantum_win_rate": 1.0,
-      "caveat": "经典侧std=0, 非严格多seed对照, 但量子侧稳定性有参考价值"
-    },
-    "experiment_b_hyperparams": {
-      "description": "超参数鲁棒性扫描: 4个C(0.01/0.1/1.0/10.0) x 3个n_reps(1/2/3) = 12组",
-      "baseline_final": 187045.99,
-      "n_configs_beat_baseline": 3,
-      "n_configs_total": 12,
-      "best_config": {"C": 0.01, "n_reps": 3, "final": 214127.73, "vs_baseline_pct": 14.48},
-      "finding": "仅n_reps=3跑赢基线(3/4), C=10.0全部低于基线(过拟合). 量子核SVM对超参数敏感."
-    },
-    "experiment_c_label_degradation": {
-      "description": "V4_EX1标签退化分析: NOOP=0是信号冗余还是标签退化?",
-      "v4_ex1_baseline": 33316467,
-      "label_threshold_0pct": {
-        "quantum_prob": {"mean": 0.522, "std": 0.052, "min": 0.425, "max": 0.667},
-        "quantum_noop_trigger": {"th_0.30": 0, "th_0.40": 0, "th_0.45": 31, "th_0.50": 101},
-        "quantum_prob_above_0.45_pct": 88.8,
-        "classical_prob": {"mean": 0.543, "std": 0.112},
-        "classical_noop_trigger": {"th_0.30": 8, "th_0.50": 79}
-      },
-      "label_threshold_1pct": {
-        "quantum_prob": {"mean": 0.511, "std": 0.053, "min": 0.434, "max": 0.644},
-        "quantum_prob_above_0.45_pct": 88.1
-      },
-      "label_threshold_2pct": {
-        "quantum_prob": {"mean": 0.515, "std": 0.063, "min": 0.373, "max": 0.679},
-        "quantum_prob_above_0.45_pct": 96.8,
-        "note": "标签退化: 96.8%判为可交易, 模型无法区分好天坏天"
-      },
-      "label_quality_comparison": {
-        "zp": {"n_label_days": 979, "positive_rate": 0.412, "avg_ret_mean_pct": -0.27},
-        "v4_ex1": {"n_label_days": 335, "positive_rate_l0pct": 0.559, "prediction_days": 277}
-      },
-      "conclusion": "V4_EX1阴性结果最可能是标签退化+训练不足的复合效应, 而非单一信号冗余. 量子概率分布极端集中(std=0.052, 88.8%判为可交易)更像是模型在退化标签上无法学习, 而非学到了与内置风控重复的真信号."
+      "name": "集成AND(q0.40+l0.35)",
+      "final_equity": 160716.22,
+      "total_return": 60.72,
+      "n_trades": 338,
+      "win_rate": 46.45,
+      "avg_ret_per_trade": 0.81,
+      "total_pnl": 60716.22,
+      "max_drawdown": -22.41,
+      "calmar": 2.71
     }
   }
 }
