@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pyqpanda3.core import CPUQVM, QCircuit, QProg, Z, X, H, BARRIER
+from pyqpanda3.core import CPUQVM, QCircuit, QProg, Z, X, H
 import numpy as np
 
 from .. plugin import *
@@ -143,14 +143,28 @@ def iter_num(q_num, sol_num):
     """
     Calculate the optimal number of iterations in Grover search.
 
+    After :math:`k` iterations the success probability is
+    :math:`\\sin ^ 2 ((2 k + 1) \\theta / 2)` with
+    :math:`\\theta = 2 \\arcsin \\sqrt{M / N}`, so the first maximum is reached at
+    :math:`k ^ * = \\pi / (2 \\theta) - 1 / 2`, rounded to the nearest integer.
+
+    The widely quoted closed form :math:`\\lfloor \\pi \\sqrt{N / M} / 4 \\rfloor`
+    is the small-angle limit of that expression and is only accurate while
+    :math:`M \\ll N`. It loses up to a full iteration when the solution set is a
+    sizeable fraction of the search space, so the exact form is used here.
+
     Parameters
         q_num : ``int``\n
             The number of qubits in the search space. Search space size:  :math:`N = 2 ^ {\\text {q_num}}`.
         sol_num : ``int``\n
-            Number of target solution states.
+            Number of target solution states. Must satisfy  :math:`1 \\leq \\text{sol_num} \\leq N`.
 
     Returns
         num : The optimal number of iterations in Grover search.
+
+    Raises
+        ValueError\n
+            If ``q_num`` is negative, or ``sol_num`` is not in  :math:`[1, N]`.
 
     Examples
         An example for the case we show in the Grover search circuit. And we know there
@@ -173,8 +187,16 @@ def iter_num(q_num, sol_num):
     best iter num:  1
 
     """
-    num = int(np.floor(np.pi * np.sqrt(2 ** q_num / sol_num) / 4))
-    return num
+    if q_num < 0:
+        raise ValueError(f'q_num must be non-negative, got {q_num}')
+
+    space_size = 2 ** q_num
+    if sol_num < 1 or sol_num > space_size:
+        raise ValueError(f'sol_num must be in [1, 2 ** q_num] = [1, {space_size}], got {sol_num}')
+
+    theta = 2 * np.arcsin(np.sqrt(sol_num / space_size))
+    num = int(np.round(np.pi / (2 * theta) - 0.5))
+    return max(num, 0)
 
 
 def iter_analysis(q_num, sol_num, iternum=1):
@@ -355,21 +377,31 @@ def mark_data_reflection(qubits: list = None, mark_data=None):
 
     if isinstance(mark_data, str):
         mark_data = [mark_data]
+    if mark_data is None or len(mark_data) == 0:
+        raise ValueError('mark_data must contain at least one target state')
     n = len(qubits)
 
     for i in mark_data:
-        for j in range(n):
-            if i[-(j + 1)] == '0':
-                flip_operator << X(qubits[j])
-            else:
-                flip_operator << BARRIER([qubits[j]])
-        flip_operator << Z(qubits[-1]).control(qubits[:-1])
+        # Without this check a string longer than the qubit register silently
+        # marks the state given by its lowest n bits, and a shorter one raises
+        # an opaque IndexError from the slicing below.
+        if len(i) != n:
+            raise ValueError(f'mark_data entry {i!r} has length {len(i)}, '
+                             f'but {n} qubits were given')
+        if any(bit not in '01' for bit in i):
+            raise ValueError(f'mark_data entry {i!r} must contain only the characters 0 and 1')
 
-        for j in range(n):
-            if i[-(j + 1)] == '0':
-                flip_operator << X(qubits[j])
-            else:
-                flip_operator << BARRIER([qubits[j]])
+        # Only the '0' positions need an X conjugation; the '1' positions are
+        # already selected by the controls. The former implementation emitted a
+        # BARRIER on every '1' position, which is an identity on the state but
+        # blocks the transpiler from merging neighbouring gates.
+        zero_positions = [qubits[j] for j in range(n) if i[-(j + 1)] == '0']
+
+        for q in zero_positions:
+            flip_operator << X(q)
+        flip_operator << Z(qubits[-1]).control(qubits[:-1])
+        for q in zero_positions:
+            flip_operator << X(q)
     return flip_operator
 
 
