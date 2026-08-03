@@ -8,3 +8,5 @@ requests
 pycryptodome
 sphinx-autoapi
 pyqpanda3
+pandas
+scikit-learn
