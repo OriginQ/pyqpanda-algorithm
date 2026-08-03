@@ -81,7 +81,7 @@ class Grover:
         Examples
             An example for implementing an Grover search for state where q_0 `and` q_1 is 1.
 
-        >>> from pyqpanda3.core import CPUQVM, QCircuit, Z, TOFFOLI
+        >>> from pyqpanda3.core import CPUQVM, QCircuit, QProg, Z, TOFFOLI
         >>> from pyqpanda_alg import Grover
         >>> m = CPUQVM()
         >>> q_state = list(range(3))

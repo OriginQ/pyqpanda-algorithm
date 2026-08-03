@@ -1,9 +1,7 @@
-import sympy as sp
 import numpy as np
-import pyqpanda as pq
 import warnings
 
-from pyqpanda_alg.QFinance.QmRMR.all_code import plot_bar, plot_loss, Feature_Selection
+from pyqpanda_alg.QmRMR.QmRMR_core import plot_bar, plot_loss, Feature_Selection
 import os
 import matplotlib.pyplot as plt
 warnings.simplefilter("ignore")

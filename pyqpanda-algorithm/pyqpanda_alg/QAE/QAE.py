@@ -349,7 +349,6 @@ class IQAE:
     def _measure(self, k: int, n_round: int) -> int:
         machine = self.machine
         qlist = self.qlist
-        clist = self.clist
 
         operator_g = amp_operator(in_operator=self.operatorA, q_input=qlist)
         prog = QProg()

@@ -160,7 +160,6 @@ class QuantumKmeans:
 
 
         """
-        n = data.shape[0]
         c = data.shape[1]
 
         mean = np.mean(data, axis=0)

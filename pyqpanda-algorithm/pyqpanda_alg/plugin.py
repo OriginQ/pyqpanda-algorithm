@@ -185,10 +185,11 @@ def qft(qubit_list: list[int]) -> QCircuit:
         >>> # << H(0)
         >>> 
         >>> # 嵌入主程序执行
-        >>> qvm = pq.QMachine(pq.QMachineType.CPU)
-        >>> main_prog = pq.QProg()
+        >>> from pyqpanda3.core import CPUQVM, QProg
+        >>> qvm = CPUQVM()
+        >>> main_prog = QProg()
         >>> main_prog << qft_circuit  # 添加QFT电路
-        >>> qvm.run(main_prog)
+        >>> qvm.run(main_prog, 1000)
     """
     pi = 3.141592653589793238462643383279502884
     
@@ -260,9 +261,10 @@ def QFT(qubit_list: list[int]) -> QCircuit:
         >>> # 交换部分：SWAP(0,2)
         >>> 
         >>> # 嵌入主程序执行
-        >>> qvm = pq.QMachine(pq.QMachineType.CPU)
-        >>> main_prog = pq.QProg() << qft_circuit
-        >>> qvm.run(main_prog)
+        >>> from pyqpanda3.core import CPUQVM, QProg
+        >>> qvm = CPUQVM()
+        >>> main_prog = QProg() << qft_circuit
+        >>> qvm.run(main_prog, 1000)
     """
     pi = 3.141592653589793238462643383279502884
     
@@ -331,9 +333,10 @@ def bind_nonnegative_data(value: int, qubit_list: list[int]) -> QCircuit:
         >>> # 电路包含：X(0) << X(2)（对应二进制101，低位在前）
         >>> 
         >>> # 验证：量子比特0和2被翻转为|1⟩，1保持|0⟩
-        >>> qvm = pq.QMachine(pq.QMachineType.CPU)
-        >>> main_prog = pq.QProg() << circuit
-        >>> qvm.run(main_prog)
+        >>> from pyqpanda3.core import CPUQVM, QProg
+        >>> qvm = CPUQVM()
+        >>> main_prog = QProg() << circuit
+        >>> qvm.run(main_prog, 1000)
     """
     # 输入验证：value必须为非负整数
     if not isinstance(value, int):
@@ -407,16 +410,16 @@ def parse_quantum_result_dict(result: Dict[str, float], qubit_list: List[int], s
         >>> qubit_list = [0, 1, 2]
         >>> 
         >>> # 1. 返回所有结果
-        >>> parse_quantum_result(raw_result, qubit_list)
+        >>> parse_quantum_result_dict(raw_result, qubit_list)
         {'000': 0.1, '111': 0.8, '010': 0.1}
         >>> 
         >>> # 2. 返回概率最高的1个结果
-        >>> parse_quantum_result(raw_result, qubit_list, select_max=1)
+        >>> parse_quantum_result_dict(raw_result, qubit_list, select_max=1)
         {'111': 0.8}
         >>> 
         >>> # 3. 返回概率最高的2个结果
-        >>> parse_quantum_result(raw_result, qubit_list, select_max=2)
-        {'111': 0.8, '000': 0.1, '010': 0.1}  # 概率相同则保留原始顺序
+        >>> parse_quantum_result_dict(raw_result, qubit_list, select_max=2)
+        {'111': 0.8, '000': 0.1}  # 概率相同则保留原始顺序
     """
     # 输入类型验证
     if not isinstance(result, dict):

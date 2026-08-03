@@ -1,7 +1,7 @@
-from pyqpanda_alg.QFinance import QUBO
 import sympy as sp
-import numpy as np
-import pyqpanda as pq
+from pyqpanda3.core import QProg
+
+from pyqpanda_alg import QUBO
 
 
 if __name__ == '__main__':
@@ -11,10 +11,9 @@ if __name__ == '__main__':
     n_key, n_res = test0.query_qnumber()
     print(n_key, n_res)
 
-    m = pq.CPUQVM()
-    m.initQVM()
-    q_key = m.qAlloc_many(n_key)
-    q_res = m.qAlloc_many(n_res)
+    q_all = QProg(n_key + n_res).qubits()
+    q_key = q_all[:n_key]
+    q_res = q_all[n_key:]
 
     print(test0.cir(q_key, q_res))
 
@@ -33,5 +32,5 @@ if __name__ == '__main__':
     # find the minimum function value using QAOA
     test2 = QUBO.QUBO_QAOA(function)
     res2 = test2.run(layer=5, optimizer='SLSQP',
-                     optimizer_option={'options':{'eps':1e-3}})
+                     optimizer_option={'options': {'eps': 1e-3}})
     print('result of QAOA: ', res2)

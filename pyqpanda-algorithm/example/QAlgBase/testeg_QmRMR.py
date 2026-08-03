@@ -4,7 +4,7 @@ import matplotlib
 
 matplotlib.use('Agg')  # 使用非交互式后端
 import matplotlib.pyplot as plt
-from pyqpanda_alg.QmRMR import all_code
+from pyqpanda_alg.QmRMR import QmRMR_core as all_code
 import warnings
 import os
 
