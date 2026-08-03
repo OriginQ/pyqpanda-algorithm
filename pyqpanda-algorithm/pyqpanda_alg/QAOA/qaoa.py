@@ -482,7 +482,6 @@ class QAOA:
 
         .. code-block:: python
 
-            import pyqpanda as pq
             import sympy as sp
             from pyqpanda_alg.QAOA.qaoa import *
 

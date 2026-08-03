@@ -209,7 +209,6 @@ class QuantumKernel_vqnet:
 
                 import os
                 import numpy as np
-                import pyqpanda as pq
                 from sklearn.svm import SVC
                 import matplotlib
                 try:
@@ -350,8 +349,6 @@ class QuantumKernel_vqnet:
             mus = np.asarray(mus.flat)
             nus = np.asarray(nus.flat)
 
-        is_statevector_sim = False
-        measurement = not is_statevector_sim
         measurement_basis = "0" * self._n_qbits
 
         for idx in range(0, len(mus), self._batch_size):

@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from pyqpanda_alg.QFinance.class_basic_sparecode import QSpare_Code
+from pyqpanda_alg.QSEncode import QSpare_Code
 def t01():
     mu = 0
     sigma = 1

@@ -1,8 +1,9 @@
 '''
-The QFinance module provides tools related to comparator, Quantum amplitude estimation, Grover algorithm, Grover optimization algorithm and QUBO problem solver, which are used to solve problems such as option pricing and portfolio optimization.
+The QmRMR module provides quantum minimum-redundancy maximum-relevance feature
+selection, used to select an informative and non-redundant feature subset.
 '''
 
 
 from .QmRMR_core import Feature_Selection 
 
-__all__ = [Feature_Selection]
+__all__ = ['Feature_Selection']

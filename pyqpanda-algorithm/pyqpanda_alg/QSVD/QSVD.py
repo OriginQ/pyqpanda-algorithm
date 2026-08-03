@@ -153,7 +153,6 @@ class SVD:
         return abs(res)
 
     def max_eig(self, return_mat='0', par=None, max_index=0):
-        machine = CPUQVM()
         cir = QCircuit()
         ss = max_index % 2**self.q0
         bi0 = '{:b}'.format(ss).rjust(self.q0, '0')

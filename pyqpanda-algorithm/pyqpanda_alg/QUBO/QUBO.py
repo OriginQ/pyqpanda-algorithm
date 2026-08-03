@@ -120,8 +120,6 @@ class QuadraticBinary:
         """
         n_key = np.max([1, len(self.linear), len(self.quadratic)])
 
-        bounds = []
-
         def pos(x): return x > 0
         def neg(x): return x < 0
 
