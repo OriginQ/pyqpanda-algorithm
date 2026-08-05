@@ -47,7 +47,7 @@ def evaluate_model(y_true, y_pred, y_prob=None):
     if y_prob is not None:
         try:
             m['auc'] = float(roc_auc_score(y_true, y_prob))
-        except:
+        except Exception:
             m['auc'] = 0.5
     return m
 
@@ -174,7 +174,7 @@ def walk_forward_validation(all_daily, market_features, test_start='2022-06-01',
         try:
             q_auc = float(roc_auc_score(y_test, q_prob))
             lr_auc = float(roc_auc_score(y_test, lr_prob))
-        except:
+        except Exception:
             q_auc = lr_auc = 0.5
         
         seg_dates = [str(d.date()) for d in data.index[test_mask]]
