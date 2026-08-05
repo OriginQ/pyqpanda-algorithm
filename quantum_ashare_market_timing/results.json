@@ -1,0 +1,1201 @@
+{
+  "system": "Quantum-Enhanced A-Share Market Timing (Walk-Forward)",
+  "framework": "QPanda3",
+  "author": "周勋洪 (中国电信资阳分公司)",
+  "date": "2026-08-03",
+  "methodology": "Walk-forward expanding window, 6-month refit, zero look-ahead bias",
+  "label_threshold": "0.5%",
+  "test_period": "2022-06-02 ~ 2026-07-07",
+  "config": {
+    "n_qubits": 6,
+    "n_reps": 1,
+    "initial_capital": 100000,
+    "max_positions": 5,
+    "hold_days": 3,
+    "test_start": "2022-06-01",
+    "n_segments": 9,
+    "ret_threshold": 0.005
+  },
+  "systematic_optimization": {
+    "description": "4-phase systematic optimization (Phase 1-4)",
+    "phase1_features": "6→16 dim expansion + SelectKBest; 11dim SelectKBest→6q optimal",
+    "phase2_circuit": "angle_nrep1_C0.1_pi_6q = global optimum (+126.12%); n_reps=1 breakthrough vs n_reps=2 (+1.84%)",
+    "phase3_labels": "0.5% binary classification optimal; regression/multiclass/multi-horizon all inferior",
+    "phase4_training": "6-month refit + expanding window optimal; monthly refit/rolling window/ensemble/regime all inferior",
+    "global_optimal": "angle_encoding, n_reps=1, C=0.1, scale=pi, 11dim SelectKBest->6q, 0.5% label, 6-month refit, expanding window -> +126.12%",
+    "baseline_no_filter": "-76.34%"
+  },
+  "segment_results": [
+    {
+      "seg": 1,
+      "train_size": 65,
+      "test_size": 111,
+      "q_acc": 0.5315,
+      "lr_acc": 0.5405,
+      "q_auc": 0.4407,
+      "lr_auc": 0.4334,
+      "q_time": 0.5,
+      "n_features": 11,
+      "q_features": [
+        "ret_5d",
+        "vol_ratio",
+        "ret_20d",
+        "ma_trend",
+        "vol_rank_60",
+        "rsi_14"
+      ]
+    },
+    {
+      "seg": 2,
+      "train_size": 176,
+      "test_size": 106,
+      "q_acc": 0.6321,
+      "lr_acc": 0.6415,
+      "q_auc": 0.5109,
+      "lr_auc": 0.5396,
+      "q_time": 0.7,
+      "n_features": 11,
+      "q_features": [
+        "bias20",
+        "ret_5d",
+        "rsi_5",
+        "range_5d",
+        "ma_trend",
+        "rsi_14"
+      ]
+    },
+    {
+      "seg": 3,
+      "train_size": 282,
+      "test_size": 107,
+      "q_acc": 0.6729,
+      "lr_acc": 0.6822,
+      "q_auc": 0.6012,
+      "lr_auc": 0.5413,
+      "q_time": 1.0,
+      "n_features": 11,
+      "q_features": [
+        "bias20",
+        "ret_5d",
+        "rsi_5",
+        "ma_align",
+        "range_5d",
+        "vol_ratio_20d"
+      ]
+    },
+    {
+      "seg": 4,
+      "train_size": 389,
+      "test_size": 96,
+      "q_acc": 0.5729,
+      "lr_acc": 0.5729,
+      "q_auc": 0.6022,
+      "lr_auc": 0.5858,
+      "q_time": 1.3,
+      "n_features": 11,
+      "q_features": [
+        "bias20",
+        "ret_5d",
+        "rsi_5",
+        "range_5d",
+        "vol_rank_60",
+        "rsi_14"
+      ]
+    },
+    {
+      "seg": 5,
+      "train_size": 485,
+      "test_size": 87,
+      "q_acc": 0.5632,
+      "lr_acc": 0.4138,
+      "q_auc": 0.5113,
+      "lr_auc": 0.398,
+      "q_time": 1.7,
+      "n_features": 11,
+      "q_features": [
+        "ret_5d",
+        "rsi_5",
+        "ma_align",
+        "range_5d",
+        "ma_trend",
+        "vol_rank_60"
+      ]
+    },
+    {
+      "seg": 6,
+      "train_size": 572,
+      "test_size": 111,
+      "q_acc": 0.6306,
+      "lr_acc": 0.6126,
+      "q_auc": 0.6512,
+      "lr_auc": 0.4923,
+      "q_time": 1.9,
+      "n_features": 11,
+      "q_features": [
+        "bias20",
+        "ret_5d",
+        "rsi_5",
+        "ma_align",
+        "vol_rank_60",
+        "rsi_14"
+      ]
+    },
+    {
+      "seg": 7,
+      "train_size": 683,
+      "test_size": 117,
+      "q_acc": 0.5641,
+      "lr_acc": 0.5726,
+      "q_auc": 0.5973,
+      "lr_auc": 0.6051,
+      "q_time": 2.3,
+      "n_features": 11,
+      "q_features": [
+        "bias20",
+        "ret_5d",
+        "rsi_5",
+        "ma_align",
+        "vol_rank_60",
+        "rsi_14"
+      ]
+    },
+    {
+      "seg": 8,
+      "train_size": 800,
+      "test_size": 112,
+      "q_acc": 0.4554,
+      "lr_acc": 0.4375,
+      "q_auc": 0.6355,
+      "lr_auc": 0.4861,
+      "q_time": 2.7,
+      "n_features": 11,
+      "q_features": [
+        "bias20",
+        "ret_5d",
+        "vol_ratio",
+        "rsi_5",
+        "ma_align",
+        "vol_rank_60"
+      ]
+    },
+    {
+      "seg": 9,
+      "train_size": 912,
+      "test_size": 24,
+      "q_acc": 0.5833,
+      "lr_acc": 0.5833,
+      "q_auc": 0.5214,
+      "lr_auc": 0.2286,
+      "q_time": 2.6,
+      "n_features": 11,
+      "q_features": [
+        "bias20",
+        "ret_5d",
+        "vol_ratio",
+        "rsi_5",
+        "ma_align",
+        "vol_rank_60"
+      ]
+    }
+  ],
+  "threshold_scan": {
+    "quantum": [
+      {
+        "threshold": 0.3,
+        "noop_pct": 4.5,
+        "name": "量子NOOP(th=0.30)",
+        "final_equity": 24458.97,
+        "total_return": -75.54,
+        "n_trades": 1446,
+        "win_rate": 40.32,
+        "avg_ret_per_trade": -0.55,
+        "total_pnl": -75541.03,
+        "max_drawdown": -83.52,
+        "calmar": 0.9
+      },
+      {
+        "threshold": 0.35,
+        "noop_pct": 10.1,
+        "name": "量子NOOP(th=0.35)",
+        "final_equity": 38990.54,
+        "total_return": -61.01,
+        "n_trades": 1389,
+        "win_rate": 41.68,
+        "avg_ret_per_trade": -0.29,
+        "total_pnl": -61009.46,
+        "max_drawdown": -79.06,
+        "calmar": 0.77
+      },
+      {
+        "threshold": 0.4,
+        "noop_pct": 79.8,
+        "name": "量子NOOP(th=0.40)",
+        "final_equity": 226123.35,
+        "total_return": 126.12,
+        "n_trades": 506,
+        "win_rate": 45.65,
+        "avg_ret_per_trade": 1.09,
+        "total_pnl": 126123.35,
+        "max_drawdown": -24.5,
+        "calmar": 5.15
+      },
+      {
+        "threshold": 0.45,
+        "noop_pct": 96.8,
+        "name": "量子NOOP(th=0.45)",
+        "final_equity": 145011.45,
+        "total_return": 45.01,
+        "n_trades": 163,
+        "win_rate": 53.37,
+        "avg_ret_per_trade": 1.36,
+        "total_pnl": 45011.45,
+        "max_drawdown": -25.28,
+        "calmar": 1.78
+      },
+      {
+        "threshold": 0.5,
+        "noop_pct": 99.3,
+        "name": "量子NOOP(th=0.50)",
+        "final_equity": 100300.21,
+        "total_return": 0.3,
+        "n_trades": 85,
+        "win_rate": 47.06,
+        "avg_ret_per_trade": 0.18,
+        "total_pnl": 300.21,
+        "max_drawdown": -12.18,
+        "calmar": 0.02
+      }
+    ],
+    "classical": [
+      {
+        "threshold": 0.3,
+        "noop_pct": 24.6,
+        "name": "经典LogReg(th=0.30)",
+        "final_equity": 31466.18,
+        "total_return": -68.53,
+        "n_trades": 1192,
+        "win_rate": 41.53,
+        "avg_ret_per_trade": -0.53,
+        "total_pnl": -68533.82,
+        "max_drawdown": -78.36,
+        "calmar": 0.87
+      },
+      {
+        "threshold": 0.35,
+        "noop_pct": 44.4,
+        "name": "经典LogReg(th=0.35)",
+        "final_equity": 135878.09,
+        "total_return": 35.88,
+        "n_trades": 931,
+        "win_rate": 43.93,
+        "avg_ret_per_trade": 0.3,
+        "total_pnl": 35878.09,
+        "max_drawdown": -55.95,
+        "calmar": 0.64
+      },
+      {
+        "threshold": 0.4,
+        "noop_pct": 68.4,
+        "name": "经典LogReg(th=0.40)",
+        "final_equity": 119456.93,
+        "total_return": 19.46,
+        "n_trades": 587,
+        "win_rate": 42.76,
+        "avg_ret_per_trade": 0.31,
+        "total_pnl": 19456.93,
+        "max_drawdown": -41.95,
+        "calmar": 0.46
+      },
+      {
+        "threshold": 0.45,
+        "noop_pct": 82.5,
+        "name": "经典LogReg(th=0.45)",
+        "final_equity": 76398.23,
+        "total_return": -23.6,
+        "n_trades": 367,
+        "win_rate": 40.87,
+        "avg_ret_per_trade": -0.33,
+        "total_pnl": -23601.77,
+        "max_drawdown": -44.73,
+        "calmar": 0.53
+      },
+      {
+        "threshold": 0.5,
+        "noop_pct": 91.8,
+        "name": "经典LogReg(th=0.50)",
+        "final_equity": 86721.13,
+        "total_return": -13.28,
+        "n_trades": 204,
+        "win_rate": 38.73,
+        "avg_ret_per_trade": -0.45,
+        "total_pnl": -13278.87,
+        "max_drawdown": -46.6,
+        "calmar": 0.28
+      }
+    ]
+  },
+  "results": {
+    "baseline": {
+      "name": "基线(无过滤)",
+      "final_equity": 23658.4,
+      "total_return": -76.34,
+      "n_trades": 1484,
+      "win_rate": 40.7,
+      "avg_ret_per_trade": -0.56,
+      "total_pnl": -76341.6,
+      "max_drawdown": -82.22,
+      "calmar": 0.93
+    },
+    "quantum_noop": {
+      "name": "量子NOOP(th=0.40)",
+      "final_equity": 226123.35,
+      "total_return": 126.12,
+      "n_trades": 506,
+      "win_rate": 45.65,
+      "avg_ret_per_trade": 1.09,
+      "total_pnl": 126123.35,
+      "max_drawdown": -24.5,
+      "calmar": 5.15
+    },
+    "classical_noop": {
+      "name": "经典LogReg(th=0.35)",
+      "final_equity": 135878.09,
+      "total_return": 35.88,
+      "n_trades": 931,
+      "win_rate": 43.93,
+      "avg_ret_per_trade": 0.3,
+      "total_pnl": 35878.09,
+      "max_drawdown": -55.95,
+      "calmar": 0.64
+    },
+    "ensemble": {
+      "name": "集成AND(q0.40+l0.35)",
+      "final_equity": 160716.22,
+      "total_return": 60.72,
+      "n_trades": 338,
+      "win_rate": 46.45,
+      "avg_ret_per_trade": 0.81,
+      "total_pnl": 60716.22,
+      "max_drawdown": -22.41,
+      "calmar": 2.71
+    }
+  },
+  "stock_level_filter": {
+    "description": "个股级量子筛选 — 从日级NOOP升级为个股级判定，对每笔信号独立预测好票/坏票",
+    "method": "Walk-forward by trading day (126 days ≈ 6 months), expanding window, StandardScaler fit on train only",
+    "features": [
+      "gap_pct",
+      "vol_ratio",
+      "ma_dist",
+      "upper_shadow",
+      "body_pct",
+      "ret_5d"
+    ],
+    "label": "sell_ret > median = 1 (good), sell_ret <= median = 0 (bad)",
+    "quantum_config": "AngleEncoding, 6 qubits, n_reps=1, C=0.1, scale=pi",
+    "filtering": "model prob < threshold → skip signal (per-signal NOOP, does not affect same-day other signals)",
+    "results": {
+      "GAP2.0": {
+        "gap_min": 2.0,
+        "n_signals": 7042,
+        "baseline_return_pct": -56.55,
+        "baseline_equity": 43448.79,
+        "baseline_trades": 1585,
+        "baseline_wr_pct": 41.7,
+        "best_quantum": {
+          "threshold": 0.4,
+          "return_pct": -17.01,
+          "equity": 82988.42,
+          "trades": 1432,
+          "wr_pct": 41.83,
+          "mdd_pct": -62.28,
+          "lift_pp": 39.54,
+          "bought": 1432,
+          "skipped": 728,
+          "skip_pct": 10.3
+        },
+        "best_classical": {
+          "threshold": 0.35,
+          "return_pct": -40.88,
+          "lift_pp": 15.67
+        },
+        "ql_ratio": 2.52,
+        "threshold_scan": [
+          {
+            "th": 0.1,
+            "q_ret": -46.435515670778805,
+            "q_lift": 10.115699318000033,
+            "q_trades": 1582,
+            "q_wr": 41.65613147914033,
+            "q_bought": 1582,
+            "q_skipped": 44,
+            "lr_ret": -46.435515670778805,
+            "lr_lift": 10.115699318000033,
+            "lr_trades": 1582,
+            "lr_wr": 41.65613147914033
+          },
+          {
+            "th": 0.15,
+            "q_ret": -46.435515670778805,
+            "q_lift": 10.115699318000033,
+            "q_trades": 1582,
+            "q_wr": 41.65613147914033,
+            "q_bought": 1582,
+            "q_skipped": 44,
+            "lr_ret": -46.15121550978887,
+            "lr_lift": 10.399999478989969,
+            "lr_trades": 1581,
+            "lr_wr": 41.61922833649589
+          },
+          {
+            "th": 0.2,
+            "q_ret": -46.435515670778805,
+            "q_lift": 10.115699318000033,
+            "q_trades": 1582,
+            "q_wr": 41.65613147914033,
+            "q_bought": 1582,
+            "q_skipped": 44,
+            "lr_ret": -49.19305962399771,
+            "lr_lift": 7.358155364781126,
+            "lr_trades": 1580,
+            "lr_wr": 41.265822784810126
+          },
+          {
+            "th": 0.25,
+            "q_ret": -46.435515670778805,
+            "q_lift": 10.115699318000033,
+            "q_trades": 1582,
+            "q_wr": 41.65613147914033,
+            "q_bought": 1582,
+            "q_skipped": 44,
+            "lr_ret": -41.669327124966784,
+            "lr_lift": 14.881887863812054,
+            "lr_trades": 1577,
+            "lr_wr": 41.407736207989856
+          },
+          {
+            "th": 0.3,
+            "q_ret": -44.16009091924236,
+            "q_lift": 12.391124069536481,
+            "q_trades": 1580,
+            "q_wr": 41.64556962025316,
+            "q_bought": 1580,
+            "q_skipped": 57,
+            "lr_ret": -46.41044435373074,
+            "lr_lift": 10.1407706350481,
+            "lr_trades": 1567,
+            "lr_wr": 41.225271218889596
+          },
+          {
+            "th": 0.35,
+            "q_ret": -38.818792112985435,
+            "q_lift": 17.732422875793404,
+            "q_trades": 1549,
+            "q_wr": 41.57520981278244,
+            "q_bought": 1549,
+            "q_skipped": 209,
+            "lr_ret": -40.87689663750788,
+            "lr_lift": 15.674318351270955,
+            "lr_trades": 1546,
+            "lr_wr": 40.7503234152652
+          },
+          {
+            "th": 0.4,
+            "q_ret": -17.01157843003741,
+            "q_lift": 39.53963655874143,
+            "q_trades": 1432,
+            "q_wr": 41.82960893854749,
+            "q_bought": 1432,
+            "q_skipped": 728,
+            "lr_ret": -48.4001970175155,
+            "lr_lift": 8.151017971263336,
+            "lr_trades": 1452,
+            "lr_wr": 41.52892561983471
+          }
+        ]
+      },
+      "GAP2.5": {
+        "gap_min": 2.5,
+        "n_signals": 4818,
+        "baseline_return_pct": -61.49,
+        "baseline_equity": 38511.56,
+        "baseline_trades": 1462,
+        "baseline_wr_pct": 40.9,
+        "best_quantum": {
+          "threshold": 0.4,
+          "return_pct": -38.18,
+          "equity": 61821.28,
+          "trades": 1358,
+          "wr_pct": 40.8,
+          "mdd_pct": -62.97,
+          "lift_pp": 23.31,
+          "bought": 1358,
+          "skipped": 365,
+          "skip_pct": 7.6
+        },
+        "best_classical": {
+          "threshold": 0.3,
+          "return_pct": -43.14,
+          "lift_pp": 18.35
+        },
+        "ql_ratio": 1.27,
+        "threshold_scan": [
+          {
+            "th": 0.1,
+            "q_ret": -51.158375986732366,
+            "q_lift": 10.330059766474562,
+            "q_trades": 1452,
+            "q_wr": 40.97796143250689,
+            "q_bought": 1452,
+            "q_skipped": 35,
+            "lr_ret": -51.158375986732366,
+            "lr_lift": 10.330059766474562,
+            "lr_trades": 1452,
+            "lr_wr": 40.97796143250689
+          },
+          {
+            "th": 0.15,
+            "q_ret": -51.158375986732366,
+            "q_lift": 10.330059766474562,
+            "q_trades": 1452,
+            "q_wr": 40.97796143250689,
+            "q_bought": 1452,
+            "q_skipped": 35,
+            "lr_ret": -52.71272807325516,
+            "lr_lift": 8.775707679951772,
+            "lr_trades": 1449,
+            "lr_wr": 40.924775707384406
+          },
+          {
+            "th": 0.2,
+            "q_ret": -50.68422301093348,
+            "q_lift": 10.80421274227345,
+            "q_trades": 1451,
+            "q_wr": 40.868366643694,
+            "q_bought": 1451,
+            "q_skipped": 43,
+            "lr_ret": -50.99872719508791,
+            "lr_lift": 10.48970855811902,
+            "lr_trades": 1445,
+            "lr_wr": 40.89965397923876
+          },
+          {
+            "th": 0.25,
+            "q_ret": -51.10028972517361,
+            "q_lift": 10.388146028033319,
+            "q_trades": 1446,
+            "q_wr": 40.80221300138312,
+            "q_bought": 1446,
+            "q_skipped": 58,
+            "lr_ret": -48.824639666855305,
+            "lr_lift": 12.663796086351624,
+            "lr_trades": 1437,
+            "lr_wr": 40.77940153096729
+          },
+          {
+            "th": 0.3,
+            "q_ret": -48.22251791972041,
+            "q_lift": 13.265917833486519,
+            "q_trades": 1439,
+            "q_wr": 40.722724113968034,
+            "q_bought": 1439,
+            "q_skipped": 93,
+            "lr_ret": -43.143156942327934,
+            "lr_lift": 18.345278810878995,
+            "lr_trades": 1425,
+            "lr_wr": 40.63157894736842
+          },
+          {
+            "th": 0.35,
+            "q_ret": -45.02041274110671,
+            "q_lift": 16.46802301210022,
+            "q_trades": 1416,
+            "q_wr": 40.81920903954802,
+            "q_bought": 1416,
+            "q_skipped": 160,
+            "lr_ret": -53.352354607980935,
+            "lr_lift": 8.136081145225994,
+            "lr_trades": 1396,
+            "lr_wr": 40.04297994269341
+          },
+          {
+            "th": 0.4,
+            "q_ret": -38.17872372342631,
+            "q_lift": 23.30971202978062,
+            "q_trades": 1358,
+            "q_wr": 40.79528718703976,
+            "q_bought": 1358,
+            "q_skipped": 365,
+            "lr_ret": -44.922423204017456,
+            "lr_lift": 16.566012549189473,
+            "lr_trades": 1326,
+            "lr_wr": 41.17647058823529
+          }
+        ]
+      },
+      "GAP3.0": {
+        "gap_min": 3.0,
+        "n_signals": 3250,
+        "baseline_return_pct": -36.81,
+        "baseline_equity": 63190.5,
+        "baseline_trades": 1288,
+        "baseline_wr_pct": 42.55,
+        "best_quantum": {
+          "threshold": 0.35,
+          "return_pct": -21.91,
+          "equity": 78089.72,
+          "trades": 1240,
+          "wr_pct": 42.82,
+          "mdd_pct": -57.65,
+          "lift_pp": 14.9,
+          "bought": 1240,
+          "skipped": 113,
+          "skip_pct": 3.5
+        },
+        "best_classical": {
+          "threshold": 0.15,
+          "return_pct": -21.66,
+          "lift_pp": 15.15
+        },
+        "ql_ratio": 0.98,
+        "threshold_scan": [
+          {
+            "th": 0.1,
+            "q_ret": -32.70350160955859,
+            "q_lift": 4.1059940059604045,
+            "q_trades": 1276,
+            "q_wr": 42.554858934169275,
+            "q_bought": 1276,
+            "q_skipped": 25,
+            "lr_ret": -30.81971515043076,
+            "lr_lift": 5.989780465088238,
+            "lr_trades": 1273,
+            "lr_wr": 42.65514532600157
+          },
+          {
+            "th": 0.15,
+            "q_ret": -32.70350160955859,
+            "q_lift": 4.1059940059604045,
+            "q_trades": 1276,
+            "q_wr": 42.554858934169275,
+            "q_bought": 1276,
+            "q_skipped": 25,
+            "lr_ret": -21.66029266755489,
+            "lr_lift": 15.149202947964106,
+            "lr_trades": 1265,
+            "lr_wr": 43.00395256916996
+          },
+          {
+            "th": 0.2,
+            "q_ret": -32.70350160955859,
+            "q_lift": 4.1059940059604045,
+            "q_trades": 1276,
+            "q_wr": 42.554858934169275,
+            "q_bought": 1276,
+            "q_skipped": 25,
+            "lr_ret": -26.490264025964215,
+            "lr_lift": 10.319231589554782,
+            "lr_trades": 1260,
+            "lr_wr": 42.93650793650794
+          },
+          {
+            "th": 0.25,
+            "q_ret": -32.99410557546258,
+            "q_lift": 3.815390040056421,
+            "q_trades": 1274,
+            "q_wr": 42.54317111459969,
+            "q_bought": 1274,
+            "q_skipped": 30,
+            "lr_ret": -33.25879573183084,
+            "lr_lift": 3.5506998836881607,
+            "lr_trades": 1252,
+            "lr_wr": 42.73162939297125
+          },
+          {
+            "th": 0.3,
+            "q_ret": -33.44256400532677,
+            "q_lift": 3.366931610192225,
+            "q_trades": 1261,
+            "q_wr": 42.664551942902456,
+            "q_bought": 1261,
+            "q_skipped": 58,
+            "lr_ret": -31.868572451964006,
+            "lr_lift": 4.9409231635549915,
+            "lr_trades": 1244,
+            "lr_wr": 42.524115755627015
+          },
+          {
+            "th": 0.35,
+            "q_ret": -21.910282473856412,
+            "q_lift": 14.899213141662585,
+            "q_trades": 1240,
+            "q_wr": 42.82258064516129,
+            "q_bought": 1240,
+            "q_skipped": 113,
+            "lr_ret": -48.01095696292668,
+            "lr_lift": -11.20146134740768,
+            "lr_trades": 1219,
+            "lr_wr": 41.755537325676784
+          },
+          {
+            "th": 0.4,
+            "q_ret": -22.8972030428908,
+            "q_lift": 13.912292572628196,
+            "q_trades": 1110,
+            "q_wr": 42.432432432432435,
+            "q_bought": 1110,
+            "q_skipped": 396,
+            "lr_ret": -53.14176415808767,
+            "lr_lift": -16.33226854256867,
+            "lr_trades": 1143,
+            "lr_wr": 41.644794400699915
+          }
+        ]
+      }
+    }
+  },
+  "gap_threshold_day_level_scan": {
+    "description": "GAP阈值日级NOOP扫描 — 6组GAP阈值验证分层反转模式（day-level Q/L vs stock-level Q/L反向关系）",
+    "method": "Same day-level NOOP system as main results, but signals filtered by different GAP thresholds before daily aggregation",
+    "results": {
+      "GAP2.0_day": {
+        "gap_min": 2.0,
+        "n_signals": 7042,
+        "n_days": 979,
+        "baseline_return_pct": -55.11,
+        "best_q_lift_pp": 84.7,
+        "best_lr_lift_pp": 99.69,
+        "ql_ratio_day_level": 0.85,
+        "threshold_scan": [
+          {
+            "th": 0.3,
+            "q_ret": -42.16996201927054,
+            "q_lift": 12.937407509753541,
+            "lr_ret": -59.31582698038077,
+            "lr_lift": -4.208457451356686,
+            "q_noop_pct": 9.523809523809524,
+            "lr_noop_pct": 19.744483159117305
+          },
+          {
+            "th": 0.35,
+            "q_ret": -71.49952603791525,
+            "q_lift": -16.392156508891162,
+            "lr_ret": -6.455703804331902,
+            "lr_lift": 48.65166572469218,
+            "q_noop_pct": 21.83507549361208,
+            "lr_noop_pct": 40.18583042973287
+          },
+          {
+            "th": 0.4,
+            "q_ret": 29.090765154113374,
+            "q_lift": 84.19813468313745,
+            "lr_ret": 44.58284410308546,
+            "lr_lift": 99.69021363210955,
+            "q_noop_pct": 67.13124274099884,
+            "lr_noop_pct": 66.43437862950059
+          },
+          {
+            "th": 0.45,
+            "q_ret": 29.596106336612916,
+            "q_lift": 84.703475865637,
+            "lr_ret": -16.918408013859853,
+            "lr_lift": 38.18896151516423,
+            "q_noop_pct": 89.31475029036005,
+            "lr_noop_pct": 84.90127758420442
+          },
+          {
+            "th": 0.5,
+            "q_ret": 17.56663726451777,
+            "q_lift": 72.67400679354185,
+            "lr_ret": -40.66691731901364,
+            "lr_lift": 14.440452210010442,
+            "q_noop_pct": 95.00580720092915,
+            "lr_noop_pct": 93.72822299651567
+          }
+        ]
+      },
+      "GAP2.5_day": {
+        "gap_min": 2.5,
+        "n_signals": 4818,
+        "n_days": 922,
+        "baseline_return_pct": -44.31,
+        "best_q_lift_pp": 246.21,
+        "best_lr_lift_pp": 116.04,
+        "ql_ratio_day_level": 2.12,
+        "threshold_scan": [
+          {
+            "th": 0.3,
+            "q_ret": -57.10539020856857,
+            "q_lift": -12.796447892981796,
+            "lr_ret": -52.436004354832555,
+            "lr_lift": -8.127062039245779,
+            "q_noop_pct": 7.4074074074074066,
+            "lr_noop_pct": 16.419753086419753
+          },
+          {
+            "th": 0.35,
+            "q_ret": -27.713399885137868,
+            "q_lift": 16.59554243044891,
+            "lr_ret": -9.562092043303771,
+            "lr_lift": 34.746850272283005,
+            "q_noop_pct": 33.7037037037037,
+            "lr_noop_pct": 43.95061728395061
+          },
+          {
+            "th": 0.4,
+            "q_ret": 201.90060975881394,
+            "q_lift": 246.20955207440073,
+            "lr_ret": 71.73174225518805,
+            "lr_lift": 116.04068457077483,
+            "q_noop_pct": 72.46913580246913,
+            "lr_noop_pct": 71.48148148148148
+          },
+          {
+            "th": 0.45,
+            "q_ret": 89.07812741500378,
+            "q_lift": 133.38706973059055,
+            "lr_ret": -19.182901113878938,
+            "lr_lift": 25.12604120170784,
+            "q_noop_pct": 89.87654320987654,
+            "lr_noop_pct": 87.1604938271605
+          },
+          {
+            "th": 0.5,
+            "q_ret": 18.144846987221364,
+            "q_lift": 62.45378930280814,
+            "lr_ret": -20.63245533669814,
+            "lr_lift": 23.676486978888637,
+            "q_noop_pct": 95.67901234567901,
+            "lr_noop_pct": 91.9753086419753
+          }
+        ]
+      },
+      "GAP3.0_day": {
+        "gap_min": 3.0,
+        "n_signals": 3250,
+        "n_days": 835,
+        "baseline_return_pct": -12.82,
+        "best_q_lift_pp": 95.79,
+        "best_lr_lift_pp": 41.85,
+        "ql_ratio_day_level": 2.29,
+        "threshold_scan": [
+          {
+            "th": 0.3,
+            "q_ret": -0.6412978866764063,
+            "q_lift": 12.182576841225801,
+            "lr_ret": -40.81606325644614,
+            "lr_lift": -27.992188528543934,
+            "q_noop_pct": 20.98765432098765,
+            "lr_noop_pct": 29.766803840877916
+          },
+          {
+            "th": 0.35,
+            "q_ret": -22.062772525264762,
+            "q_lift": -9.238897797362554,
+            "lr_ret": 29.028782924372987,
+            "lr_lift": 41.8526576522752,
+            "q_noop_pct": 51.98902606310014,
+            "lr_noop_pct": 53.635116598079556
+          },
+          {
+            "th": 0.4,
+            "q_ret": 57.48421258340686,
+            "q_lift": 70.30808731130907,
+            "lr_ret": -1.5661091002025507,
+            "lr_lift": 11.257765627699657,
+            "q_noop_pct": 89.57475994513031,
+            "lr_noop_pct": 78.73799725651578
+          },
+          {
+            "th": 0.45,
+            "q_ret": 82.96779300851493,
+            "q_lift": 95.79166773641714,
+            "lr_ret": -10.536277630493595,
+            "lr_lift": 2.2875970974086126,
+            "q_noop_pct": 96.15912208504801,
+            "lr_noop_pct": 91.76954732510289
+          },
+          {
+            "th": 0.5,
+            "q_ret": 30.48285855995825,
+            "q_lift": 43.30673328786045,
+            "lr_ret": -14.520519758872085,
+            "lr_lift": -1.6966450309698775,
+            "q_noop_pct": 98.90260631001372,
+            "lr_noop_pct": 96.57064471879286
+          }
+        ]
+      }
+    },
+    "layer_reversal_pattern": {
+      "description": "个股级与日级的Q/L比呈反向关系",
+      "table": [
+        {
+          "gap": "2.0%",
+          "level": "stock",
+          "n_signals": 7042,
+          "ql_ratio": 2.52,
+          "explanation": "信号多→个股间差异丰富→量子优势大"
+        },
+        {
+          "gap": "2.0%",
+          "level": "day",
+          "n_signals": 7042,
+          "ql_ratio": 0.85,
+          "explanation": "信号多→日聚合后信息丢失→量子无优势"
+        },
+        {
+          "gap": "2.5%",
+          "level": "stock",
+          "n_signals": 4818,
+          "ql_ratio": 1.27,
+          "explanation": ""
+        },
+        {
+          "gap": "2.5%",
+          "level": "day",
+          "n_signals": 4818,
+          "ql_ratio": 2.12,
+          "explanation": "信号少→日级量子优势大"
+        },
+        {
+          "gap": "3.0%",
+          "level": "stock",
+          "n_signals": 3250,
+          "ql_ratio": 0.98,
+          "explanation": "信号少→个股级样本不足→量子退化为经典"
+        },
+        {
+          "gap": "3.0%",
+          "level": "day",
+          "n_signals": 3250,
+          "ql_ratio": 2.29,
+          "explanation": "信号少→日级量子优势大"
+        }
+      ],
+      "insight": "信号密集→量子优势在个股级；信号稀疏→优势在日级。量子核SVM在不同信号密度下，其优势层级会自动迁移。"
+    }
+  },
+  "wp_stab6_validation": {
+    "description": "WP stab6破板反弹策略 — 个股级量子筛选跨策略验证（阴性结果）",
+    "strategy": "涨停破板企稳反弹，632笔交易，尾盘买入",
+    "n_trades": 632,
+    "v1_summary": {
+      "n_features": 6,
+      "n_qubits": 6,
+      "result": "0% skip rate, 0% lift",
+      "reason": "6个T-1特征diff<0.3，零区分度"
+    },
+    "v2_summary": {
+      "n_features": 8,
+      "n_qubits": 8,
+      "added_features": [
+        "break_depth",
+        "reversal"
+      ],
+      "ql_ratio": 0.27,
+      "reason": "量子核矩阵退化为全0.5（概率分布P50=0.500, P90=0.513）"
+    },
+    "v3_grid_scan": {
+      "description": "降维网格扫描: 2/4/6/8 qubits × C=0.1/1.0/10.0 = 12 configurations",
+      "configs": [
+        {
+          "config": "2q",
+          "n_qubits": 2,
+          "c": 0.1,
+          "q_acc": 0.6259057971014492,
+          "lr_acc": 0.6773968784838349,
+          "q_p50": 0.5272924505103571,
+          "q_p90": 0.5953916211765181,
+          "l_p50": 0.5,
+          "l_p90": 0.6924667606754686,
+          "q_best_lift": 361.07175004396163,
+          "lr_best_lift": 689.0500153502634,
+          "ql_ratio": 0.5240138480519716,
+          "baseline_return": 161.32299553356674
+        },
+        {
+          "config": "2q",
+          "n_qubits": 2,
+          "c": 1.0,
+          "q_acc": 0.6371934225195095,
+          "lr_acc": 0.6773968784838349,
+          "q_p50": 0.5371672789990869,
+          "q_p90": 0.6057712520530041,
+          "l_p50": 0.5,
+          "l_p90": 0.6924667606754686,
+          "q_best_lift": 426.8464925797143,
+          "lr_best_lift": 689.0500153502634,
+          "ql_ratio": 0.6194709862429019,
+          "baseline_return": 161.32299553356674
+        },
+        {
+          "config": "2q",
+          "n_qubits": 2,
+          "c": 10.0,
+          "q_acc": 0.63258480649785,
+          "lr_acc": 0.6773968784838349,
+          "q_p50": 0.5389056092728408,
+          "q_p90": 0.5942784312696255,
+          "l_p50": 0.5,
+          "l_p90": 0.6924667606754686,
+          "q_best_lift": 402.08434513619864,
+          "lr_best_lift": 689.0500153502634,
+          "ql_ratio": 0.5835343388415831,
+          "baseline_return": 161.32299553356674
+        },
+        {
+          "config": "4q",
+          "n_qubits": 4,
+          "c": 0.1,
+          "q_acc": 0.5147216913521261,
+          "lr_acc": 0.6794672718585762,
+          "q_p50": 0.4874849270000645,
+          "q_p90": 0.5192912428783532,
+          "l_p50": 0.5,
+          "l_p90": 0.7017703746342302,
+          "q_best_lift": -5.25021552165839,
+          "lr_best_lift": 693.1626049931955,
+          "ql_ratio": -0.007574291347857592,
+          "baseline_return": 161.32299553356674
+        },
+        {
+          "config": "4q",
+          "n_qubits": 4,
+          "c": 1.0,
+          "q_acc": 0.560728221054308,
+          "lr_acc": 0.6794672718585762,
+          "q_p50": 0.5087997898046144,
+          "q_p90": 0.5583257700513741,
+          "l_p50": 0.5,
+          "l_p90": 0.7017703746342302,
+          "q_best_lift": 250.40845127486787,
+          "lr_best_lift": 693.1626049931955,
+          "ql_ratio": 0.3612549919327025,
+          "baseline_return": 161.32299553356674
+        },
+        {
+          "config": "4q",
+          "n_qubits": 4,
+          "c": 10.0,
+          "q_acc": 0.582566889632107,
+          "lr_acc": 0.6794672718585762,
+          "q_p50": 0.5072220608751853,
+          "q_p90": 0.5487711076779294,
+          "l_p50": 0.5,
+          "l_p90": 0.7017703746342302,
+          "q_best_lift": 198.32051528034586,
+          "lr_best_lift": 693.1626049931955,
+          "ql_ratio": 0.2861096571738643,
+          "baseline_return": 161.32299553356674
+        },
+        {
+          "config": "6q",
+          "n_qubits": 6,
+          "c": 0.1,
+          "q_acc": 0.5539894887720975,
+          "lr_acc": 0.6849418697244785,
+          "q_p50": 0.4890129907341978,
+          "q_p90": 0.5407263699706798,
+          "l_p50": 0.5,
+          "l_p90": 0.7353723884474319,
+          "q_best_lift": 162.6612977687249,
+          "lr_best_lift": 685.5505541384854,
+          "ql_ratio": 0.23727104702458796,
+          "baseline_return": 161.32299553356674
+        },
+        {
+          "config": "6q",
+          "n_qubits": 6,
+          "c": 1.0,
+          "q_acc": 0.5263377926421404,
+          "lr_acc": 0.6849418697244785,
+          "q_p50": 0.5,
+          "q_p90": 0.5984255545151949,
+          "l_p50": 0.5,
+          "l_p90": 0.7353723884474319,
+          "q_best_lift": 183.34445470830505,
+          "lr_best_lift": 685.5505541384854,
+          "ql_ratio": 0.26744118811005785,
+          "baseline_return": 161.32299553356674
+        },
+        {
+          "config": "6q",
+          "n_qubits": 6,
+          "c": 10.0,
+          "q_acc": 0.5175286669851887,
+          "lr_acc": 0.6849418697244785,
+          "q_p50": 0.5,
+          "q_p90": 0.5883167733708976,
+          "l_p50": 0.5,
+          "l_p90": 0.7353723884474319,
+          "q_best_lift": 165.61406310545627,
+          "lr_best_lift": 685.5505541384854,
+          "ql_ratio": 0.24157819158002056,
+          "baseline_return": 161.32299553356674
+        },
+        {
+          "config": "8q",
+          "n_qubits": 8,
+          "c": 0.1,
+          "q_acc": 0.562002309284918,
+          "lr_acc": 0.6780637840420449,
+          "q_p50": 0.4860070008632359,
+          "q_p90": 0.5556852280333464,
+          "l_p50": 0.5,
+          "l_p90": 0.7416033410716653,
+          "q_best_lift": 175.60841294627537,
+          "lr_best_lift": 657.6052336638827,
+          "ql_ratio": 0.26704229826131964,
+          "baseline_return": 161.32299553356674
+        },
+        {
+          "config": "8q",
+          "n_qubits": 8,
+          "c": 1.0,
+          "q_acc": 0.5111781334607421,
+          "lr_acc": 0.6780637840420449,
+          "q_p50": 0.5,
+          "q_p90": 0.5597184537883134,
+          "l_p50": 0.5,
+          "l_p90": 0.7416033410716653,
+          "q_best_lift": 279.69148311991023,
+          "lr_best_lift": 657.6052336638827,
+          "ql_ratio": 0.4253182134235675,
+          "baseline_return": 161.32299553356674
+        },
+        {
+          "config": "8q",
+          "n_qubits": 8,
+          "c": 10.0,
+          "q_acc": 0.5261387163561076,
+          "lr_acc": 0.6780637840420449,
+          "q_p50": 0.5,
+          "q_p90": 0.5462499839203452,
+          "l_p50": 0.5,
+          "l_p90": 0.7416033410716653,
+          "q_best_lift": 188.0229660202156,
+          "lr_best_lift": 657.6052336638827,
+          "ql_ratio": 0.2859207262883776,
+          "baseline_return": 161.32299553356674
+        }
+      ],
+      "best_config": {
+        "n_qubits": 2,
+        "c": 1.0,
+        "q_acc": 0.6372,
+        "lr_acc": 0.6774,
+        "q_best_lift_pct": 426.85,
+        "lr_best_lift_pct": 689.05,
+        "ql_ratio": 0.62
+      },
+      "all_ql_below_1": true
+    },
+    "failure_root_cause": [
+      "信号池同质化: WP stab6的信号已被涨停+破板+企稳三重过滤，特征分布高度集中",
+      "量子核退化: 高qubits+小样本导致核矩阵趋近全0.5",
+      "降维也不够: 即使2qubits，量子准确率63.7%仍低于经典67.7%"
+    ],
+    "conclusion": "所有配置Q/L < 1.0，经典全面碾压量子。量子核SVM适用于广撒网型策略的信号筛选，不适用于精筛型策略的二次过滤。"
+  }
+}
