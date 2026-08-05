@@ -255,7 +255,7 @@ def walk_forward_stock_level(features, labels, sig_data):
             lr_clf.fit(train_X_s, train_y)
             lr_prob = lr_clf.predict_proba(test_X_s)
             lr_prob_pos = lr_prob[:, 1] if lr_clf.classes_[1] == 1 else lr_prob[:, 0]
-        except:
+        except Exception:
             lr_prob_pos = np.array([0.5] * len(test_X_s))
 
         q_probs[seg_start:seg_end] = q_prob_pos
@@ -461,7 +461,7 @@ def walk_forward_stock_refit(features, labels, sig_data,
             lr_clf.fit(train_X_s, train_y)
             lr_prob = lr_clf.predict_proba(test_X_s)
             lr_prob_pos = lr_prob[:, 1] if lr_clf.classes_[1] == 1 else lr_prob[:, 0]
-        except:
+        except Exception:
             lr_prob_pos = np.array([0.5] * len(test_X_s))
 
         q_probs[seg_start:seg_end] = q_prob_pos
