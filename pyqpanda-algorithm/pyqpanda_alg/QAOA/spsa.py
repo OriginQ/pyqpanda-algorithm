@@ -15,7 +15,7 @@ import numpy as np
 
 
 def _check_bounds(d, bounds):
-    """Check if the given bounds fits the variables."""
+    """Check if the given bounds fits the variables. Returns d (min, max) pairs, or None."""
     bounds = np.array(bounds)
     bn = len(bounds)
     if bn == 0:
@@ -29,8 +29,9 @@ def _check_bounds(d, bounds):
     elif bn > 1:
         if d != bn:
             raise IndexError('Dimension of ``bounds`` does not match the dimension of variable ``x``.')
+        return bounds
     elif bn == 1:
-        return bounds * d
+        return np.tile(bounds, (d, 1))
 
 
 def _jail_inside(x, bounds):
