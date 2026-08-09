@@ -10,11 +10,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from numbers import Real
+
 from pyqpanda3.core import CPUQVM, QCircuit, QProg, I, H, RZ, RX, CNOT, measure
 from pyqpanda3.hamiltonian import PauliOperator, Hamiltonian
 import numpy as np
 from scipy.optimize import minimize
 from scipy.interpolate import barycentric_interpolate as b_interp
+from scipy.special import logsumexp
 import sympy as sp
 from . import spsa
 from .default_circuits import *
@@ -309,9 +312,13 @@ class QAOA:
         problem_dimension = 0
         self.problem = problem
         self.operator = None
+        self._problem_symbols = ()
+        self._problem_function = None
         if isinstance(problem, sp.Basic):
             self.problem = sp.simplify(problem)
-            problem_dimension = len(problem.atoms(sp.Symbol))
+            self._problem_symbols = tuple(sorted(self.problem.free_symbols, key=lambda symbol: symbol.name))
+            self._problem_function = sp.lambdify(self._problem_symbols, self.problem, 'numpy')
+            problem_dimension = len(self._problem_symbols)
             self.operator = problem_to_z_operator(self.problem, norm)
 
         elif isinstance(problem, Hamiltonian):
@@ -347,7 +354,6 @@ class QAOA:
     def calculate_energy(self, x):
         """
         Calculate the function value for one solution.
-        TODO: using new method to acccelrate the calculation.
 
         Parameter
             x : ``array-like``\n
@@ -382,13 +388,7 @@ class QAOA:
         bit_form = x
         result = 0
         if isinstance(self.problem, sp.Basic):
-            symbols = sorted(self.problem.free_symbols, key=lambda symbol: symbol.name)
-            # problem = sp.Poly(self.problem)
-            value_dict = {}
-            for i in range(len(x)):
-                value_dict[symbols[i]] = bit_form[i]
-            f = sp.lambdify(symbols, self.problem, 'numpy')
-            raw_result = f(*bit_form)
+            raw_result = self._problem_function(*bit_form)
             result = raw_result.real if isinstance(raw_result, complex) else raw_result
 
         if isinstance(self.problem, PauliOperator):
@@ -559,7 +559,7 @@ class QAOA:
 
     def _loss_function_cvar(self, measure_result):
         """
-        Given a result, calculate the CVaR energy expectation.
+        Given a result, calculate the normalized lower-tail CVaR energy expectation.
 
         Parameter
             measure_result : ``dict``\n
@@ -569,26 +569,27 @@ class QAOA:
             lost : ``float``\n
                 CVaR energy expectation
         """
-        if not any(isinstance(self.alpha, t) for t in [int, float]):
-            raise ValueError('CVaR method needs parameter alpha to be a number between 0~1')
-        if self.alpha > 1 or self.alpha < 0:
-            raise ValueError('CVaR method needs parameter alpha to be a number between 0~1')
+        if (isinstance(self.alpha, bool) or not isinstance(self.alpha, Real)
+                or not np.isfinite(self.alpha) or not 0 < self.alpha <= 1):
+            raise ValueError('CVaR method needs parameter alpha to be a number in (0, 1]')
         cdf = 0.
         loss = 0.
 
-        measure_result = sorted(measure_result.items(), key=lambda k: k[1], reverse=True)
-        for solution, hits in measure_result:
+        energy_distribution = []
+        for solution, hits in measure_result.items():
             if solution not in self.energy_dict:
                 solution_list = [int(i) for i in solution[::-1]]
                 self.energy_dict[solution] = self.calculate_energy(solution_list)
-            prob = hits
-            if cdf < self.alpha:
-                if cdf + prob < self.alpha:
-                    loss += self.energy_dict[solution] * prob
-                else:
-                    loss += self.energy_dict[solution] * (self.alpha - cdf)
-                cdf += prob
-        return loss
+            energy_distribution.append((self.energy_dict[solution], hits))
+
+        for energy, prob in sorted(energy_distribution, key=lambda item: item[0]):
+            if cdf >= self.alpha:
+                break
+            included_probability = min(prob, self.alpha - cdf)
+            loss += energy * included_probability
+            cdf += included_probability
+
+        return loss / self.alpha
 
     def _loss_function_Gibbs(self, measure_result):
         """
@@ -602,17 +603,19 @@ class QAOA:
             lost : ``float``\n
                 Gibbs energy expectation
         """
-        if not any(isinstance(self.temperature, t) for t in [int, float]):
-            raise ValueError('Gibbs free energy method needs parameter temperature to be a number between 0~1')
-        if self.temperature > 1 or self.temperature < 0:
-            raise ValueError('Gibbs free energy method needs parameter temperature to be a number between 0~1')
-        lost = 0.
+        if (isinstance(self.temperature, bool) or not isinstance(self.temperature, Real)
+                or not np.isfinite(self.temperature) or not 0 < self.temperature <= 1):
+            raise ValueError('Gibbs free energy method needs parameter temperature to be a number in (0, 1]')
+        log_terms = []
         for solution, hits in measure_result.items():
             if solution not in self.energy_dict:
                 solution_list = [int(i) for i in solution[::-1]]
                 self.energy_dict[solution] = self.calculate_energy(solution_list)
-            lost += hits * np.exp(-self.energy_dict[solution] / self.temperature)
-        return - np.log(lost)
+            if hits > 0:
+                log_terms.append(np.log(hits) - self.energy_dict[solution] / self.temperature)
+        if not log_terms:
+            raise ValueError('Gibbs free energy method needs at least one positive probability')
+        return -float(logsumexp(log_terms))
 
     def _loss_function(self, paras):
         """
@@ -844,10 +847,12 @@ class QAOA:
             loss_option :\n
 
                 temperature : ``float``, ``optional``\n
-                    parameter calculated in _loss_function_Gibbs. Default is 1. See Note ``Gibbs energy``.
+                    Parameter in :math:`(0, 1]` calculated in _loss_function_Gibbs. Default is 1.
+                    See Note ``Gibbs energy``.
 
                 alpha : ``float``, ``optional``\n
-                    parameter calculated in _loss_function_cvar. Default is 1. See Note ``Gibbs energy``.
+                    Confidence level in :math:`(0, 1]` calculated in _loss_function_cvar. Default is 1.
+                    See Note ``CVaR loss function``.
 
         Return
             qaoa_result : ``dict``\n
@@ -926,16 +931,19 @@ class QAOA:
                     :math:`CVaR_\\alpha(X) = \mathbb{E}[X|X\leq F_X^{-1}(alpha)]`
 
                 Here :math:`\\alpha` is the confidence level. CVaR is the expected value of the lower α-tail of the
-                distribution of X. :math:`\\alpha=0` corresponds to the minimum, and :math:`\\alpha=1` corresponds to the
-                expectation value.
+                distribution of X. As :math:`\\alpha` approaches zero it approaches the minimum, while
+                :math:`\\alpha=1` corresponds to the expectation value.
 
                 If measure type is sample, it is calculated by
 
-                    :math:`E=\\frac{1}{\\alpha N}(\sum_{i=0}^{k} n_iE_i + (\\alpha N - n_{k+1})E_{k+1}),\sum_{i=0}^k n_i < \\alpha N`
+                    :math:`E=\\frac{1}{\\alpha N}(\sum_{i=0}^{k-1} n_iE_i + (\\alpha N - \sum_{i=0}^{k-1}n_i)E_k)`.
 
                 If measure type is theoretical, it is calculated by
 
-                    :math:`E=\sum_{i=0}^{k} p_iE_i + (\\alpha - p_{k+1})E_{k+1}, \sum_{i=0}^k p_i < \\alpha`
+                    :math:`E=\\frac{1}{\\alpha}(\sum_{i=0}^{k-1} p_iE_i + (\\alpha - \sum_{i=0}^{k-1}p_i)E_k)`.
+
+                In both formulas the states are ordered by ascending energy and :math:`k` is the state where the
+                cumulative probability first reaches :math:`\\alpha`.
 
             - Interpolate method:\n
                 Inspired by Ref[2].
