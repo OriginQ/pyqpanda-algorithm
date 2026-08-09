@@ -134,14 +134,15 @@ class SVD:
         machine.run(prog, 1000)
         re = machine.result().get_prob_list(qvec0 + qvec1)
         re = np.array(parse_quantum_result_list(re, qvec0+qvec1, select_max=-1))
-        stv = StateVector(self.q0 + self.q1)
-        phase = stv.evolve(cir).ndarray().real
-        phase = phase.reshape(2**self.q1, 2**self.q0)
         prob = np.diagonal(re.reshape(2**self.q1, 2**self.q0))
         same_p = np.sum(prob)
         if return_type:
             return 1-same_p
         else:
+            # state vector is only needed for the singular vectors, not for the loss
+            stv = StateVector(self.q0 + self.q1)
+            phase = stv.evolve(cir).ndarray().real
+            phase = phase.reshape(2**self.q1, 2**self.q0)
             return phase, np.argmax(abs(phase))
 
     def QSVD_min(self):
