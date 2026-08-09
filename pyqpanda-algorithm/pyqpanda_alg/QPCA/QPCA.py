@@ -13,7 +13,6 @@
 from pyqpanda3.core import CPUQVM, QCircuit, QProg, TOFFOLI, SWAP, CNOT, U1, U3, CR, I, H, X, Y, measure
 import numpy as np
 import math
-import sys
 
 from .. plugin import *
 
@@ -201,15 +200,22 @@ def qpca(sample_A, k):
     """
     QPCA is a quantum version of the classical PCA algorithm, which is widely used in data analysis and machine learning.
 
+    Only 2-feature input is supported. The n=4 branches of the circuit helpers
+    are incomplete, so a larger input raises NotImplementedError.
+
     Parameters:
         sample_A: ``ndarray``\n
-            the input matrix for analysis
+            the input matrix for analysis, shape (n_samples, 2)
         k: ``int``\n
-            the dimension to reduce
+            the dimension to reduce, 1 or 2
 
     Returns:
         out: ``ndarray``\n
-            the output matrix after reducing dimension
+            the output matrix after reducing dimension, shape (n_samples, k)
+
+    Raises:
+        ValueError: k is not 1 or 2.\n
+        NotImplementedError: sample_A has other than 2 features.
 
     Examples:
         .. code-block:: python
@@ -222,61 +228,55 @@ def qpca(sample_A, k):
             print(data_q)
     """
     norm_x, A = _preprocessing(sample_A)
-    lambda_A, vector_A = np.linalg.eig(A)
-    A1 = A.reshape(1, 2 ** A.shape[0])[0]
+    n = A.shape[0]
+    if n != 2:
+        raise NotImplementedError(
+            'qpca supports 2-feature input only, got %d features' % n)
+    if k not in (1, 2):
+        raise ValueError('k must be 1 or 2, got %r' % (k,))
+
+    # the covariance matrix is symmetric, so eigh gives real eigenvalues and an
+    # orthonormal basis. sorted descending, principal component first.
+    lambda_A, vector_A = np.linalg.eigh(A)
+    order = np.argsort(lambda_A)[::-1]
+    lambda_A = lambda_A[order]
+    vector_A = vector_A[:, order]
+    A1 = A.reshape(1, 2 ** n)[0]
     state_vector = np.sqrt(1 / np.sum(A1 * A1)) * A1
 
-    if A.shape[0] == 2:
-        if k == 2:
-            tao = min(lambda_A) - 1
-        elif k == 1:
-            tao = np.sum(lambda_A)/2
-        else:
-            print('The K Error!')
-            sys.exit()
-        qm = _QMachine(5, 5)
-    if A.shape[0] == 4:
-        qm = _QMachine(8, 8)
+    # tao is the eigenvalue threshold. k=1 keeps the top eigenvalue only,
+    # k=2 sits below both and keeps the whole space.
+    if k == 2:
+        tao = min(lambda_A) - 1
+    else:
+        tao = np.sum(lambda_A) / 2
+    qm = _QMachine(5, 5)
 
     prog = QProg()
     cir = QCircuit()
-    _init_cir(qm, state_vector, A.shape[0])
-    cir << _phase_estimation_cir(qm.q_list, lambda_A, tao, A.shape[0])
-    cir << _transition_cir(qm.q_list, A.shape[0])
+    _init_cir(qm, state_vector, n)
+    cir << _phase_estimation_cir(qm.q_list, lambda_A, tao, n)
+    cir << _transition_cir(qm.q_list, n)
     cir << _cnot_cir(qm.q_list)
-    cir << _transition_reverse_cir(qm.q_list, A.shape[0])
-    cir << _phase_estimation_reverse_cir(qm.q_list, lambda_A, tao, A.shape[0])
+    cir << _transition_reverse_cir(qm.q_list, n)
+    cir << _phase_estimation_reverse_cir(qm.q_list, lambda_A, tao, n)
     prog << cir
     prog <<_measure_cir(prog, qm.q_list, qm.q_list)
-    # result = qm.machine.run_with_configuration(prog, qm.c_list, 8192)
     qm.machine.run(prog, 8192)
     result = qm.machine.result().get_prob_dict(qm.q_list)
-    a = []
-    data = 0
-    if A.shape[0] == 2:
-        for i, v in enumerate(result.keys()):
-            if int(v[-1]) == 1:
-                # a.append(float("%.4f" % (result[v] / 8192)))
-                a.append(float("%.4f" % (result[v])))
-        if k == 2:
-            result_idealA = state_vector
-        if k == 1:
-            i = np.argmax(lambda_A)
-            result_idealA = (np.kron(vector_A[:, i], vector_A[:, i]) * lambda_A[i]) / (
-                np.sqrt(lambda_A[i] * lambda_A[i]))
-        result_idealA1 = []
-        for i in range(len(result_idealA)):
-            if result_idealA[i] != 0:
-                result_idealA1.append(result_idealA[i])
-        result_idealA = result_idealA1
-        sum_A = np.sum(np.array(a))
-        result_circuitA = []
-        for i in range(len(a)):
-            result_circuitA.append(np.sqrt(a[i] / sum_A))
-        if k == 1:
-            vector_qpca = []
-            vector_qpca.append(np.sqrt(result_circuitA[0]))
-            vector_qpca.append(np.sqrt(result_circuitA[-1]))
-            vector_qpca = np.array(vector_qpca).reshape(1, 2)
-            data = np.dot(norm_x, np.transpose(vector_qpca))
-    return data
+
+    if k == 2:
+        # tao is below every eigenvalue, so post-selection succeeds with
+        # probability 1 and nothing is filtered out. the retained subspace is
+        # the whole feature space and its basis comes from vector_A.
+        return np.dot(norm_x, vector_A)
+
+    # post-select the ancilla, qubit 0, which is the last character of the key.
+    # sorted() so the branch order does not depend on dict insertion order.
+    a = [result[v] for v in sorted(result) if int(v[-1]) == 1]
+    sum_A = np.sum(np.array(a))
+    # probabilities back to amplitudes. unit norm when post-selection leaves
+    # two outcomes, which is the non-degenerate case.
+    result_circuitA = [np.sqrt(x / sum_A) for x in a]
+    vector_qpca = np.array([result_circuitA[0], result_circuitA[-1]]).reshape(1, 2)
+    return np.dot(norm_x, np.transpose(vector_qpca))
