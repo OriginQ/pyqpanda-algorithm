@@ -54,5 +54,52 @@ class TestSPSAMinimize:
         # 验证回调函数被调用
         assert len(noise_function.history) > 0
         assert noise_function.eval_count > 0
-    
+
+    def test_spsa_bounds_respected(self, simple_function):
+        """Result stays inside per-variable bounds."""
+        np.random.seed(0)
+        x0 = np.array([5.0, 5.0])
+        bounds = [(1.0, 2.0), (1.0, 2.0)]
+
+        result = spsa.spsa_minimize(simple_function, x0, bounds=bounds, maxiter=100)
+
+        assert (result >= 1.0).all()
+        assert (result <= 2.0).all()
+
+    def test_spsa_single_pair_bounds_respected(self, simple_function):
+        """A single (min, max) pair applies to every variable."""
+        np.random.seed(0)
+        x0 = np.array([5.0, 5.0, 5.0])
+
+        result = spsa.spsa_minimize(simple_function, x0, bounds=[(1.0, 2.0)], maxiter=100)
+
+        assert result.shape == x0.shape
+        assert (result >= 1.0).all()
+        assert (result <= 2.0).all()
+
+    def test_check_bounds_per_variable(self):
+        """One pair per variable is returned as given."""
+        bounds = [(0.0, 1.0), (-2.0, 2.0), (3.0, 4.0)]
+
+        checked = spsa._check_bounds(3, bounds)
+
+        assert checked is not None
+        assert np.array_equal(checked, np.array(bounds))
+
+    def test_check_bounds_single_pair_tiled(self):
+        """A single pair is tiled, not multiplied."""
+        checked = spsa._check_bounds(3, [(0, 1)])
+
+        assert np.array_equal(checked, np.array([[0, 1], [0, 1], [0, 1]]))
+
+    def test_check_bounds_validation(self):
+        """Invalid bounds still raise, empty bounds still mean no bounds."""
+        with pytest.raises(ValueError):
+            spsa._check_bounds(2, [(2, 1), (0, 1)])
+
+        with pytest.raises(IndexError):
+            spsa._check_bounds(3, [(0, 1), (0, 1)])
+
+        assert spsa._check_bounds(2, []) is None
+
 
