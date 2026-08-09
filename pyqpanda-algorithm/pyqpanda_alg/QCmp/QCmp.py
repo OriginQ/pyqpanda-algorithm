@@ -554,6 +554,12 @@ def qft_qubit_comparator(q_state_1, q_state_2, q_cmp, function='geq'):
 
     cir = QCircuit()
 
+    # the borrow bit gives q_state_1 > q_state_2, so 'geq' and 's' need the
+    # subtracted value shifted by one, same as the value += 1 in qft_comparator
+    if function == 'geq' or function == 's':
+        offset = 1
+    else:
+        offset = 0
 
     if not hasattr(q_cmp, '__len__'):
         q_cmp = [q_cmp]
@@ -572,6 +578,10 @@ def qft_qubit_comparator(q_state_1, q_state_2, q_cmp, function='geq'):
         for j, qj in enumerate(qlist):
             cir << U1(qj, -factor_all * 2 ** j * wi).control(q_state_1[i])
 
+    if offset:
+        for j, qj in enumerate(qlist):
+            cir << U1(qj, -factor_all * 2 ** j * offset)
+
     cir << QFT(qlist).dagger()
 
     cir << QFT(q_state_2)
@@ -579,6 +589,9 @@ def qft_qubit_comparator(q_state_1, q_state_2, q_cmp, function='geq'):
         for j, qj in enumerate(qlist):
             cir << U1(qj, factor_remain * 2 ** j * wi).control(q_state_1[i])
 
+    if offset:
+        for j, qj in enumerate(q_state_2):
+            cir << U1(qj, factor_remain * 2 ** j * offset)
 
     cir << QFT(q_state_2).dagger()
 
