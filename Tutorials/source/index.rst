@@ -20,6 +20,12 @@ Overall, it provides a standardized set of tools for developers, allowing them t
 
 .. toctree::
     :maxdepth: 2
+    :caption: Execution Layer
+
+    execution
+
+.. toctree::
+    :maxdepth: 2
     :caption: Changelog
 
     Changelog

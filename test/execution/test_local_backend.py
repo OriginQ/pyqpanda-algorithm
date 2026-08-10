@@ -17,6 +17,7 @@ from pyqpanda_alg.execution import (
     LocalBackend,
     resolve_backend,
 )
+from pyqpanda_alg.execution.result_normalization import probability_to_counts
 
 
 def bell_program():
@@ -85,3 +86,14 @@ def test_local_statevector_is_readonly_copy():
     assert not state.flags.writeable
     with pytest.raises(ValueError):
         state[0] = 1.0
+
+
+def test_probability_to_counts_rejects_nonpositive_shots():
+    with pytest.raises(ValueError, match="shots"):
+        probability_to_counts({"0": 1.0}, shots=0)
+
+
+def test_probability_to_counts_apportions_rounding_remainder():
+    counts = probability_to_counts({"0": 0.5, "1": 0.5}, shots=3)
+    assert counts == {"0": 2, "1": 1}
+    assert sum(counts.values()) == 3

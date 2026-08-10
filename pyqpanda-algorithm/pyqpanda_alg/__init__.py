@@ -53,3 +53,6 @@ from . import Grover
 from . import QmRMR
 from . import QSEncode
 
+# Execution layer: capability-based backends, tasks, and sessions
+from . import execution
+

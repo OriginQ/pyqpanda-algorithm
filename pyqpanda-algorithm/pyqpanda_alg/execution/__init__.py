@@ -1,8 +1,31 @@
 """Capability-based execution layer.
 
-Backends always submit work and return task objects; this package
-provides the shared value objects (options, capabilities, result
-wrappers) and the public exception hierarchy used by every backend.
+Backends always submit work and return task objects; callers poll
+:class:`BackendTask` handles and collect results through the batch
+result wrappers.  This package publishes the shared value objects
+(options, capabilities, result wrappers), the task protocols, the
+resumable :class:`AlgorithmTask` state machine, the variational
+session abstraction, and the public exception hierarchy used by every
+backend.
+
+The approved public surface is exactly ``__all__``; algorithm plans
+must import from ``pyqpanda_alg.execution`` and nothing deeper.
+
+Rules that bind every backend:
+
+* ``resolve_backend(None)`` returns the CPU default
+  :class:`LocalBackend`; existing CPU calls are unchanged.
+* :class:`QPandaRuntimeBackend` is optional (install with
+  ``pip install pyqpanda-algorithm[runtime]``) and must be constructed
+  with an already logged-in service and an explicit device; it never
+  authenticates or selects a device on its own.
+* A runtime failure never silently falls back to the local backend or
+  to a classical substitute result; it surfaces as a public
+  execution-layer exception that retains the original failure as
+  ``__cause__``.
+* Checkpoints never contain credentials, live services, or device
+  handles; :meth:`AlgorithmTask.resume` rebuilds the step callback
+  only through a factory registered with :func:`register_algorithm`.
 """
 
 from .algorithm_task import AlgorithmStep, AlgorithmTask, register_algorithm
