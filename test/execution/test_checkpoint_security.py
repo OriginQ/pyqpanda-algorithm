@@ -199,3 +199,31 @@ def test_checkpoint_rejects_live_objects_in_metadata(tmp_path):
     )
     with pytest.raises(AlgorithmInputError, match="serializable"):
         task.checkpoint(tmp_path / "task.json")
+
+
+def test_checkpoint_write_is_atomic_and_leaves_no_temp_file(tmp_path):
+    task = AlgorithmTask(
+        algorithm="test-counter",
+        initial_state={"total": 0},
+        advance=lambda state: (CompletedBackendTask(0), True),
+    )
+    path = task.checkpoint(tmp_path / "task.json")
+    assert path.read_text(encoding="utf-8")  # complete, readable payload
+    assert list(tmp_path.iterdir()) == [path]  # no leftover temp file
+
+
+def test_checkpoint_rejects_non_primitive_dict_keys(tmp_path):
+    task = AlgorithmTask(
+        algorithm="test-counter",
+        initial_state={(1, 2): "tuple-key"},
+        advance=lambda state: (CompletedBackendTask(0), True),
+    )
+    with pytest.raises(AlgorithmInputError, match="keys"):
+        task.checkpoint(tmp_path / "task.json")
+
+
+def test_resume_of_undecodable_checkpoint_raises(tmp_path):
+    path = tmp_path / "broken.json"
+    path.write_bytes(b"\xff\xfe\x00")  # not valid UTF-8
+    with pytest.raises(TaskRecoveryError, match="could not read"):
+        AlgorithmTask.resume(path)

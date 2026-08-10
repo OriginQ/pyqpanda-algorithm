@@ -97,3 +97,8 @@ def test_probability_to_counts_apportions_rounding_remainder():
     counts = probability_to_counts({"0": 0.5, "1": 0.5}, shots=3)
     assert counts == {"0": 2, "1": 1}
     assert sum(counts.values()) == 3
+
+
+def test_probability_to_counts_rejects_malformed_probability_sum():
+    with pytest.raises(ValueError, match="at most 1.0"):
+        probability_to_counts({"0": 0.6, "1": 0.6}, shots=10)

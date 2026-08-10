@@ -9,7 +9,9 @@ and only transport failures are converted into the public exception
 hierarchy, always retaining the original exception as ``__cause__``.
 """
 
+import json
 import time
+from pathlib import Path
 from typing import Any, NoReturn, Optional
 
 from .backend_task import TaskStatus
@@ -25,6 +27,16 @@ from .results import EstimateBatchResult, SampleBatchResult
 #: failure mentioning them is reported as a timeout rather than a
 #: transport failure.
 _TIMEOUT_FRAGMENTS = ("more than", "timeout")
+
+#: qpanda3-runtime rejects blocking queries whose timeout is below this
+#: value (its input validation raises "timeout shouldn't be smaller than
+#: 120 seconds").  The effective timeout is clamped to it so that call
+#: never fails with that misleading validation error.
+_RUNTIME_MIN_TIMEOUT = 120.0
+
+#: Submission timeout used when a checkpoint does not carry one (files
+#: written before timeout persistence).
+_DEFAULT_TIMEOUT = 1800.0
 
 
 class RuntimeBackendTask:
@@ -42,7 +54,7 @@ class RuntimeBackendTask:
         *,
         kind: str,
         shots: Optional[int] = None,
-        timeout: float = 1800.0,
+        timeout: float = _DEFAULT_TIMEOUT,
     ) -> None:
         if kind not in ("sample", "estimate"):
             raise ValueError(f"kind must be 'sample' or 'estimate', got {kind!r}")
@@ -89,7 +101,7 @@ class RuntimeBackendTask:
         """
         if self._decoded is not None:
             return self._decoded
-        effective = self.timeout if timeout is None else timeout
+        effective = self._effective_timeout(timeout)
         deadline = time.monotonic() + effective
         try:
             raw = self.raw_task.get_result_sync(timeout=effective)
@@ -102,7 +114,7 @@ class RuntimeBackendTask:
         """Coroutine variant of :meth:`result` for asyncio callers."""
         if self._decoded is not None:
             return self._decoded
-        effective = self.timeout if timeout is None else timeout
+        effective = self._effective_timeout(timeout)
         deadline = time.monotonic() + effective
         try:
             raw = await self.raw_task.get_result_async(timeout=effective)
@@ -111,13 +123,27 @@ class RuntimeBackendTask:
         self._decoded = self._decode(raw)
         return self._decoded
 
+    def _effective_timeout(self, timeout: Optional[float]) -> float:
+        """Return the requested timeout clamped to the runtime minimum.
+
+        qpanda3-runtime rejects blocking queries below 120 seconds at
+        input validation, so a caller-side ``timeout=60`` must never be
+        forwarded: it would fail instantly with a misleading
+        "timeout shouldn't be smaller than 120 seconds" error instead of
+        actually waiting.
+        """
+        effective = self.timeout if timeout is None else timeout
+        return max(effective, _RUNTIME_MIN_TIMEOUT)
+
     def checkpoint(self, path: Optional[str] = None) -> None:
         """Persist the remote task state through the raw QTaskManager.
 
         The checkpoint holds the serialized task state only; API keys,
-        tokens, live service, and device handles never enter it.
+        tokens, live service, and device handles never enter it.  The
+        submission timeout is carried in the checkpoint's ``user_data``
+        so a recovered task keeps the original deadline.
         """
-        self.raw_task.check_point(filepath=path)
+        self.raw_task.check_point(filepath=path, user_data={"timeout": self.timeout})
 
     @classmethod
     def recover(cls, service: Any, path: str) -> "RuntimeBackendTask":
@@ -125,7 +151,10 @@ class RuntimeBackendTask:
 
         The task kind (and shots) are read from the checkpointed task
         metadata; a checkpoint without them cannot be adapted and raises
-        :class:`~pyqpanda_alg.execution.errors.TaskRecoveryError`.
+        :class:`~pyqpanda_alg.execution.errors.TaskRecoveryError`.  The
+        submission timeout is restored from the checkpoint's
+        ``user_data``; a checkpoint without it (written before timeout
+        persistence) falls back to the default submission timeout.
         """
         qtask = service.recover_qtask_manager(path)
         metadata = qtask.get_task_state().get("data", {}).get("metadata")
@@ -138,7 +167,12 @@ class RuntimeBackendTask:
             raise TaskRecoveryError(
                 f"checkpoint {path} has unsupported runtime task kind {kind!r}"
             )
-        return cls(qtask, kind=kind, shots=metadata.get("shots"))
+        return cls(
+            qtask,
+            kind=kind,
+            shots=metadata.get("shots"),
+            timeout=_checkpoint_timeout(path),
+        )
 
     def _try_get_result(self) -> tuple[Any, bool, str]:
         """Poll the raw manager, converting transport failures."""
@@ -197,3 +231,25 @@ def _flatten_estimate(raw: Any) -> Any:
             yield from _flatten_estimate(item)
     else:
         raise TypeError(f"unexpected estimate result element {type(raw).__name__}")
+
+
+def _checkpoint_timeout(path: str) -> float:
+    """Return the timeout persisted in the checkpoint's ``user_data``.
+
+    qpanda3-runtime checkpoint files are JSON objects with a top-level
+    ``user_data`` key holding whatever the submitting
+    :meth:`RuntimeBackendTask.checkpoint` stored.  An unreadable file, a
+    file without ``user_data`` (format version 1 checkpoints written
+    before timeout persistence), or a malformed value all fall back to
+    the default submission timeout.
+    """
+    try:
+        payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return _DEFAULT_TIMEOUT
+    user_data = payload.get("user_data") if isinstance(payload, dict) else None
+    if isinstance(user_data, dict):
+        timeout = user_data.get("timeout")
+        if isinstance(timeout, (int, float)) and not isinstance(timeout, bool):
+            return float(timeout)
+    return _DEFAULT_TIMEOUT

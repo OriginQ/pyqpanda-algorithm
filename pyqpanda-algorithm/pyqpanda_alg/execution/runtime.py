@@ -20,7 +20,7 @@ from .errors import (
     TaskSubmissionError,
 )
 from .options import ExecutionOptions
-from .preflight import _circuit_qubits, run_preflight
+from .preflight import _circuit_qubits, _specified_block, run_preflight
 from .runtime_task import RuntimeBackendTask
 from .variational import RuntimeVariationalSession
 
@@ -137,8 +137,11 @@ class QPandaRuntimeBackend:
         idempotent and also happens when the session context exits with
         an error.
         """
-        qsession = self.service.vqsession(
-            ansatz, self.device, options.shots, _SESSION_LIFE_TIME, observable
+        qsession = self._submit(
+            lambda: self.service.vqsession(
+                ansatz, self.device, options.shots, _SESSION_LIFE_TIME, observable
+            ),
+            "vqsession",
         )
         return RuntimeVariationalSession(
             qsession, options=options, measure_qubits=_circuit_qubits(ansatz)
@@ -152,10 +155,3 @@ class QPandaRuntimeBackend:
             raise TaskSubmissionError(
                 f"submitting the {operation} task failed: {exc}"
             ) from exc
-
-
-def _specified_block(options: ExecutionOptions):
-    """Return the tuple option in the list shape qpanda3-runtime expects."""
-    if options.specified_block is None:
-        return None
-    return list(options.specified_block)

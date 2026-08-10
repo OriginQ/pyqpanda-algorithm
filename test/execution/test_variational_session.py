@@ -13,6 +13,7 @@ import math
 import pytest
 
 from pyqpanda_alg.execution import (
+    AlgorithmInputError,
     BackendTask,
     ExecutionOptions,
     LocalBackend,
@@ -60,6 +61,19 @@ def test_runtime_session_run_returns_float_expectation_task(
     assert session.raw_session.run_calls[0]["gate_params"] == [0.1, 0.2]
 
 
+def test_runtime_session_forwards_ansatz_qubits_as_measure_list(
+    runtime_backend, ansatz, observable
+):
+    session = runtime_backend.create_variational_session(
+        ansatz, observable, options=ExecutionOptions()
+    )
+    with session:
+        session.run([0.1, 0.2])
+    # the ansatz acts on qubits 0 and 1, and the session must forward
+    # exactly those as the measure_list of every run
+    assert session.raw_session.run_calls[0]["measure_list"] == [0, 1]
+
+
 def test_runtime_session_release_is_idempotent(runtime_backend, ansatz, observable):
     session = runtime_backend.create_variational_session(
         ansatz, observable, options=ExecutionOptions()
@@ -68,6 +82,33 @@ def test_runtime_session_release_is_idempotent(runtime_backend, ansatz, observab
         session.run([0.1, 0.2])
     session.release()
     assert session.raw_session.release_calls == 1
+
+
+def test_runtime_session_reentry_after_release_raises(runtime_backend, ansatz, observable):
+    session = runtime_backend.create_variational_session(
+        ansatz, observable, options=ExecutionOptions()
+    )
+    with session:
+        session.run([0.1, 0.2])
+    assert session.raw_session.release_calls == 1
+    with pytest.raises(AlgorithmInputError, match="re-enter"):
+        with session:
+            session.run([0.3, 0.4])
+    # re-entry released nothing and ran nothing: no second network call
+    assert session.raw_session.release_calls == 1
+    assert len(session.raw_session.run_calls) == 1
+
+
+def test_local_session_reentry_after_release_raises(ansatz, observable):
+    session = LocalBackend().create_variational_session(
+        ansatz, observable, options=ExecutionOptions()
+    )
+    with session:
+        session.run([0.1, 0.2])
+    with pytest.raises(AlgorithmInputError, match="re-enter"):
+        with session:
+            session.run([0.3, 0.4])
+    assert session.history == [[0.1, 0.2]]  # the second run never happened
 
 
 def test_local_session_run_returns_expectation_float(ansatz, observable):

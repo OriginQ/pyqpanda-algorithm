@@ -126,10 +126,23 @@ def test_runtime_task_checkpoint_delegates_to_qtask_manager(
     path = tmp_path / "runtime-task.json"
     assert task.checkpoint(str(path)) is None
     assert task.raw_task.checkpoint_calls == [
-        {"filepath": str(path), "user_data": None}
+        {"filepath": str(path), "user_data": {"timeout": 1800.0}}
     ]
     payload = json.loads(path.read_text(encoding="utf-8"))
-    assert payload["data"]["metadata"]["qtask_type"] == "sample"
+    assert payload["task_state"]["data"]["metadata"]["qtask_type"] == "sample"
+
+
+@pytest.mark.runtime_contract
+def test_runtime_task_checkpoint_defaults_path_and_carries_timeout(
+    runtime_backend, bell_program
+):
+    task = runtime_backend.submit_sample(
+        bell_program, options=ExecutionOptions(timeout=321)
+    )
+    assert task.checkpoint() is None  # the raw manager picks the filename
+    assert task.raw_task.checkpoint_calls == [
+        {"filepath": None, "user_data": {"timeout": 321.0}}
+    ]
 
 
 @pytest.mark.runtime_contract
@@ -142,6 +155,53 @@ def test_runtime_task_recovery_rebuilds_from_checkpoint(runtime_backend, bell_pr
     assert recovered.kind == "sample"
     assert recovered.result().single_counts() == {"00": 160, "11": 161}
     assert runtime_backend.service.recovered_task_paths == [str(path)]
+
+
+@pytest.mark.runtime_contract
+def test_runtime_task_recovery_rebuilds_estimate_from_checkpoint(
+    runtime_backend, bell_program, observable, tmp_path
+):
+    task = runtime_backend.submit_estimate(
+        (bell_program, observable), options=ExecutionOptions()
+    )
+    path = tmp_path / "estimate.json"
+    task.checkpoint(str(path))
+    runtime_backend.service.recovered_task = FakeQTaskManager(
+        [0.5], kind="estimate", finished=True
+    )
+    recovered = RuntimeBackendTask.recover(runtime_backend.service, str(path))
+    assert recovered.kind == "estimate"
+    assert recovered.result().single_value() == 0.5
+
+
+@pytest.mark.runtime_contract
+def test_runtime_task_recovery_restores_submission_timeout(
+    runtime_backend, bell_program, tmp_path
+):
+    task = runtime_backend.submit_sample(
+        bell_program, options=ExecutionOptions(timeout=321)
+    )
+    path = tmp_path / "task.json"
+    task.checkpoint(str(path))
+    recovered = RuntimeBackendTask.recover(runtime_backend.service, str(path))
+    assert recovered.timeout == 321.0
+
+
+@pytest.mark.runtime_contract
+def test_runtime_recovery_uses_default_timeout_without_user_data(tmp_path):
+    # A format-v1 checkpoint written before timeout persistence carries
+    # no user_data; recovery must keep the historical default.
+    path = tmp_path / "legacy.json"
+    path.write_text(
+        json.dumps(
+            {"task_state": {"data": {"metadata": {"qtask_type": "sample", "shots": 1000}}}}
+        ),
+        encoding="utf-8",
+    )
+    from test.execution.fakes import FakeRuntimeService
+
+    recovered = RuntimeBackendTask.recover(FakeRuntimeService(), str(path))
+    assert recovered.timeout == 1800.0
 
 
 @pytest.mark.runtime_contract
@@ -191,15 +251,40 @@ def test_runtime_result_timeout_raises_public_error(runtime_backend, bell_progra
         "The query result took more than 30 seconds to resolve"
     )
     task = runtime_backend.submit_sample(bell_program, options=ExecutionOptions())
-    with pytest.raises(TaskTimeoutError, match="30 seconds") as excinfo:
-        task.result(timeout=30)
+    with pytest.raises(TaskTimeoutError, match="120.0 seconds") as excinfo:
+        task.result(timeout=30)  # effective deadline is clamped to 120
     assert excinfo.value.__cause__ is not None
+
+
+@pytest.mark.runtime_contract
+def test_runtime_result_clamps_timeout_to_runtime_minimum(runtime_backend, bell_program):
+    # qpanda3-runtime rejects blocking queries below 120 seconds at
+    # input validation; the effective deadline must be clamped so the
+    # runtime never sees (and never rejects) the caller's 60.
+    task = runtime_backend.submit_sample(
+        bell_program, options=ExecutionOptions(timeout=60)
+    )
+    task.result(timeout=60)
+    assert task.raw_task.result_calls[0]["timeout"] == 120.0
+    task2 = runtime_backend.submit_sample(
+        bell_program, options=ExecutionOptions(timeout=60)
+    )
+    task2.result()  # the task-level timeout is clamped too
+    assert task2.raw_task.result_calls[0]["timeout"] == 120.0
 
 
 @pytest.mark.runtime_contract
 def test_runtime_undecodable_result_raises_public_error():
     qtask = FakeQTaskManager(None, kind="sample", finished=True)
     task = RuntimeBackendTask(qtask, kind="sample", shots=100)
+    with pytest.raises(ResultDecodingError):
+        task.result()
+
+
+@pytest.mark.runtime_contract
+def test_runtime_undecodable_estimate_result_raises_public_error():
+    qtask = FakeQTaskManager(None, kind="estimate", finished=True)
+    task = RuntimeBackendTask(qtask, kind="estimate", shots=100)
     with pytest.raises(ResultDecodingError):
         task.result()
 
@@ -213,3 +298,30 @@ def test_runtime_task_supports_async_result(runtime_backend, bell_program):
 
     result = asyncio.run(collect())
     assert result.single_counts() == {"00": 160, "11": 161}
+
+
+@pytest.mark.runtime_contract
+def test_runtime_task_async_result_surfaces_query_failure(runtime_backend, bell_program):
+    cause = RuntimeError("async query failed")
+    runtime_backend.service.query_error = cause
+    task = runtime_backend.submit_sample(bell_program, options=ExecutionOptions())
+
+    async def collect():
+        return await task.result_async(timeout=5)
+
+    with pytest.raises(BackendUnavailableError) as excinfo:
+        asyncio.run(collect())
+    assert excinfo.value.__cause__ is cause
+
+
+@pytest.mark.runtime_contract
+def test_runtime_vqsession_submission_failure_raises_public_error(
+    runtime_backend, ansatz, observable
+):
+    cause = RuntimeError("network unreachable")
+    runtime_backend.service.submit_error = cause
+    with pytest.raises(TaskSubmissionError, match="network unreachable") as excinfo:
+        runtime_backend.create_variational_session(
+            ansatz, observable, options=ExecutionOptions()
+        )
+    assert excinfo.value.__cause__ is cause

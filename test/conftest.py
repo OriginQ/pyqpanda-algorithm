@@ -37,7 +37,13 @@ def fake_device():
 
 @pytest.fixture
 def runtime_backend(fake_runtime_service, fake_device):
-    """QPandaRuntimeBackend wired to the fake service and device."""
+    """QPandaRuntimeBackend wired to the fake service and device.
+
+    Constructing the backend requires the optional qpanda3-runtime
+    package, which CI does not install; tests consuming this fixture
+    SKIP cleanly (instead of failing) without it.
+    """
+    pytest.importorskip("qpanda3_runtime")
     return QPandaRuntimeBackend(fake_runtime_service, fake_device)
 
 

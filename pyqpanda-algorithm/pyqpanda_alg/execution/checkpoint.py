@@ -14,6 +14,7 @@ enforced here so checkpoints never leak credentials:
 """
 
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Union
@@ -76,7 +77,12 @@ def redact_credentials(value: Any) -> Any:
 
 
 def write_checkpoint(path: Union[str, Path], checkpoint: AlgorithmCheckpoint) -> Path:
-    """Write ``checkpoint`` to ``path`` as redacted, JSON-serializable text."""
+    """Write ``checkpoint`` to ``path`` as redacted, JSON-serializable text.
+
+    The write is atomic: the payload goes to a temporary sibling file
+    first and is moved into place with :func:`os.replace`, so a reader
+    never observes a half-written checkpoint.
+    """
     payload = {
         "format_version": checkpoint.format_version,
         "algorithm": checkpoint.algorithm,
@@ -88,9 +94,14 @@ def write_checkpoint(path: Union[str, Path], checkpoint: AlgorithmCheckpoint) ->
         "metadata": _as_json_primitives(redact_credentials(checkpoint.metadata)),
     }
     target = Path(path)
-    target.write_text(
-        json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8"
-    )
+    text = json.dumps(payload, indent=2, sort_keys=True)
+    temp = target.with_name(f"{target.name}.tmp")
+    try:
+        temp.write_text(text, encoding="utf-8")
+        os.replace(temp, target)
+    finally:
+        if temp.exists():
+            temp.unlink()
     return target
 
 
@@ -102,7 +113,7 @@ def read_checkpoint(path: Union[str, Path]) -> AlgorithmCheckpoint:
     """
     try:
         payload = json.loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+    except (OSError, json.JSONDecodeError, UnicodeDecodeError) as exc:
         raise TaskRecoveryError(f"could not read checkpoint at {path}") from exc
     if not isinstance(payload, dict):
         raise TaskRecoveryError(
@@ -159,12 +170,23 @@ def _as_json_primitives(value: Any) -> Any:
     Tuples become lists.  Anything else that JSON cannot represent
     (live objects such as RuntimeService or QDevice handles) raises
     :class:`~pyqpanda_alg.execution.errors.AlgorithmInputError` instead
-    of being silently dropped or half-serialized.
+    of being silently dropped or half-serialized.  Dict keys are
+    validated too: JSON can only stringify primitive keys, so a tuple or
+    live-object key raises instead of leaking a raw ``TypeError`` out of
+    :func:`json.dumps`.
     """
     if value is None or isinstance(value, (str, int, float, bool)):
         return value
     if isinstance(value, dict):
-        return {key: _as_json_primitives(item) for key, item in value.items()}
+        converted = {}
+        for key, item in value.items():
+            if not isinstance(key, (str, int, float, bool)):
+                raise AlgorithmInputError(
+                    "checkpoint dict keys must be JSON-serializable, "
+                    f"got {type(key).__name__}"
+                )
+            converted[key] = _as_json_primitives(item)
+        return converted
     if isinstance(value, (list, tuple)):
         return [_as_json_primitives(item) for item in value]
     raise AlgorithmInputError(

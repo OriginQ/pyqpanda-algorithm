@@ -10,6 +10,7 @@ run before submission: a failing step must leave the service untouched.
 import pytest
 
 from pyqpanda_alg.execution import (
+    AlgorithmInputError,
     BackendUnavailableError,
     DeviceCapabilityError,
     ExecutionOptions,
@@ -83,6 +84,9 @@ def test_fake_execute_runs_fake_task_before_real_submission(
     )
     fake = runtime_backend.device.fake_backend.return_value
     assert fake.sample_calls[0]["shots"] == 1000
+    # the fake runs the *transpiled* circuit, so the recorded fidelity
+    # describes what the device will actually run
+    assert fake.sample_calls[0]["prog"] == "TRANSPILED-ORIGINIR"
     assert fake.transpile_calls  # transpile runs before the fake task
     assert runtime_backend.service.sample_calls  # real submission still happens
     assert task.fake_execution["kind"] == "sample"
@@ -99,6 +103,7 @@ def test_fake_execute_estimate_records_fake_value(
     )
     fake = runtime_backend.device.fake_backend.return_value
     assert fake.estimate_calls[0]["shots"] == 1000
+    assert fake.estimate_calls[0]["prog"] == "TRANSPILED-ORIGINIR"
     assert task.fake_execution["kind"] == "estimate"
     assert task.fake_execution["result"] == 0.5
     assert task.result().single_value() == 0.5
@@ -137,9 +142,42 @@ def test_fake_execute_surfaces_multiprocessing_entry_guidance(
 
 def test_fake_execute_still_validates_before_fake_run(runtime_backend, five_qubit_prog):
     runtime_backend.device.available_qubits.return_value = [0, 1]
-    with pytest.raises(DeviceCapabilityError, match="requires 5 qubits"):
+    with pytest.raises(DeviceCapabilityError, match=r"requires qubit"):
         runtime_backend.submit_sample(
             five_qubit_prog,
             options=ExecutionOptions(preflight=PreflightMode.FAKE_EXECUTE),
         )
     runtime_backend.device.fake_backend.assert_not_called()
+
+
+def test_qubit_capacity_check_rejects_dead_qubits_by_membership(
+    runtime_backend, bell_program
+):
+    # A device whose highest qubit index is 5 but that only exposes
+    # [0, 4, 5] must reject a circuit using qubit 1 -- a span-versus-
+    # count comparison (max+1 <= len) would wrongly accept it.
+    runtime_backend.device.available_qubits.return_value = [0, 4, 5]
+    prog = bell_program  # uses qubits 0 and 1
+    with pytest.raises(DeviceCapabilityError, match=r"qubit\(s\) \[1\]"):
+        runtime_backend.submit_sample(prog, options=ExecutionOptions())
+    assert runtime_backend.service.sample_calls == []
+
+
+def test_preflight_rejects_string_observable_with_input_error(
+    runtime_backend, bell_program
+):
+    with pytest.raises(AlgorithmInputError, match="observable"):
+        runtime_backend.submit_estimate(
+            (bell_program, "Z0 Z1"), options=ExecutionOptions()
+        )
+    assert runtime_backend.service.estimate_calls == []
+
+
+def test_preflight_surfaces_device_fetch_failure(runtime_backend, bell_program):
+    runtime_backend.device.available_qubits.side_effect = RuntimeError(
+        "device unreachable"
+    )
+    with pytest.raises(BackendUnavailableError, match="available_qubits") as excinfo:
+        runtime_backend.submit_sample(bell_program, options=ExecutionOptions())
+    assert isinstance(excinfo.value.__cause__, RuntimeError)
+    assert runtime_backend.service.sample_calls == []

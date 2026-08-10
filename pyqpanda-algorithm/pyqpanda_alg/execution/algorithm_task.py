@@ -121,13 +121,18 @@ class AlgorithmTask(Generic[T]):
         try:
             step = self._advance(self._state)
             task, done = step
+            if task.id:
+                self.backend_task_ids.append(task.id)
+            self._accumulate(task)
         except Exception as exc:
+            # The whole step -- including accumulating its result -- is
+            # inside the try: a query failure while collecting the step's
+            # result must mark the task FAILED instead of leaving it
+            # PENDING, which would make the next poll() re-run the step
+            # and double-submit backend work.
             self._status = TaskStatus.FAILED
             self._error = exc
             raise
-        if task.id:
-            self.backend_task_ids.append(task.id)
-        self._accumulate(task)
         self._status = TaskStatus.SUCCEEDED if done else TaskStatus.RUNNING
         return self._status
 
@@ -199,9 +204,19 @@ class AlgorithmTask(Generic[T]):
         are never deserialized.  ``backend`` is passed to the factory so
         the caller re-supplies compatible (logged-in) credentials at
         recovery time.  Live backend task handles are not restored —
-        only their IDs survive in the checkpoint.
+        only their IDs survive in the checkpoint.  A backend supplied at
+        resume time must match the identity recorded in the checkpoint;
+        resuming with a different backend raises
+        :class:`~pyqpanda_alg.execution.errors.TaskRecoveryError`.
         """
         checkpoint = read_checkpoint(path)
+        recorded = checkpoint.backend_identity
+        if recorded is not None and _backend_identity(backend) != recorded:
+            raise TaskRecoveryError(
+                f"checkpoint records backend identity {recorded!r} but resume "
+                f"was given "
+                f"{type(backend).__name__ if backend is not None else 'no backend'}"
+            )
         factory = _ALGORITHM_FACTORIES.get(checkpoint.algorithm)
         if factory is None:
             raise TaskRecoveryError(

@@ -15,7 +15,7 @@ from pyqpanda_alg.execution import DeviceCapabilityError, ExecutionOptions
 
 def test_preflight_rejects_circuit_larger_than_device(runtime_backend, five_qubit_prog):
     runtime_backend.device.available_qubits.return_value = [0, 1]
-    with pytest.raises(DeviceCapabilityError, match="requires 5 qubits"):
+    with pytest.raises(DeviceCapabilityError, match=r"qubit\(s\) \[2, 3, 4\]"):
         runtime_backend.submit_sample(five_qubit_prog, options=ExecutionOptions())
     assert runtime_backend.service.sample_calls == []
 
@@ -51,8 +51,8 @@ def test_preflight_rejects_gate_pair_not_in_topology(runtime_backend, bell_progr
 
 
 def test_preflight_rejects_specified_block_outside_device(runtime_backend, bell_program):
-    runtime_backend.device.available_qubits.return_value = [2, 3]
-    options = ExecutionOptions(specified_block=(0, 1))
+    runtime_backend.device.available_qubits.return_value = [0, 1, 2, 3]
+    options = ExecutionOptions(specified_block=(4, 5))
     with pytest.raises(DeviceCapabilityError, match="specified block"):
         runtime_backend.submit_sample(bell_program, options=options)
 

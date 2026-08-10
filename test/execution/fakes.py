@@ -173,6 +173,7 @@ class FakeQTaskManager:
         self.channel = channel
         self.error = error
         self.checkpoint_calls: list = []
+        self.result_calls: list = []
         state_task_id = (
             self.task_id
             if isinstance(self.task_id, str)
@@ -216,6 +217,7 @@ class FakeQTaskManager:
 
     def get_result_sync(self, additional_info=None, timeout=1000 * 1800, using_http=True):
         """Blocking result fetch; raises ``error`` when configured."""
+        self.result_calls.append({"timeout": timeout})
         if self.error is not None:
             raise self.error
         return self.results
@@ -225,11 +227,22 @@ class FakeQTaskManager:
         return self.get_result_sync(additional_info, timeout)
 
     def check_point(self, filepath=None, user_data=None):
-        """Record the call and persist the serializable task state."""
+        """Record the call and persist the serializable task state.
+
+        The file layout mirrors the real qpanda3-runtime checkpoint:
+        ``{"meta": ..., "task_state": ..., "user_data": ...}``.
+        """
         self.checkpoint_calls.append({"filepath": filepath, "user_data": user_data})
         if filepath is not None:
             with open(filepath, "w", encoding="utf-8") as handle:
-                json.dump(self.task_state, handle)
+                json.dump(
+                    {
+                        "meta": {"version": 1, "created_at": ""},
+                        "task_state": self.task_state,
+                        "user_data": user_data if user_data is not None else {},
+                    },
+                    handle,
+                )
         return str(filepath) if filepath is not None else "checkpoint_FAKE.json"
 
     def get_task_state(self):

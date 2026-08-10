@@ -13,6 +13,7 @@ import pytest
 from pyqpanda_alg.execution import (
     AlgorithmInputError,
     AlgorithmTask,
+    BackendUnavailableError,
     CompletedBackendTask,
     LocalBackend,
     TaskRecoveryError,
@@ -107,6 +108,44 @@ def test_poll_marks_task_failed_when_advance_raises():
     with pytest.raises(TaskSubmissionError):
         task.poll()
     assert task.status() is TaskStatus.FAILED
+
+
+def test_poll_marks_task_failed_when_result_accumulation_raises():
+    class _FailingResultTask:
+        """Backend task whose finished result cannot be queried."""
+
+        id = "failing-result-1"
+
+        def status(self):
+            return TaskStatus.SUCCEEDED
+
+        def try_result(self):
+            raise BackendUnavailableError("runtime task could not be queried")
+
+        def result(self, timeout=None):
+            raise BackendUnavailableError("runtime task could not be queried")
+
+        def checkpoint(self, path=None):
+            return None
+
+    calls = []
+
+    def advance(state):
+        calls.append(1)
+        return _FailingResultTask(), False
+
+    task = AlgorithmTask(
+        algorithm="test-accumulate-fail", initial_state={}, advance=advance
+    )
+    with pytest.raises(BackendUnavailableError, match="could not be queried"):
+        task.poll()
+    assert task.status() is TaskStatus.FAILED
+    assert len(calls) == 1  # the failed step is never re-run
+    with pytest.raises(BackendUnavailableError, match="could not be queried"):
+        task.poll()
+    with pytest.raises(BackendUnavailableError, match="could not be queried"):
+        task.result()
+    assert len(calls) == 1  # no double-advance / no remote resubmission
 
 
 def test_resume_continues_from_checkpoint(tmp_path):
@@ -244,6 +283,31 @@ def test_checkpoint_records_backend_identity(tmp_path):
     path = task.checkpoint(tmp_path / "task.json")
     payload = json.loads(path.read_text(encoding="utf-8"))
     assert payload["backend"] == {"type": "LocalBackend"}
+
+
+def test_resume_rejects_backend_identity_mismatch(tmp_path):
+    def make_advance(backend=None):
+        return lambda state: (CompletedBackendTask(0), True)
+
+    register_algorithm("identity-counter", make_advance)
+    task = AlgorithmTask(
+        algorithm="identity-counter",
+        initial_state={},
+        advance=make_advance(),
+        backend=LocalBackend(),
+    )
+    path = task.checkpoint(tmp_path / "task.json")
+
+    class _OtherBackend:
+        """Structurally compatible but distinct backend class."""
+
+    with pytest.raises(TaskRecoveryError, match="backend"):
+        AlgorithmTask.resume(path, backend=_OtherBackend())
+    with pytest.raises(TaskRecoveryError, match="backend"):
+        AlgorithmTask.resume(path, backend=None)
+
+    resumed = AlgorithmTask.resume(path, backend=LocalBackend())
+    assert resumed.status() is TaskStatus.PENDING  # matching identity restores
 
 
 def test_result_polls_until_succeeded():

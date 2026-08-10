@@ -24,6 +24,7 @@ any qpanda3-runtime import.
 from typing import Any, Optional
 
 from .errors import (
+    AlgorithmInputError,
     BackendUnavailableError,
     DeviceCapabilityError,
     TranspilationError,
@@ -48,7 +49,7 @@ def run_preflight(
         return None
     _validate(device, circuit, observable=observable, options=options)
     if options.preflight is PreflightMode.TRANSPILE_ONLY:
-        _transpile(device.fake_backend(), circuit, options)
+        _transpile(_device_call(device, "fake_backend"), circuit, options)
         return None
     return _fake_execute(device, circuit, observable=observable, options=options)
 
@@ -60,15 +61,33 @@ def _validate(
     observable: Any,
     options: ExecutionOptions,
 ) -> None:
-    """Reject submissions the device cannot run, before anything else."""
-    available = device.available_qubits()
+    """Reject submissions the device cannot run, before anything else.
+
+    Every device capability fetch is wrapped so a transport failure (an
+    unreachable device) surfaces as
+    :class:`~pyqpanda_alg.execution.errors.BackendUnavailableError`
+    rather than a raw exception.
+    """
+    available = _device_call(device, "available_qubits")
+    gates = _device_call(device, "basic_gates")
+    edges = _device_call(device, "chip_topo_edges")
     _check_device_availability(available)
     _check_qubit_capacity(available, circuit)
     if observable is not None:
         _check_observable_qubits(available, observable)
-    _check_gate_set(device, circuit)
-    _check_topology(device, circuit)
+    _check_gate_set(gates, circuit)
+    _check_topology(edges, circuit)
     _check_specified_block(available, options.specified_block)
+
+
+def _device_call(device: Any, capability: str) -> Any:
+    """Fetch a device capability, mapping transport failures."""
+    try:
+        return getattr(device, capability)()
+    except Exception as exc:
+        raise BackendUnavailableError(
+            f"could not fetch device capability {capability!r}: {exc}"
+        ) from exc
 
 
 def _check_device_availability(available: list) -> None:
@@ -78,15 +97,21 @@ def _check_device_availability(available: list) -> None:
 
 
 def _check_qubit_capacity(available: list, circuit: Any) -> None:
-    """Reject circuits whose qubit span exceeds the device capacity."""
+    """Reject circuits using qubits the device does not provide.
+
+    Membership (not a span-versus-count comparison) is used because a
+    device with dead qubits can provide fewer qubits than its highest
+    index: ``max(qubits) + 1 <= len(available)`` would accept a circuit
+    acting on a dead qubit.
+    """
     qubits = _circuit_qubits(circuit)
     if not qubits:
         return
-    required = max(qubits) + 1
-    if required > len(available):
+    missing = [qubit for qubit in qubits if qubit not in available]
+    if missing:
         raise DeviceCapabilityError(
-            f"the circuit requires {required} qubits but the device "
-            f"provides {len(available)}"
+            f"the circuit requires qubit(s) {missing} which are not "
+            f"available on the device (available: {available})"
         )
 
 
@@ -100,23 +125,23 @@ def _check_observable_qubits(available: list, observable: Any) -> None:
             )
 
 
-def _check_gate_set(device: Any, circuit: Any) -> None:
+def _check_gate_set(gates: list, circuit: Any) -> None:
     """Reject circuits using gates the device does not support."""
     used = _circuit_gates(circuit)
     if not used:
         return
-    unsupported = sorted(used - set(device.basic_gates()))
+    unsupported = sorted(used - set(gates))
     if unsupported:
         raise DeviceCapabilityError(
             f"device does not support gate(s): {', '.join(unsupported)}"
         )
 
 
-def _check_topology(device: Any, circuit: Any) -> None:
+def _check_topology(edges: list, circuit: Any) -> None:
     """Reject two-qubit gates acting across unconnected device qubits."""
-    edges = {frozenset(edge) for edge in device.chip_topo_edges()}
+    connected = {frozenset(edge) for edge in edges}
     for pair in _two_qubit_pairs(circuit):
-        if pair not in edges:
+        if pair not in connected:
             raise DeviceCapabilityError(
                 f"device topology does not connect qubits {sorted(pair)}"
             )
@@ -169,15 +194,19 @@ def _fake_execute(
     :class:`BackendUnavailableError` naming ``fake_execute`` so callers
     can switch the preflight mode instead of guessing.
     """
-    fake = device.fake_backend()
+    fake = _device_call(device, "fake_backend")
     transpiled = _transpile(fake, circuit, options)
+    # The fake runs the *transpiled* circuit (an OriginIR string, which
+    # the fake backend accepts), so the recorded fidelity describes what
+    # the real device will actually run.
+    target = transpiled[0] if transpiled else circuit
     try:
         if observable is None:
-            fake_result = fake.sample(circuit, shots=options.shots)
+            fake_result = fake.sample(target, shots=options.shots)
             kind = "sample"
         else:
             fake_result = fake.estimate(
-                circuit, _as_pauli_operator(observable), shots=options.shots
+                target, _as_pauli_operator(observable), shots=options.shots
             )
             kind = "estimate"
     except Exception as exc:
@@ -233,12 +262,21 @@ def _observable_qubits(observable: Any) -> list:
     """Return the qubit indices an observable acts on.
 
     Hamiltonians are converted to their Pauli operator, which exposes
-    ``qubits()`` as ``(non-z qubits, z qubits)``.
+    ``qubits()`` as ``(non-z qubits, z qubits)``.  Observables that are
+    neither Hamiltonians nor anything else exposing ``qubits()`` (for
+    example a bare string like ``"Z0 Z1"``) raise
+    :class:`~pyqpanda_alg.execution.errors.AlgorithmInputError`.
     """
     pauli = getattr(observable, "pauli_operator", None)
     if pauli is not None:
         observable = pauli()
-    first, second = observable.qubits()
+    qubits = getattr(observable, "qubits", None)
+    if not callable(qubits):
+        raise AlgorithmInputError(
+            "observable must be a Hamiltonian or expose qubits(), "
+            f"got {type(observable).__name__}"
+        )
+    first, second = qubits()
     return list(first) + list(second)
 
 

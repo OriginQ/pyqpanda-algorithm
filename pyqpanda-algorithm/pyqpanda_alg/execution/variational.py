@@ -37,7 +37,14 @@ class VariationalSession:
         self.history: list = []
 
     def __enter__(self) -> "VariationalSession":
-        self._released = False
+        # One-way latch: entering never resets the released flag, so a
+        # session released by an earlier context (or an explicit
+        # release) cannot re-release its raw resource -- the raw session
+        # would otherwise be released twice over the network.
+        if self._released:
+            raise AlgorithmInputError(
+                "cannot re-enter a released variational session"
+            )
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
@@ -107,8 +114,11 @@ class RuntimeVariationalSession(VariationalSession):
         self._measure_qubits = measure_qubits if measure_qubits is not None else []
 
     def __enter__(self) -> "RuntimeVariationalSession":
+        # Guard before touching the raw session: re-entering a released
+        # session must never re-activate (or re-release) the live one.
+        super().__enter__()
         self.raw_session.__enter__()
-        return super().__enter__()
+        return self
 
     def _release_raw(self) -> None:
         self.raw_session.release()

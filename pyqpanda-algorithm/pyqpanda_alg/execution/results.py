@@ -8,6 +8,7 @@ runtime results, while keeping the diagnostics available as sanitized
 exactly one result was requested.
 """
 
+import copy
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Tuple
 
@@ -17,10 +18,15 @@ from .errors import AlgorithmInputError
 
 
 def _sanitize_metadata(raw_metadata: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-    """Return a private copy of the diagnostics dict, or None."""
+    """Return a private deep copy of the diagnostics dict, or None.
+
+    Metadata is small, so a deep copy is cheap; a shallow copy would
+    keep caller-owned nested dicts aliased, letting the caller mutate
+    the wrapped result's diagnostics after the fact.
+    """
     if raw_metadata is None:
         return None
-    return dict(raw_metadata)
+    return copy.deepcopy(raw_metadata)
 
 
 def _readonly_complex_copy(array: Any) -> np.ndarray:

@@ -35,6 +35,11 @@ def probability_to_counts(
     exact = {key: probability * shots for key, probability in probabilities.items()}
     counts = {key: int(value) for key, value in exact.items()}
     remainder = shots - sum(counts.values())
+    if remainder < 0:
+        raise ValueError(
+            "probabilities must sum to at most 1.0, got "
+            f"{sum(probabilities.values()):.6f}"
+        )
     for key, value in sorted(
         exact.items(), key=lambda item: item[1] - int(item[1]), reverse=True
     )[:remainder]:
