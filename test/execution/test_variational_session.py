@@ -135,6 +135,7 @@ def test_local_session_context_manager_and_idempotent_release(ansatz, observable
 
 
 def test_backends_advertise_variational_sessions(fake_runtime_service, fake_device):
+    pytest.importorskip("qpanda3_runtime")
     assert LocalBackend().capabilities.variational_session is True
     assert (
         QPandaRuntimeBackend(

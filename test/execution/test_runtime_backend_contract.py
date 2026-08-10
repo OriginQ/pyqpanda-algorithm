@@ -32,6 +32,7 @@ from test.execution.fakes import FakeQTaskManager
 
 @pytest.mark.runtime_contract
 def test_runtime_sample_forwards_exact_options(fake_runtime_service, fake_device, bell_program):
+    pytest.importorskip("qpanda3_runtime")
     backend = QPandaRuntimeBackend(fake_runtime_service, fake_device)
     options = ExecutionOptions(shots=321, specified_block=(0, 1))
     task = backend.submit_sample(bell_program, options=options)
