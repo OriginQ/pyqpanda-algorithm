@@ -83,7 +83,7 @@ jobs:
           fi
           "$PYTHON" -m pytest test -q
 
-  # Build the Sphinx documentation with warnings treated as errors.
+  # Build the Sphinx documentation with the theme declared in conf.py.
   docs:
     name: Build documentation
     needs: build
@@ -98,7 +98,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install documentation dependencies
-        run: python -m pip install Sphinx sphinx-autoapi
+        run: python -m pip install Sphinx sphinx-autoapi sphinx-material
 
       - name: Build HTML documentation
         run: |
