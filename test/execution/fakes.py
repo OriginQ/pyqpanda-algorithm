@@ -8,10 +8,12 @@ are inspectable.
 
 - :class:`RecordingBackend` records every submission and returns fixed
   batch results.
-- :class:`FakeRuntimeService` records ``sample``/``estimate`` calls and
-  returns :class:`FakeQTaskManager` handles.
+- :class:`FakeRuntimeService` records ``sample``/``estimate``/``vqsession``
+  calls and returns :class:`FakeQTaskManager` handles.
 - :class:`FakeQTaskManager` simulates the qpanda3-runtime task surface
   with controllable results, completion, and failure.
+- :class:`FakeVQSession` simulates the qpanda3-runtime ``VQSession``
+  surface with a controllable run failure and a release counter.
 - :class:`FakeDevice` stands in for a ``QDevice`` with mock-configurable
   capability data.
 - :class:`FakeFakeBackend` stands in for the ``FakeBackend`` a real
@@ -235,19 +237,58 @@ class FakeQTaskManager:
         return dict(self.task_state)
 
 
+class FakeVQSession:
+    """Deterministic stand-in for a qpanda3-runtime ``VQSession``.
+
+    Mirrors the session surface the adapter consumes: ``__enter__``,
+    ``run_vqtask(gate_params, measure_list)``, and a release counter.
+    ``raise_on_run`` makes the next run raise (simulating a session-side
+    failure); the returned task carries ``results`` and the
+    ``finished``/``error`` flags like the other fakes.
+    """
+
+    def __init__(self, results=None, *, finished: bool = True, error=None) -> None:
+        self.release_calls = 0
+        self.raise_on_run = None
+        self.run_calls: list = []
+        self.results = results if results is not None else [0.5]
+        self.finished = finished
+        self.error = error
+
+    def __enter__(self):
+        """Activate the session, like the real VQSession context."""
+        return self
+
+    def run_vqtask(self, gate_params, measure_list=None):
+        """Record the run; optionally raise, else return a fake task."""
+        self.run_calls.append(
+            {"gate_params": list(gate_params), "measure_list": measure_list}
+        )
+        if self.raise_on_run is not None:
+            raise self.raise_on_run
+        return FakeQTaskManager(
+            self.results, kind="estimate", finished=self.finished, error=self.error
+        )
+
+    def release(self):
+        """Record the release request (idempotent in the real session)."""
+        self.release_calls += 1
+
+
 class FakeRuntimeService:
     """Deterministic stand-in for a qpanda3-runtime ``RuntimeService``.
 
-    Records every ``sample``/``estimate`` call with the exact keyword
-    arguments the adapter forwards, so tests can assert option mapping.
-    ``submit_error`` makes submission raise and ``query_error`` makes
-    the returned task's result access raise, both simulating transport
-    failures without any network.
+    Records every ``sample``/``estimate``/``vqsession`` call with the
+    exact keyword arguments the adapter forwards, so tests can assert
+    option mapping.  ``submit_error`` makes submission raise and
+    ``query_error`` makes the returned task's result access raise, both
+    simulating transport failures without any network.
     """
 
     def __init__(self) -> None:
         self.sample_calls: list = []
         self.estimate_calls: list = []
+        self.vqsession_calls: list = []
         self.recovered_task_paths: list = []
         self.submit_error = None
         self.query_error = None
@@ -280,6 +321,23 @@ class FakeRuntimeService:
             kind="estimate",
             finished=self.finished,
             error=self.query_error,
+        )
+
+    def vqsession(self, vqcircuit, device, shots=1000, life_time=360, observable=None):
+        """Record the session request and return a fake VQ session."""
+        if self.submit_error is not None:
+            raise self.submit_error
+        self.vqsession_calls.append(
+            {
+                "vqcircuit": vqcircuit,
+                "device": device,
+                "shots": shots,
+                "life_time": life_time,
+                "observable": observable,
+            }
+        )
+        return FakeVQSession(
+            results=self.estimate_results, finished=self.finished, error=self.query_error
         )
 
     def recover_qtask_manager(self, checkpoint_file, recover_completely=True):

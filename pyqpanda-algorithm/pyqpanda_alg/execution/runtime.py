@@ -20,11 +20,15 @@ from .errors import (
     TaskSubmissionError,
 )
 from .options import ExecutionOptions
-from .preflight import run_preflight
+from .preflight import _circuit_qubits, run_preflight
 from .runtime_task import RuntimeBackendTask
+from .variational import RuntimeVariationalSession
 
 #: The documented install command for the optional runtime extra.
 _INSTALL_HINT = "pip install pyqpanda-algorithm[runtime]"
+
+#: Variational session lifetime in seconds, matching the service default.
+_SESSION_LIFE_TIME = 360
 
 
 def _require_runtime_dependency() -> None:
@@ -46,7 +50,7 @@ class QPandaRuntimeBackend:
     and never replaces a failed runtime path with a local one.
     """
 
-    capabilities = BackendCapabilities(statevector=False, variational_session=False)
+    capabilities = BackendCapabilities(statevector=False, variational_session=True)
 
     def __init__(self, service: Any, device: Any) -> None:
         _require_runtime_dependency()
@@ -120,6 +124,24 @@ class QPandaRuntimeBackend:
         """Reject state-vector execution before any service submission."""
         raise DeviceCapabilityError(
             "QPandaRuntimeBackend does not support state-vector execution"
+        )
+
+    def create_variational_session(
+        self, ansatz: Any, observable: Any, *, options: ExecutionOptions
+    ) -> RuntimeVariationalSession:
+        """Create a runtime variational session bound to ansatz and observable.
+
+        The service's ``VQSession`` is created with the device, shot
+        count, and observable; every ``run(parameters)`` then submits
+        the ansatz bound to new parameters.  Releasing the session is
+        idempotent and also happens when the session context exits with
+        an error.
+        """
+        qsession = self.service.vqsession(
+            ansatz, self.device, options.shots, _SESSION_LIFE_TIME, observable
+        )
+        return RuntimeVariationalSession(
+            qsession, options=options, measure_qubits=_circuit_qubits(ansatz)
         )
 
     def _submit(self, call: Callable[[], Any], operation: str) -> Any:

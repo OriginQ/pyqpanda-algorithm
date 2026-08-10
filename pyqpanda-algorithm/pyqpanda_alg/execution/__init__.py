@@ -26,6 +26,7 @@ from .options import ExecutionOptions, PreflightMode
 from .results import EstimateBatchResult, SampleBatchResult, StatevectorBatchResult
 from .runtime import QPandaRuntimeBackend
 from .runtime_task import RuntimeBackendTask
+from .variational import VariationalSession
 
 __all__ = [
     "AlgorithmExecutionError",
@@ -53,6 +54,7 @@ __all__ = [
     "TaskSubmissionError",
     "TaskTimeoutError",
     "TranspilationError",
+    "VariationalSession",
     "register_algorithm",
     "resolve_backend",
 ]

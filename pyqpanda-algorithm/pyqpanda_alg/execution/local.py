@@ -15,16 +15,17 @@ from pyqpanda3.core import CPUQVM, QProg, expval_hamiltonian
 from .backend import ExecutionBackend
 from .backend_task import CompletedBackendTask
 from .capabilities import BackendCapabilities
-from .errors import AlgorithmInputError, DeviceCapabilityError
+from .errors import AlgorithmInputError
 from .options import ExecutionOptions
 from .result_normalization import probability_to_counts, sort_by_basis_index
 from .results import EstimateBatchResult, SampleBatchResult, StatevectorBatchResult
+from .variational import LocalVariationalSession
 
 
 class LocalBackend:
     """CPU-only backend executing circuits synchronously on ``CPUQVM``."""
 
-    capabilities = BackendCapabilities(variational_session=False, tomography=False)
+    capabilities = BackendCapabilities(variational_session=True, tomography=False)
 
     def submit_sample(
         self, circuit: Any, *, options: ExecutionOptions
@@ -68,11 +69,9 @@ class LocalBackend:
 
     def create_variational_session(
         self, ansatz: Any, observable: Any, *, options: ExecutionOptions
-    ) -> None:
-        """Reject variational sessions: the local backend does not provide them."""
-        raise DeviceCapabilityError(
-            "LocalBackend does not support variational sessions"
-        )
+    ) -> LocalVariationalSession:
+        """Create a local session evaluating parameters on ``CPUQVM``."""
+        return LocalVariationalSession(ansatz, observable, options=options)
 
 
 def resolve_backend(backend: Optional[ExecutionBackend] = None) -> ExecutionBackend:
