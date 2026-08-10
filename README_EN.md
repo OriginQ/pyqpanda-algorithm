@@ -11,13 +11,13 @@ Official Website: [https://qcloud.originqc.com.cn/zh/programming/pyqpanda-algori
 1. **Modularity & High Reusability**
    All algorithms are organized as independent modules for on-demand invocation. For example, QAOA, Grover's, and QSVM can be imported and used independently, supporting reuse across different projects.
 2. **High-Performance Implementation**
-   Domain-specific algorithms are optimized and engineered for acceleration. Combined with QPanda3's underlying optimizations (e.g., OriginBIS instruction set, hardware-aware compilation), execution efficiency on simulators and real quantum hardware is significantly improved.
-3. **Cross-Platform Compatibility**
-   Deeply integrated with the QPanda3 framework, it supports running on CPU simulators, quantum cloud services (e.g., Origin Wukong), and real quantum processors, enabling "write once, deploy anywhere".
+   Domain-specific algorithms are optimized and engineered for acceleration. Combined with QPanda3's underlying optimizations, execution efficiency on the CPU simulator is significantly improved.
+3. **Unified Execution Layer**
+   The new `pyqpanda_alg.execution` package provides a capability-based execution layer: by default, algorithms run synchronously on the local CPU backend (`LocalBackend`, based on pyqpanda3's CPUQVM), and existing CPU calls keep working unchanged. An optional qpanda3-runtime backend (installed via `pip install pyqpanda_alg[runtime]`) submits work to a remote service and never silently falls back to the CPU or to a classical substitute. See the [execution documentation](Tutorials/source/execution.rst).
 4. **Comprehensive Documentation & Examples**
    Detailed API docs, usage examples, and annotated code lower the learning barrier, making it ideal for beginners and researchers to quickly start with machine learning and combinatorial optimization tasks.
 5. **Strong Ecosystem Integration**
-   Seamlessly integrates with other Origin Quantum toolchains (e.g., VQNet, Origin Wukong, Origin Liangyu), supporting the full workflow from algorithm design to actual execution.
+   Works with other Origin Quantum frameworks and toolchains (e.g., VQNet, Origin Liangyu), supporting the full workflow from algorithm design to verification. Support for real quantum hardware and quantum cloud services is planned for later releases.
 
 ------
 
@@ -67,6 +67,9 @@ pyqpanda_alg is an algorithm extension module based on pyqpanda3. Its installati
 
 If Python and pip are installed, run the following command in the terminal/console:  
 `pip install pyqpanda_alg`
+
+Optional: to use the qpanda3-runtime remote execution backend, install with the optional dependency:  
+`pip install pyqpanda_alg[runtime]`
 
 #### Note:
 Add `sudo` if you encounter permission issues on Linux.

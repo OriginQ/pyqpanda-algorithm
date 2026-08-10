@@ -23,9 +23,9 @@ copyright = '2026, OriginQC'
 author = 'OriginQC'
 
 # The short X.Y version
-version = ''
+version = '2.1.0'
 # The full version, including alpha/beta/rc tags
-release = ''
+release = '2.1.0'
 
 latex_engine = "xelatex"
 latex_elements = {

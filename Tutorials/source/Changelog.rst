@@ -1,3 +1,26 @@
+2.1.0 - development
+====================
+
+This entry documents the 2.1.0 development baseline. The package version
+is single-sourced from ``pyqpanda_alg.__version__``, and the Sphinx
+documentation metadata reports the same version.
+
+Features
+---------------------
+
+* The new ``pyqpanda_alg.execution`` package provides a capability-based
+  execution layer.  By default, algorithms execute synchronously on the
+  local CPU backend (``LocalBackend``) through pyqpanda3's ``CPUQVM``;
+  existing valid CPU calls remain compatible and keep this default.
+* An optional qpanda3-runtime backend (``QPandaRuntimeBackend``) submits
+  work to a remote qpanda3-runtime service.  The dependency is optional
+  and installed via the ``runtime`` extra (``pip install
+  pyqpanda_alg[runtime]``); a runtime failure never silently falls back
+  to the CPU backend or to a classical substitute result.
+* Remote runtime qualification and real-hardware support are planned in
+  later releases; this baseline does not claim qualified support for
+  real quantum hardware.
+
 2.0 - 2025-10-25
 ===================
 

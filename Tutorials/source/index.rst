@@ -10,7 +10,7 @@ pyqpanda algorithm
 
 The **pyqpanda_alg** is a collection of fundamental quantum algorithms and functions that are commonly used in developer's quantum algorithm.
 
-Overall, it provides a standardized set of tools for developers, allowing them to write quantum programs that can be easily ported across different quantum computing platforms. It is an important resource for the development of quantum software and the advancement of quantum computing research.
+Overall, it provides a standardized set of tools for developers, allowing them to write quantum programs that run locally on pyqpanda3's CPU simulator and, through the optional qpanda3-runtime backend of the ``pyqpanda_alg.execution`` layer, to submit them to a remote qpanda3-runtime service. It is an important resource for the development of quantum software and the advancement of quantum computing research.
 
 .. toctree::
     :maxdepth: 2

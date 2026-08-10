@@ -25,13 +25,13 @@ pyqpanda-algorithm 是由本源量子（Origin Quantum）开发的量子算法�
 1. **模块化与高复用性**
    所有算法以独立模块形式组织，便于开发者按需调用。例如，`QAOA`、`Grover`、`QSVM` 等算法均可独立导入与使用，支持在不同项目中重复利用。
 2. **高性能实现**
-   域名特定算法经过算法优化与工程加速，结合 QPanda3 的底层优化（如 OriginBIS 指令集、硬件感知编译），显著提升在模拟器与真实量子硬件上的执行效率。
-3.  **跨平台兼容性**
-   与 QPanda3 框架深度集成，支持在 CPU 模拟器、量子云服务（如本源悟空）及真实量子处理器上运行，实现“一次编写，多端部署”。
+   域名特定算法经过算法优化与工程加速，结合 QPanda3 的底层优化，显著提升在 CPU 模拟器上的执行效率。
+3.  **统一的执行层**
+   新增 `pyqpanda_alg.execution` 执行层：默认在本地 CPU 模拟器（`LocalBackend`，基于 pyqpanda3 的 CPUQVM）上同步执行，现有 CPU 调用方式保持不变；可选的 qpanda3-runtime 后端（通过 `pip install pyqpanda_alg[runtime]` 安装）用于远程任务提交，执行失败时不会静默回退到 CPU 或经典结果。执行层使用说明见 [execution 文档](Tutorials/source/execution.rst)。
 4. **完善的文档与示例**
    提供详尽的 API 文档、使用示例与注释代码，降低学习门槛，特别适合初学者与研究者快速上手机器学习与组合优化任务。
 5. **生态整合性强**
-   与本源量子的其他工具链（如 VQNet、本源悟空、本源量禹）无缝对接，支持从算法设计到实际运行的完整工作流。
+   与本源量子的框架与工具链（如 VQNet、本源量禹）协同工作，支持从算法设计到验证的完整开发流程。真实量子硬件与量子云服务的支持将在后续版本中发布。
 
 ------
 
@@ -99,6 +99,8 @@ pyqpanda-algorithm 是由本源量子（Origin Quantum）开发的量子算法�
 pyqpanda_alg是基于pyqpanda3的算法扩展模块。它的安装和使用需要依赖pyqpanda3。pyqpanda3的接口用法请参考[pyqpanda3](https://qcloud.originqc.com.cn/document/qpanda-3/cn/index.html)。
 
 如果已经安装了python环境和pip工具，在终端或控制台中输入如下命令：`pip install pyqpanda_alg`
+
+可选：如需使用 qpanda3-runtime 远程执行后端，请安装含可选依赖的版本：`pip install pyqpanda_alg[runtime]`
 
 #### 注意：
 
