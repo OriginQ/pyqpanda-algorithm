@@ -5,6 +5,8 @@ provides the shared value objects (options, capabilities, result
 wrappers) and the public exception hierarchy used by every backend.
 """
 
+from .backend import ExecutionBackend
+from .backend_task import BackendTask, CompletedBackendTask, TaskStatus
 from .capabilities import BackendCapabilities
 from .errors import (
     AlgorithmExecutionError,
@@ -25,9 +27,12 @@ __all__ = [
     "AlgorithmExecutionError",
     "AlgorithmInputError",
     "BackendCapabilities",
+    "BackendTask",
     "BackendUnavailableError",
+    "CompletedBackendTask",
     "DeviceCapabilityError",
     "EstimateBatchResult",
+    "ExecutionBackend",
     "ExecutionOptions",
     "MissingRuntimeDependencyError",
     "PreflightMode",
@@ -35,6 +40,7 @@ __all__ = [
     "SampleBatchResult",
     "StatevectorBatchResult",
     "TaskRecoveryError",
+    "TaskStatus",
     "TaskSubmissionError",
     "TaskTimeoutError",
     "TranspilationError",
