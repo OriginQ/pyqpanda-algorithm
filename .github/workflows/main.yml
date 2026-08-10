@@ -824,46 +824,18 @@ jobs:
           exit 1
         fi
         
-        # 进入测试目录
-        cd test
-        
         # 创建测试输出目录
-        mkdir -p ../output/test_results
-        mkdir -p ../output/test_results/allure-results
-        mkdir -p ../output/test_results/html-report
-        
-        # 运行测试
+        mkdir -p output/test_results
+
+        # 运行测试（从仓库根目录执行，根目录 pytest.ini 为权威配置）
         echo "运行单元测试..."
-        pytest -v \
-          --junitxml=../output/test_results/junit-results.xml \
-          --alluredir=../output/test_results/allure-results \
-          --clean-alluredir \
+        python -m pytest test \
+          --junitxml=output/test_results/junit-results.xml \
           --tb=short \
           --disable-warnings \
           --maxfail=5 \
           || true
-        
-        # 生成HTML报告
-        echo "生成HTML报告..."
-        pytest -v \
-          --html=../output/test_results/html-report/report.html \
-          --self-contained-html \
-          --tb=short \
-          --disable-warnings \
-          --maxfail=5 \
-          || true
-        
-        # 生成Allure报告
-        if [ -d "../output/test_results/allure-results" ] && [ -n "$(ls -A ../output/test_results/allure-results 2>/dev/null)" ]; then
-          echo "安装Allure报告工具..."
-          curl -o allure-2.17.3.tgz -Ls https://github.com/allure-framework/allure2/releases/download/2.17.3/allure-2.17.3.tgz
-          tar -zxvf allure-2.17.3.tgz
-          
-          echo "生成Allure报告..."
-          ./allure-2.17.3/bin/allure generate ../output/test_results/allure-results -o ../output/test_results/allure-report --clean
-        fi
-        
-        cd ..
+
         echo "✅ 自动化测试完成"
     
     - name: Upload Test Results
