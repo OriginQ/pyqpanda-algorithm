@@ -41,7 +41,6 @@ from . import QKmeans
 from . import QPCA
 # from . import QSolver
 from . import QSVM
-# from . import extensions
 # import warnings
 
 #QFinance

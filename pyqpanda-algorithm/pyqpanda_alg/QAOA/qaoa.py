@@ -318,7 +318,7 @@ class QAOA:
             self.problem = problem.pauli_operator()
             self.operator = problem.pauli_operator()
             qubit = set()
-            for term in problem.terms():
+            for term in problem.pauli_operator().terms():
                 qubit = qubit |set([qubit.qbit() for qubit in term.paulis()])
             problem_dimension = len(qubit)
 

@@ -5,4 +5,4 @@ The QFinance module provides tools related to comparator, Quantum amplitude esti
 
 from .QmRMR_core import Feature_Selection 
 
-__all__ = [Feature_Selection]
+__all__ = ["Feature_Selection"]
