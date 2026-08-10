@@ -24,6 +24,8 @@ from .errors import (
 from .local import LocalBackend, resolve_backend
 from .options import ExecutionOptions, PreflightMode
 from .results import EstimateBatchResult, SampleBatchResult, StatevectorBatchResult
+from .runtime import QPandaRuntimeBackend
+from .runtime_task import RuntimeBackendTask
 
 __all__ = [
     "AlgorithmExecutionError",
@@ -41,7 +43,9 @@ __all__ = [
     "LocalBackend",
     "MissingRuntimeDependencyError",
     "PreflightMode",
+    "QPandaRuntimeBackend",
     "ResultDecodingError",
+    "RuntimeBackendTask",
     "SampleBatchResult",
     "StatevectorBatchResult",
     "TaskRecoveryError",
