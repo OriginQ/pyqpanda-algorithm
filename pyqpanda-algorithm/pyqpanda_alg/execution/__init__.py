@@ -20,6 +20,7 @@ from .errors import (
     TaskTimeoutError,
     TranspilationError,
 )
+from .local import LocalBackend, resolve_backend
 from .options import ExecutionOptions, PreflightMode
 from .results import EstimateBatchResult, SampleBatchResult, StatevectorBatchResult
 
@@ -34,6 +35,7 @@ __all__ = [
     "EstimateBatchResult",
     "ExecutionBackend",
     "ExecutionOptions",
+    "LocalBackend",
     "MissingRuntimeDependencyError",
     "PreflightMode",
     "ResultDecodingError",
@@ -44,4 +46,5 @@ __all__ = [
     "TaskSubmissionError",
     "TaskTimeoutError",
     "TranspilationError",
+    "resolve_backend",
 ]
