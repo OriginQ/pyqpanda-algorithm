@@ -14,6 +14,9 @@ are inspectable.
   with controllable results, completion, and failure.
 - :class:`FakeDevice` stands in for a ``QDevice`` with mock-configurable
   capability data.
+- :class:`FakeFakeBackend` stands in for the ``FakeBackend`` a real
+  device exposes through ``fake_backend()``, recording the transpile,
+  sample, and estimate calls of the preflight modes.
 """
 
 import json
@@ -88,6 +91,57 @@ class FakeDevice:
         self.chip_topo_edges = MagicMock(
             return_value=[[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]]
         )
+        self.fake_backend = MagicMock(return_value=FakeFakeBackend())
+
+
+class FakeFakeBackend:
+    """Deterministic stand-in for the ``FakeBackend`` of a real device.
+
+    Mirrors the qpanda3-runtime surface the preflight modes consume:
+    ``transpile`` returns ``(transpiled, failed)``, ``sample`` returns a
+    probability dict, and ``estimate`` returns a float.  Every call is
+    recorded, and ``*_error`` makes the matching call raise.
+    """
+
+    def __init__(self) -> None:
+        self.transpile_calls: list = []
+        self.sample_calls: list = []
+        self.estimate_calls: list = []
+        self.transpile_error = None
+        self.sample_error = None
+        self.estimate_error = None
+        self.transpile_result = (["TRANSPILED-ORIGINIR"], [])
+        self.sample_result = {"00": 0.5, "11": 0.5}
+        self.estimate_result = 0.5
+
+    def transpile(self, progs, specified_block=None, is_optimization=True):
+        """Record the transpile call and return the configured outcome."""
+        self.transpile_calls.append(
+            {
+                "progs": progs,
+                "specified_block": specified_block,
+                "is_optimization": is_optimization,
+            }
+        )
+        if self.transpile_error is not None:
+            raise self.transpile_error
+        return self.transpile_result
+
+    def sample(self, prog, shots=1):
+        """Record the sampling call and return the configured probabilities."""
+        self.sample_calls.append({"prog": prog, "shots": shots})
+        if self.sample_error is not None:
+            raise self.sample_error
+        return self.sample_result
+
+    def estimate(self, prog, observable, shots=1):
+        """Record the estimation call and return the configured value."""
+        self.estimate_calls.append(
+            {"prog": prog, "observable": observable, "shots": shots}
+        )
+        if self.estimate_error is not None:
+            raise self.estimate_error
+        return self.estimate_result
 
 
 class FakeQTaskManager:

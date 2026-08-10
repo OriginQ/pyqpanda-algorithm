@@ -20,6 +20,7 @@ from .errors import (
     TaskSubmissionError,
 )
 from .options import ExecutionOptions
+from .preflight import run_preflight
 from .runtime_task import RuntimeBackendTask
 
 #: The documented install command for the optional runtime extra.
@@ -55,10 +56,14 @@ class QPandaRuntimeBackend:
     def submit_sample(self, circuit: Any, *, options: ExecutionOptions) -> RuntimeBackendTask:
         """Submit sampling of ``circuit`` and return the adapted task.
 
-        The runtime-relevant options map exactly onto the qpanda3-runtime
+        The preflight steps selected by ``options.preflight`` run before
+        the service call; ``FAKE_EXECUTE`` records the fake task's
+        metadata on the returned task as ``fake_execution``.  The
+        runtime-relevant options map exactly onto the qpanda3-runtime
         ``sample()`` keyword arguments; the device and the circuit are
         forwarded verbatim.
         """
+        fake_execution = run_preflight(self.device, circuit, options=options)
         qtask = self._submit(
             lambda: self.service.sample(
                 circuits=circuit,
@@ -71,9 +76,12 @@ class QPandaRuntimeBackend:
             ),
             "sample",
         )
-        return RuntimeBackendTask(
+        task = RuntimeBackendTask(
             qtask, kind="sample", shots=options.shots, timeout=options.timeout
         )
+        if fake_execution is not None:
+            task.fake_execution = fake_execution
+        return task
 
     def submit_estimate(
         self, circuit_and_observable: Any, *, options: ExecutionOptions
@@ -81,8 +89,14 @@ class QPandaRuntimeBackend:
         """Submit expectation estimation and return the adapted task.
 
         ``circuit_and_observable`` is the ``(circuit, observable)`` pair
-        forwarded verbatim to qpanda3-runtime ``estimate()``.
+        forwarded verbatim to qpanda3-runtime ``estimate()``; the pair's
+        observable also feeds the preflight capability checks and the
+        ``FAKE_EXECUTE`` record.
         """
+        circuit, observable = circuit_and_observable
+        fake_execution = run_preflight(
+            self.device, circuit, observable=observable, options=options
+        )
         qtask = self._submit(
             lambda: self.service.estimate(
                 circuit_with_observable=circuit_and_observable,
@@ -95,9 +109,12 @@ class QPandaRuntimeBackend:
             ),
             "estimate",
         )
-        return RuntimeBackendTask(
+        task = RuntimeBackendTask(
             qtask, kind="estimate", shots=options.shots, timeout=options.timeout
         )
+        if fake_execution is not None:
+            task.fake_execution = fake_execution
+        return task
 
     def submit_statevector(self, circuit: Any, *, options: ExecutionOptions) -> RuntimeBackendTask:
         """Reject state-vector execution before any service submission."""
