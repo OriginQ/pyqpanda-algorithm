@@ -1,7 +1,4 @@
-include requirements.txt
-include README.md
-recursive-exclude pyqpanda_alg *.py
-recursive-include pyqpanda_alg *.pyd *.so *.pyi
+include LICENSE
 include pyqpanda_alg/QKmeans/dataset/*.csv
 include pyqpanda_alg/QSVM/dataset/*.txt
 include pyqpanda_alg/QARM/dataset/*.txt

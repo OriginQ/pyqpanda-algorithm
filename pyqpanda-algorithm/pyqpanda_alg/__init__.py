@@ -29,6 +29,8 @@ Licensed Under Apache Licence 2.0
 import warnings
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
+from ._version import __version__
+
 from . import QAOA
 # from . import VQE
 # from . import HHL

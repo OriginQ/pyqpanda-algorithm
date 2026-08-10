@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyqpanda_alg"
+description = "A Quantum Algorithm Development and Runtime Environment Kit, based on pyqpanda3."
+license = "Apache-2.0"
+authors = [{ name = "OriginQ" }]
+dynamic = ["version"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "numpy>=1.17",
+    "matplotlib>=3.3",
+    "pydot",
+    "scipy",
+    "sympy",
+    "pandas",
+    "scikit-learn",
+    "pyqpanda3",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-cov", "coverage", "build", "PyYAML", "jsonschema"]
+docs = ["Sphinx", "sphinx-autoapi"]
+runtime = ["qpanda3-runtime"]
+
+[tool.setuptools.dynamic]
+version = { attr = "pyqpanda_alg._version.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pyqpanda_alg*"]
+
+[tool.setuptools.package-data]
+pyqpanda_alg = [
+    "QKmeans/dataset/*.csv",
+    "QSVM/dataset/*.txt",
+    "QARM/dataset/*.txt",
+]
