@@ -479,13 +479,13 @@ class QUBO_QAOA(QuadraticBinary):
     def __init__(self, problem):
         super(QUBO_QAOA, self).__init__(problem)
 
-    def run(self, layer=None, optimizer='SLSQP', optimizer_option=None):
+    def run(self, layer=1, optimizer='SLSQP', optimizer_option=None):
         """
         Run the solver to find the minimum.
 
         Parameters
-            layer : ``int``\n
-                Layers number of QAOA circuit.
+            layer : ``int``, ``optional``\n
+                Layers number of QAOA circuit. Default is 1.
                 If optimize type is interp, then it represents the final layer of the optimization progress.
             optimizer : ``str``, ``optional``\n
                 Type of solver. Should be one of
