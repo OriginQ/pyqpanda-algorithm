@@ -205,14 +205,24 @@ class SVD:
                 "or tomography capability"
             )
         statevector_task = backend.submit_statevector(prog, options=options)
-        phase = np.asarray(statevector_task.result().single_statevector()).real
-        phase = phase.reshape(2**self.q1, 2**self.q0)
+        statevector = np.asarray(statevector_task.result().single_statevector()).real
         # Exact path: the statevector yields the exact diagonal overlap,
         # so record the exact loss with zero statistical uncertainty here
         # instead of leaving the stale values of a previous estimate.
-        same_p = float(np.sum(np.diag(phase) ** 2))
+        # The amplitude-encoded flat statevector reads
+        # ``k = col * 2**q0 + row`` (the matrix data is laid out
+        # column-major over the padded matrix), so the exact diagonal
+        # entries P(row=i, col=i), i < 2**min(q0, q1), sit at flat
+        # indices ``i * 2**q0 + i`` -- i.e. the diagonal of the
+        # ``(2**q1, 2**q0)`` display reshape below -- and NOT at
+        # ``i * 2**q1 + i``, which would read off-diagonal entries for
+        # rectangular matrices.
+        n = min(self.q0, self.q1)
+        diagonal_indices = np.arange(1 << n) * (1 << self.q0) + np.arange(1 << n)
+        same_p = float(np.sum(statevector[diagonal_indices] ** 2))
         self.loss_value = 1 - same_p
         self.loss_uncertainty = 0.0
+        phase = statevector.reshape(2**self.q1, 2**self.q0)
         return phase, np.argmax(abs(phase))
 
     def QSVD_min(self, *, backend=None, execution_options=None, maxiter=100):

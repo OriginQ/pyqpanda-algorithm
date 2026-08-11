@@ -61,6 +61,24 @@ def test_qsvd_rectangular_overlap_measures_exact_diagonal():
         assert overlap == pytest.approx(classical, abs=1e-6)
 
 
+def test_qsvd_exact_path_records_rectangular_overlap():
+    # The singular-vector path must record the exact diagonal overlap.
+    # The flat statevector reads k = col * 2**q0 + row, so the exact
+    # diagonal entries P(row=i, col=i), i < 2**min(q0, q1), sit at flat
+    # indices i * 2**q0 + i and the recorded loss is
+    # 1 - sum_i |q_matrix[i,i]|^2 / ||A||^2, with zero uncertainty.
+    for matrix in (
+        np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]]),  # q0 > q1
+        np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]),                # q1 > q0
+    ):
+        solver = SVD(matrix_in=matrix)
+        para = np.zeros((solver.q0 + solver.q1) * solver.iter_depth)
+        solver.loss(para, return_type=False)
+        classical = np.sum(np.diag(solver.q_matrix) ** 2) / solver.normal_value**2
+        assert solver.loss_value == pytest.approx(1 - classical, abs=1e-6)
+        assert solver.loss_uncertainty == 0.0
+
+
 def test_qsvd_records_loss_value_and_uncertainty(recording_backend):
     solver = SVD([[1.0, 0.0], [0.0, 0.5]])
     solver.QSVD_min(backend=recording_backend, maxiter=1)
