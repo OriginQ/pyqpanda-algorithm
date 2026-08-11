@@ -34,19 +34,45 @@ from pyqpanda_alg.execution import (
 )
 
 
+class _RecordingResult:
+    """Result proxy that records every public attribute access.
+
+    Algorithm adapters must consume the public batch-result surface
+    (``single_counts`` and friends); the proxy proves they never fall
+    back to legacy QCloudResult-style attributes such as
+    ``get_prob_dict``.  The recorded attribute names land in the set
+    given at construction.
+    """
+
+    __slots__ = ("_inner", "_accessed")
+
+    def __init__(self, inner, accessed):
+        object.__setattr__(self, "_inner", inner)
+        object.__setattr__(self, "_accessed", accessed)
+
+    def __getattribute__(self, name):
+        if name.startswith("_"):
+            return object.__getattribute__(self, name)
+        object.__getattribute__(self, "_accessed").add(name)
+        return getattr(object.__getattribute__(self, "_inner"), name)
+
+
 class RecordingBackend:
     """Backend that records every submission and returns fixed results.
 
     ``expectations`` and ``statevector`` optionally pin canned results
     that are replayed in submission order (the last value repeats for
     overflow), so optimization loops can be driven deterministically.
+    ``sample_counts`` pins the per-round counts dicts for sampling in
+    the same order (the last dict repeats for overflow), so iterative
+    sampling algorithms can be driven through scripted outcomes.
     Per-family call counts expose the submission mix an algorithm
     actually produces.
     """
 
     capabilities = BackendCapabilities()
 
-    def __init__(self, expectations=None, statevector=None) -> None:
+    def __init__(self, expectations=None, statevector=None, sample_counts=None) -> None:
         self.sample_calls: list = []
         self.estimate_calls: list = []
         self.statevector_calls: list = []
@@ -57,16 +83,30 @@ class RecordingBackend:
         self.statevector_values = (
             [list(sv) for sv in statevector] if statevector is not None else None
         )
-        self.sample_result = SampleBatchResult(counts=({"00": 1000},), shots=1000)
+        self.sample_counts = (
+            [dict(counts) for counts in sample_counts]
+            if sample_counts is not None
+            else None
+        )
+        self.accessed_result_attributes: set = set()
         self.estimate_result = EstimateBatchResult(values=(0.5,))
         self.statevector_result = StatevectorBatchResult(statevectors=([1.0, 0.0],))
 
     def submit_sample(self, circuit, *, options):
-        """Record the sampling call and return the fixed sample task."""
+        """Record the sampling call and return the recorded sample task."""
         self.sample_call_count += 1
         self.sample_calls.append((circuit, options))
+        if self.sample_counts is None:
+            counts = {"00": 1000}
+        else:
+            index = min(self.sample_call_count - 1, len(self.sample_counts) - 1)
+            counts = self.sample_counts[index]
+        result = _RecordingResult(
+            SampleBatchResult(counts=(counts,), shots=options.shots),
+            self.accessed_result_attributes,
+        )
         return CompletedBackendTask(
-            self.sample_result, task_id=f"recorded-sample-{self.sample_call_count}"
+            result, task_id=f"recorded-sample-{self.sample_call_count}"
         )
 
     def submit_estimate(self, circuit_and_observable, *, options):

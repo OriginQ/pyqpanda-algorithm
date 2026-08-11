@@ -10,7 +10,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pyqpanda3.core import CPUQVM, QCircuit, QProg, X, H, Z, RX
+import dataclasses
+
+from pyqpanda3.core import QCircuit, QProg, X, H, Z, RX
 import numpy as np
 from numpy import pi
 
@@ -18,6 +20,13 @@ from pyqpanda_alg.Grover import Grover,amp_operator
 from typing import Union, List
 
 from .. plugin import *
+from ..execution import (
+    AlgorithmTask,
+    CompletedBackendTask,
+    ExecutionOptions,
+    register_algorithm,
+    resolve_backend,
+)
 
 class QAE:
     """
@@ -59,13 +68,9 @@ class QAE:
                  target_state: str = '1'
                  ):
 
-        machine_type = 'CPU'
         self.operator = operator_in
         self.epsilon = epsilon
         self.qnumber = qnumber
-        self.machine_type = machine_type
-        if machine_type == 'CPU':
-            self.machine = CPUQVM()
         self.n_anc = -int(np.floor(np.log2(epsilon)))
         self.max_anc_qubits = 14
         self.res_index = res_index
@@ -123,9 +128,17 @@ class QAE:
                 Qcir << X(q_target[-k-1])
         return Qcir
 
-    def run(self):
+    def run(self, *, backend=None, execution_options=None):
         """
         Run the quantum amplitude estimation algorithm.
+
+        Parameters
+            backend : execution backend, keyword-only
+                The sampling backend driving the estimation.  Defaults to the
+                local simulator.
+            execution_options : ``ExecutionOptions``, keyword-only
+                Sampling options (shots, timeout, ...).  Defaults to 1000
+                shots.
 
         Returns
             prob : ``float``
@@ -133,7 +146,7 @@ class QAE:
 
         Examples
             An example for implementing an amplitude estimation for target state '11' of the following circuit.
-        
+
         .. parsed-literal::
                       ┌────────────┐
             q_0:  \|0>─┤RY(1.047198)├ ─■─
@@ -152,6 +165,11 @@ class QAE:
         0.24294862790338914
 
         """
+        task = self.submit(backend=backend, execution_options=execution_options)
+        return task.result()
+
+    def _search_prog(self):
+        """Build the QAE search circuit (operator, ancilla QFT, QFT-dagger)."""
         q_operator = QProg(self.qnumber + self.n_anc).qubits()
 
         q_target = []
@@ -176,12 +194,51 @@ class QAE:
                 prog << self._Q_cir(q_operator[:self.qnumber]).control([q_operator[self.qnumber:][i]])
 
         prog << QFT(q_operator[self.qnumber:]).dagger()
-        self.machine.run(prog, 1000)
-        result = self.machine.result().get_prob_dict(q_operator[self.qnumber:])
-        res_state = max(result, key=result.get)
-        amplitude = np.sin(int(res_state, 2) * pi / 2 ** self.n_anc)
-        prob = amplitude ** 2
-        return prob
+        return prog
+
+    @staticmethod
+    def _prob_from_counts(counts, qnumber, n_anc):
+        """Estimate the target amplitude from normalized sampling counts.
+
+        The ancilla register holds the qnumber least-significant qubits of
+        each full-width measurement key, so the legacy probability readout
+        ``get_prob_dict(ancilla)`` is reproduced by the projection
+        ``int(key, 2) >> qnumber`` followed by the highest-probability
+        state.
+        """
+        total = sum(counts.values())
+        projected = {}
+        for key, count in counts.items():
+            ancilla = int(key, 2) >> qnumber
+            ancilla_key = format(ancilla, "0{}b".format(n_anc))
+            projected[ancilla_key] = projected.get(ancilla_key, 0) + count / total
+        res_state = max(projected, key=projected.get)
+        amplitude = np.sin(int(res_state, 2) * pi / 2 ** n_anc)
+        return amplitude ** 2
+
+    def submit(self, *, backend=None, execution_options=None):
+        """Run the amplitude estimation as a resumable sampling task.
+
+        QAE is a single-round task: the first ``poll()`` submits the search
+        circuit and completes.  The ``backend`` and ``execution_options``
+        parameters are keyword-only.
+        """
+        self._backend = resolve_backend(backend)
+        options = execution_options if execution_options is not None else ExecutionOptions()
+        state = {"round": 0}
+
+        def make_advance(exec_backend):
+            def advance(state):
+                state["round"] += 1
+                sample_task = exec_backend.submit_sample(self._search_prog(), options=options)
+                counts = sample_task.result().single_counts()
+                prob = self._prob_from_counts(counts, self.qnumber, self.n_anc)
+                return CompletedBackendTask(prob, task_id=sample_task.id), True
+            return advance
+
+        register_algorithm("qae", make_advance)
+        return AlgorithmTask(algorithm="qae", initial_state=state,
+                             advance=make_advance(self._backend), backend=self._backend)
 
 
 class IQAE:
@@ -221,23 +278,16 @@ class IQAE:
                  res_index: int = -1,
                  epsilon: float = 1e-3
                  ):
-        alpha = 0.05  
-        method = 'cher'  
-        ratio = 2.0  
-        machine_type = 'CPU'
+        alpha = 0.05
+        method = 'cher'
+        ratio = 2.0
         self.epsilon = epsilon
         self.alpha = alpha
         self.method = method
         self.ratio = ratio
         self.qnumber = qnumber
         self.res_index = res_index
-        self.machine_type = machine_type
         self.n_sum = 0
-
-        if machine_type == 'CPU':
-            self.machine = CPUQVM()
-        else:
-            raise NameError('Support \'CPU\', \'QCloud\' only')
         self.qlist = QProg(self.qnumber).qubits()
         self.clist = QProg(self.qnumber).cbits()
         self.operatorA = operator_in
@@ -250,9 +300,16 @@ class IQAE:
     def __del__(self):
         pass
 
-    def run(self):
+    def run(self, *, backend=None, execution_options=None):
         """
         Run the iterative quantum amplitude estimation algorithm.
+
+        Parameters
+            backend : execution backend, keyword-only
+                The sampling backend driving the estimation.  Defaults to the
+                local simulator.
+            execution_options : ``ExecutionOptions``, keyword-only
+                Sampling options (shots, timeout, ...).
 
         Returns
             prob : ``float``
@@ -260,7 +317,7 @@ class IQAE:
 
         Examples
             An example for implementing an iterative amplitude estimation for qubit q_1 of the following circuit.
-        
+
         .. parsed-literal::
                       ┌────────────┐
             q_0:  \|0>─┤RY(1.047198)├ ─■─
@@ -279,77 +336,113 @@ class IQAE:
         0.25735228001322236
 
         """
-        i_count = 0
-        k = [0]
-        up = True
-        theta_l = 0
-        theta_u = 1. / 4
+        task = self.submit(backend=backend, execution_options=execution_options)
+        return task.result()
+
+    def submit(self, *, backend=None, execution_options=None):
+        """Run the iterative amplitude estimation as a resumable sampling task.
+
+        ``submit()`` returns before any iteration is sampled; every
+        ``poll()`` runs exactly one iteration (one sampling task whose shots
+        are the round's ``n_round``).  Checkpointing preserves the interval
+        ``[theta_l, theta_u]`` and the query index, and resuming continues
+        from there without re-submitting completed rounds.
+
+        The ``backend`` and ``execution_options`` parameters are keyword-only.
+        """
+        self._backend = resolve_backend(backend)
+        options = execution_options if execution_options is not None else ExecutionOptions()
 
         rounds_m = int(np.log(np.pi / 8 / self.epsilon) / np.log(self.ratio)) + 1
-
         l_max = 0
         if self.method == 'cher':
             l_max = np.arcsin((2 / self.N_max * np.log(2 * rounds_m / self.alpha)) ** (1. / 4))
         elif self.method == 'clop':
             print('未完成')
-
-        m_add = 0
-        n_add = 0
-        k_count = 0
         scaller = 1.5
-        while (theta_u - theta_l > self.epsilon / np.pi) and i_count < 20:
-            i_count += 1
-            epsilon = (theta_u - theta_l) * np.pi / 2
-            n_shots = int(scaller * rounds_m * np.log(
-                (np.log(np.pi / (4 * np.minimum(epsilon, np.pi / 8))) / np.log(self.ratio)) * (
-                        2 / self.alpha)))
 
-            n_shots = np.minimum(n_shots, int(self.N_max))
+        state = {
+            "round": 0,
+            "i_count": 0,
+            "k": [0],
+            "up": True,
+            "theta_l": 0.0,
+            "theta_u": 1.0 / 4.0,
+            "m_add": 0,
+            "n_add": 0,
+            "k_count": 0,
+            "n_sum": 0,
+        }
 
-            k_next, up = self._findnextk(k[i_count - 1], theta_l, theta_u, up)
-            k.append(k_next)
-            bigk = 4 * k_next + 2
-            if bigk > int(l_max / self.epsilon) + 1:
-                n_round = int(n_shots * l_max / self.epsilon / bigk / 10) + 1
-            else:
-                n_round = int(n_shots)
+        def make_advance(exec_backend):
+            def advance(state):
+                state["round"] += 1
+                i_count = state["i_count"] + 1
+                state["i_count"] = i_count
+                theta_l = state["theta_l"]
+                theta_u = state["theta_u"]
+                epsilon = (theta_u - theta_l) * np.pi / 2
+                n_shots = int(scaller * rounds_m * np.log(
+                    (np.log(np.pi / (4 * np.minimum(epsilon, np.pi / 8))) / np.log(self.ratio)) * (
+                            2 / self.alpha)))
+                n_shots = np.minimum(n_shots, int(self.N_max))
 
-            self.n_sum += n_round
-            m = self._measure(k_next, n_round)
-            self.draw = False
+                k_next, up = self._findnextk(state["k"][i_count - 1], theta_l, theta_u, state["up"])
+                state["k"].append(k_next)
+                state["up"] = up
+                bigk = 4 * k_next + 2
+                if bigk > int(l_max / self.epsilon) + 1:
+                    n_round = int(n_shots * l_max / self.epsilon / bigk / 10) + 1
+                else:
+                    n_round = int(n_shots)
 
-            if k[i_count] == k[i_count - 1]:
-                m_add += m
-                n_add += n_round
-                k_count += 1
-                res = m_add / n_add
+                state["n_sum"] += n_round
+                self.n_sum = state["n_sum"]
+                # The per-round shot count is algorithm-determined; keep any
+                # other execution options the caller supplied.
+                round_options = dataclasses.replace(options, shots=int(n_round))
+                sample_task = exec_backend.submit_sample(self._measure_prog(k_next), options=round_options)
+                counts = sample_task.result().single_counts()
+                m = counts.get("1", 0)
+                self.draw = False
 
-            else:
-                m_add = 0
-                n_add = 0
-                res = m / n_round
+                if state["k"][i_count] == state["k"][i_count - 1]:
+                    state["m_add"] += m
+                    state["n_add"] += n_round
+                    state["k_count"] += 1
+                    res = state["m_add"] / state["n_add"]
+                else:
+                    state["m_add"] = 0
+                    state["n_add"] = 0
+                    res = m / n_round
 
-            ai_min, ai_max = self._chernoff_confint(res, int(np.minimum(self.n_sum, self.N_max)), rounds_m)
+                ai_min, ai_max = self._chernoff_confint(
+                    res, int(np.minimum(state["n_sum"], self.N_max)), rounds_m)
 
-            if up:
-                thetai_min = np.arccos(1 - 2 * ai_min) / 2 / np.pi
-                thetai_max = np.arccos(1 - 2 * ai_max) / 2 / np.pi
-            else:
-                thetai_min = 1 - np.arccos(1 - 2 * ai_max) / 2 / np.pi
-                thetai_max = 1 - np.arccos(1 - 2 * ai_min) / 2 / np.pi
+                if up:
+                    thetai_min = np.arccos(1 - 2 * ai_min) / 2 / np.pi
+                    thetai_max = np.arccos(1 - 2 * ai_max) / 2 / np.pi
+                else:
+                    thetai_min = 1 - np.arccos(1 - 2 * ai_max) / 2 / np.pi
+                    thetai_max = 1 - np.arccos(1 - 2 * ai_min) / 2 / np.pi
 
-            theta_u = (int(bigk * theta_u) + thetai_max) / bigk
-            theta_l = (int(bigk * theta_l) + thetai_min) / bigk
+                state["theta_u"] = float((int(bigk * theta_u) + thetai_max) / bigk)
+                state["theta_l"] = float((int(bigk * theta_l) + thetai_min) / bigk)
 
-        a_l = np.sin(2 * np.pi * theta_l) ** 2
-        a_u = np.sin(2 * np.pi * theta_u) ** 2
-        self.a_l, self.a_u = a_l, a_u
-        return (a_l + a_u) / 2
+                if (state["theta_u"] - state["theta_l"] <= self.epsilon / np.pi) or state["i_count"] >= 20:
+                    a_l = np.sin(2 * np.pi * state["theta_l"]) ** 2
+                    a_u = np.sin(2 * np.pi * state["theta_u"]) ** 2
+                    self.a_l, self.a_u = a_l, a_u
+                    return CompletedBackendTask(float((a_l + a_u) / 2), task_id=sample_task.id), True
+                return CompletedBackendTask(None, task_id=sample_task.id), False
+            return advance
 
-    def _measure(self, k: int, n_round: int) -> int:
-        machine = self.machine
+        register_algorithm("iqae", make_advance)
+        return AlgorithmTask(algorithm="iqae", initial_state=state,
+                             advance=make_advance(self._backend), backend=self._backend)
+
+    def _measure_prog(self, k: int):
         qlist = self.qlist
-        clist = self.clist
 
         operator_g = amp_operator(in_operator=self.operatorA, q_input=qlist)
         prog = QProg()
@@ -358,18 +451,8 @@ class IQAE:
             prog << operator_g
         if self.draw:
             print(prog)
-        prog << measure_all([qlist[self.res_index]], [qlist[self.qnumber - 1]]) 
-        if self.machine_type == 'CPU':
-            machine.run(prog, n_round)
-            res = machine.result().get_counts()
-            m = res.get('1')
-        elif self.machine_type == 'QCloud':
-            res = machine.full_amplitude_measure(prog, n_round)
-            m = int(res['1'] * n_round)
-        if m is None:
-            m = 0
-
-        return m
+        prog << measure_all([qlist[self.res_index]], [qlist[self.qnumber - 1]])
+        return prog
 
     def _findnextk(self, k_i: int, theta_l: float, theta_u: float, up: bool) -> (int, bool):
         ratio = self.ratio

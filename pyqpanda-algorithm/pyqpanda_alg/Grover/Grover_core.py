@@ -10,10 +10,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pyqpanda3.core import CPUQVM, QCircuit, QProg, Z, X, H, BARRIER
+from pyqpanda3.core import QCircuit, QProg, Z, X, H, BARRIER
 import numpy as np
 
 from .. plugin import *
+from ..execution import (
+    AlgorithmTask,
+    CompletedBackendTask,
+    ExecutionOptions,
+    register_algorithm,
+    resolve_backend,
+)
 
 class Grover:
     """ This class provides a framework for Grover Search algorithm [1].
@@ -475,7 +482,7 @@ class GroverAdaptiveSearch:
             return self.oracle_circuit(qlist, self._current_min)
 
     def run(self, continue_times: int = 3, n_value_function=None, value_function=None,
-            rotation_change='random', process_show=False):
+            rotation_change='random', process_show=False, *, backend=None, execution_options=None):
         """
         Run the Grover Adaptive Search algorithm to find the minimum.
 
@@ -495,6 +502,12 @@ class GroverAdaptiveSearch:
                - ``increase`` : The number of Grover iterations for each search is increasing.
             process_show : ``bool``
                 Set to True to print the detail during search.
+            backend : execution backend, keyword-only
+                The sampling backend driving the search.  Defaults to the local
+                simulator.
+            execution_options : ``ExecutionOptions``, keyword-only
+                Sampling options (shots, timeout, ...) applied to every search
+                round.  Defaults to 1000 shots per round.
 
         Returns
             minimum_indexes, minimum_res : ( ``list[list[int]]``, ``float``)
@@ -505,88 +518,115 @@ class GroverAdaptiveSearch:
 
 
         """
-        binary = True
-        num_all_solutions = 2 ** self.n_index
-        machine = CPUQVM()
+        task = self.submit(continue_times=continue_times, n_value_function=n_value_function,
+                           value_function=value_function, rotation_change=rotation_change,
+                           process_show=process_show, backend=backend,
+                           execution_options=execution_options)
+        return task.result()
 
-        minimum_found = False
-        minimum_res = self._current_min
-        minimum_indexes = []
-        indexes_measured = []
+    def submit(self, continue_times: int = 3, n_value_function=None, value_function=None,
+               rotation_change='random', process_show=False, *, backend=None, execution_options=None):
+        """Run the Grover Adaptive Search as a resumable sampling task.
 
-        rotations = 0
+        ``submit()`` returns before any round is sampled; every ``poll()``
+        runs exactly one search round.  Each round submits one sampling task
+        to the execution backend and the outcome with the largest probability
+        drives the adaptive loop.  Checkpointing preserves the round, and
+        resuming continues from there without re-submitting completed rounds.
 
-        while not minimum_found:
-            m = 1
-            improvement_found = False
-            loops_with_no_improvement = 0
-            while not improvement_found:
-                rotations += 1
+        The ``backend`` and ``execution_options`` parameters are keyword-only.
+        """
+        self._backend = resolve_backend(backend)
+        options = execution_options if execution_options is not None else ExecutionOptions()
+        state = {
+            "round": 0,
+            "current_min": self._current_min,
+            "minimum_res": self._current_min,
+            "minimum_indexes": [],
+            "indexes_measured": [],
+            "m": 1.0,
+            "loops_with_no_improvement": 0,
+            "improvement_found": False,
+            "minimum_found": False,
+        }
+
+        def make_advance(exec_backend):
+            def advance(state):
+                num_all_solutions = 2 ** self.n_index
+                if state["improvement_found"] and not state["minimum_found"]:
+                    state["m"] = 1.0
+                    state["loops_with_no_improvement"] = 0
+                state["improvement_found"] = False
+                state["round"] += 1
+                self._current_min = state["current_min"]
                 self.n_value = n_value_function(self._current_min)
 
                 q_index_value = QProg(self.n_index + self.n_value).qubits()
 
                 if rotation_change == 'random':
-                    rotation_count = 1 if m < 2 else np.random.randint(low=1, high=m)
+                    rotation_count = 1 if state["m"] < 2 else np.random.randint(low=1, high=state["m"])
                 elif rotation_change == 'increase':
-                    rotation_count = int(m)
+                    rotation_count = int(state["m"])
                 else:
                     raise NameError("Method not recognized")
 
                 if process_show:
-                    print('======searching', loops_with_no_improvement + 1, ',rotation =', rotation_count, '======')
+                    print('======searching', state["loops_with_no_improvement"] + 1,
+                          ',rotation =', rotation_count, '======')
                 Grover_instance = Grover(in_operator=self._init_circuit, flip_operator=self._oracle_circuit)
 
-                zxy = Grover_instance.cir(q_input=q_index_value, q_flip=q_index_value, q_zero=q_index_value[:self.n_index],
-                                          iternum=rotation_count)
+                zxy = Grover_instance.cir(q_input=q_index_value, q_flip=q_index_value,
+                                          q_zero=q_index_value[:self.n_index], iternum=rotation_count)
 
                 prog = QProg()
                 prog << zxy << measure_all(q_index_value[:self.n_index], q_index_value[:self.n_index])
-                machine.run(prog, shots=1)
-                prog_res = machine.result().get_prob_dict()
-                outcome = list(prog_res.keys())[0]
+                sample_task = exec_backend.submit_sample(prog, options=options)
+                counts = sample_task.result().single_counts()
+                outcome = max(counts, key=counts.get)
 
                 current_value = value_function(outcome)
-                v = current_value - self._current_min
+                v = current_value - state["current_min"]
 
                 if v < 0:
-                    indexes_measured.append(outcome)
-                    minimum_res = current_value
-                    minimum_indexes = [outcome]
+                    state["indexes_measured"].append(outcome)
+                    state["minimum_res"] = current_value
+                    state["minimum_indexes"] = [outcome]
                     if process_show:
                         print('Current minimum Key: ', outcome)
-                        print('Current minimum Value: ', minimum_res)
-                    improvement_found = True
-                    self._current_min = minimum_res
-
-
+                        print('Current minimum Value: ', state["minimum_res"])
+                    state["improvement_found"] = True
+                    state["current_min"] = current_value
                 else:
-                    loops_with_no_improvement += 1
-                    if outcome not in indexes_measured:
-                        indexes_measured.append(outcome)
+                    state["loops_with_no_improvement"] += 1
+                    if outcome not in state["indexes_measured"]:
+                        state["indexes_measured"].append(outcome)
                     if v == 0:
-                        if outcome not in indexes_measured:
-                            minimum_indexes.append(outcome)
+                        if outcome not in state["indexes_measured"]:
+                            state["minimum_indexes"].append(outcome)
                         if process_show:
                             print('minimum Key Again: ', outcome)
-                            print('minimum Value No Change: ', minimum_res)
-                    m = min(m * 1.34, 2 ** (self.n_index / 2)) if rotation_change == 'random' \
-                        else min(m * 1.34, 2 ** (self.n_index / 2))
-                    if loops_with_no_improvement >= continue_times or \
-                            len(indexes_measured) == num_all_solutions:
-                        improvement_found = True
-                        minimum_found = True
+                            print('minimum Value No Change: ', state["minimum_res"])
+                    state["m"] = min(state["m"] * 1.34, 2 ** (self.n_index / 2))
+                    if state["loops_with_no_improvement"] >= continue_times or \
+                            len(state["indexes_measured"]) == num_all_solutions:
+                        state["improvement_found"] = True
+                        state["minimum_found"] = True
 
-        minimum_indexes = list(set(minimum_indexes))
-        if binary:
-            opt_xs = []
-            for key in minimum_indexes:
-                opt_x = np.array([1 if s == '1' else 0 for s in ('{0:%s}' % self.n_index).format(key)])
-                opt_xs.append(opt_x.tolist()[::-1])
-            minimum_indexes = opt_xs
-        if process_show:
-            print('rotations: ', rotations)
-        return minimum_indexes, minimum_res
+                if state["minimum_found"]:
+                    minimum_indexes = list(set(state["minimum_indexes"]))
+                    opt_xs = []
+                    for key in minimum_indexes:
+                        opt_x = np.array([1 if s == '1' else 0 for s in ('{0:%s}' % self.n_index).format(key)])
+                        opt_xs.append(opt_x.tolist()[::-1])
+                    if process_show:
+                        print('rotations: ', state["round"])
+                    return CompletedBackendTask((opt_xs, state["minimum_res"]), task_id=sample_task.id), True
+                return CompletedBackendTask(None, task_id=sample_task.id), False
+            return advance
+
+        register_algorithm("grover_adaptive_search", make_advance)
+        return AlgorithmTask(algorithm="grover_adaptive_search", initial_state=state,
+                             advance=make_advance(self._backend), backend=self._backend)
 
     @staticmethod
     def _bin_to_int(bin_value):

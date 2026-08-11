@@ -399,7 +399,8 @@ class QUBO_GAS_origin(QuadraticBinary):
         value = self.constant + var_linear + var_quadratic
         return value
 
-    def run(self, continue_times: int = 5, init_value=None, process_show=False):
+    def run(self, continue_times: int = 5, init_value=None, process_show=False, *,
+            backend=None, execution_options=None):
         """
         Run the solver to find the minimum.
 
@@ -410,6 +411,12 @@ class QUBO_GAS_origin(QuadraticBinary):
                 The given initial value of the optimization function. Default the constant item of the problem.
             process_show : ``bool``
                 Set to True to print the detail during search.
+            backend : execution backend, keyword-only
+                The sampling backend driving the search.  Defaults to the
+                local simulator.
+            execution_options : ``ExecutionOptions``, keyword-only
+                Sampling options (shots, timeout, ...) applied to every
+                search round.
 
         Returns
             minimum_indexes, minimum_res : ``list[list[int]]``, ``float``
@@ -420,18 +427,46 @@ class QUBO_GAS_origin(QuadraticBinary):
 
 
         """
+        task = self.submit(continue_times=continue_times, init_value=init_value,
+                           backend=backend, execution_options=execution_options)
+        return task.result()
+
+    def submit(self, continue_times: int = 5, init_value=None, *,
+               backend=None, execution_options=None):
+        """
+        Run the solver to find the minimum and return a resumable algorithm task.
+
+        The solver delegates to the Grover Adaptive Search state machine
+        (see :meth:`GroverAdaptiveSearch.submit`): ``submit()`` returns
+        before any search round, each ``poll()`` runs one round, and the
+        ``backend`` and ``execution_options`` parameters are keyword-only.
+
+        Parameters
+            continue_times : ``int``
+                The maximum number of repeated searches at the current optimal point in GAS algorithm.
+            init_value : ``float``
+                The given initial value of the optimization function. Default the constant item of the problem.
+            backend : execution backend, keyword-only
+                The sampling backend driving the search.  Defaults to the
+                local simulator.
+            execution_options : ``ExecutionOptions``, keyword-only
+                Sampling options (shots, timeout, ...) applied to every
+                search round.
+
+        Returns
+            task : ``AlgorithmTask``
+                The resumable sampling task driving the search.
+        """
         n_index = len(self.quadratic)
         init = init_value if init_value is not None else self.constant
         gas_model = GroverAdaptiveSearch(init_value=init,
-                                                n_index=n_index,
-                                                oracle_circuit=self._flip_oracle_function)
+                                         n_index=n_index,
+                                         oracle_circuit=self._flip_oracle_function)
 
-        res = gas_model.run(continue_times=continue_times,
-                            n_value_function=self._n_value_function,
-                            value_function=self._value_function,
-                            process_show=process_show)
-
-        return res
+        return gas_model.submit(continue_times=continue_times,
+                                n_value_function=self._n_value_function,
+                                value_function=self._value_function,
+                                backend=backend, execution_options=execution_options)
 
 
 class QUBO_QAOA(QuadraticBinary):

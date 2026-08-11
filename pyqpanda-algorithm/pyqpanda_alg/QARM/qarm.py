@@ -12,14 +12,21 @@
 
 import os
 import math
+import warnings
+
 import numpy as np
-from pyqpanda3.core import QCircuit, QProg, CPUQVM, X, H, U1, SWAP, draw_qprog
+from pyqpanda3.core import QCircuit, QProg, X, H, U1, SWAP, draw_qprog
 from pyqpanda3.intermediate_compiler import convert_qprog_to_originir
-from pyqpanda3.qcloud import QCloudService
 from itertools import chain
 
-# 
-# 
+from ..execution import (
+    AlgorithmInputError,
+    AlgorithmTask,
+    CompletedBackendTask,
+    ExecutionOptions,
+    register_algorithm,
+    resolve_backend,
+)
 
 class QuantumAssociationRulesMining:
     """
@@ -50,12 +57,12 @@ class QuantumAssociationRulesMining:
             the output file namethat record the circuit information.
 
         machine_type: ``string``
-            enumeration of QVM type, should be one of "CPU", and "QCloud"
+            enumeration of QVM type, should be one of "CPU", and "QCloud" (deprecated).
 
-        ``**kwargs``: ``dict args``
-            Use keywords to pass parameters,the twoparameters areapi_keyand ip_compute.
-            - api_key : API key of the local platform account
-            - ip_compute : The IP address of the local request computing task\n
+        backend: execution backend, keyword-only
+            The sampling backend driving the search.  Defaults to the local
+            simulator.  Pass an explicit backend for the deprecated
+            ``machine_type='QCloud'`` entry point.
 
     Returns:
         out: ``dict``
@@ -243,29 +250,20 @@ class QuantumAssociationRulesMining:
         cir << _coin_cir
         return cir
 
-    def _iter_cir(self, qlist, clist, position, locating_number, _iter_number, show, file_name, machine_type):
+    def _search_prog(self, qlist, locating_number, show, file_name):
+        """Build the search circuit for one locating number (no execution)."""
+        _iter_number = self._iter_number()
         prog = QProg()
         for i in range(self.index_qubit_number):
-            prog << H(qlist[position + self.index_qubit_number + i])
-        prog << X(qlist[position + 2 * self.index_qubit_number + self.digit_qubit_number])
-        prog << H(qlist[position + 2 * self.index_qubit_number + self.digit_qubit_number])
-        prog << X(qlist[position + 2 * self.index_qubit_number + self.digit_qubit_number + 1])
+            prog << H(qlist[self.index_qubit_number + i])
+        prog << X(qlist[2 * self.index_qubit_number + self.digit_qubit_number])
+        prog << H(qlist[2 * self.index_qubit_number + self.digit_qubit_number])
+        prog << X(qlist[2 * self.index_qubit_number + self.digit_qubit_number + 1])
 
-        cir = self._gk_cir(qlist, position, locating_number)
+        cir = self._gk_cir(qlist, 0, locating_number)
         for n in range(_iter_number):
             prog << cir
-        result_qubit = []
-        result_qubit_addr = []
-        for i in range(self.index_qubit_number):
-            result_qubit.append(qlist[i])
-            result_qubit_addr.append(i)
-        if machine_type == 'CPU':
-            self.machine.run(prog, 1)
-            result = self.machine.result().get_prob_dict(result_qubit)
-        else:
-            job = self.machine.run(prog, 1)
-            result = job.result().get_prob_dict(result_qubit_addr)
-            
+
         if locating_number == 1:
             line_length = 100
             if show is not None:
@@ -302,7 +300,7 @@ class QuantumAssociationRulesMining:
                     if not os.path.exists(f_path):
                         os.makedirs(f_path)
                     draw_qprog(prog, abs_file_path, line_length=line_length)
-        return result
+        return prog
 
     def _iter_number(self):
         estimate_count = math.floor(math.pi * math.sqrt(2 ** self.index_qubit_number) / 2)
@@ -314,17 +312,25 @@ class QuantumAssociationRulesMining:
             count -= 4
         return count
 
-    def _get_result(self, qlist, clist, position, locating_number, _iter_number, show, file_name, machine_type):
-        result = self._iter_cir(qlist, clist, position, locating_number, _iter_number, show, file_name, machine_type)
-        val_list = []
-        for val in result.values():
-            val_list.append(round(val, 4))
-        np_val_list = np.array(val_list)
-        max_val = np.max(np_val_list)
-        index = np.argwhere(np_val_list == max_val)
-        index = index.flatten().tolist()
-        result = self._get_index(index)
-        return result
+    def _rows_from_counts(self, counts):
+        """Extract the transaction rows for a locating number from counts.
+
+        The legacy readout measured the first ``index_qubit_number`` qubits
+        (qubit 0 = LSB), so the index value of a full-width measurement key
+        is its projection ``int(key, 2) & (2 ** index_qubit_number - 1)``.
+        Index values within one shot of the empirical maximum are selected,
+        which reproduces the legacy 4-decimal argmax tie sets exactly for
+        the deterministic fixtures.
+        """
+        total = sum(counts.values())
+        projected = {}
+        for key, count in counts.items():
+            index_value = int(key, 2) & ((1 << self.index_qubit_number) - 1)
+            projected[index_value] = projected.get(index_value, 0) + count / total
+        max_val = max(projected.values())
+        epsilon = 1.0 / total
+        index_list = [idx for idx, val in projected.items() if val >= max_val - epsilon]
+        return self._get_index(index_list)
 
     def _get_index(self, index):
         result = []
@@ -336,14 +342,7 @@ class QuantumAssociationRulesMining:
             result.append((transaction_index, item_index))
         return result
 
-    def _find_f1(self, qlist, clist, position, c1, show, file_name, machine_type):
-        _iter_number = self._iter_number()
-        ck_dict = {}
-        for data in c1:
-            locating_number = data[0]
-            result = self._get_result(qlist, clist, position, locating_number, _iter_number, show, file_name, machine_type)
-            row_index = [index[0] for index in result]
-            ck_dict[data] = row_index
+    def _find_f1(self, ck_dict):
         f1_dict = {}
         f1 = []
         for key, val in ck_dict.items():
@@ -377,9 +376,8 @@ class QuantumAssociationRulesMining:
                         fn.append(c)
         return fn, fn_dict
 
-    def _fk_result(self, qlist, clist, position, show, file_name, machine_type):
-        c1 = self._create_c1(self.transaction_matrix)
-        f1, f1_dict = self._find_f1(qlist, clist, position, c1, show, file_name, machine_type)
+    def _fk_result(self, ck_dict):
+        f1, f1_dict = self._find_f1(ck_dict)
 
         fn = []
         fn_dict = {}
@@ -398,8 +396,7 @@ class QuantumAssociationRulesMining:
     def _conf_x_y(self, supp_xy, supp_x):
         return round(supp_xy / supp_x, 2)
 
-    def _get_all_conf(self, qlist, clist, position, show, file_name, machine_type):
-        fn, fn_dict = self._fk_result(qlist, clist, position, show, file_name, machine_type)
+    def _get_all_conf(self, fn, fn_dict):
         len_fn = len(fn)
         if len_fn < 2:
             return None
@@ -428,31 +425,89 @@ class QuantumAssociationRulesMining:
         key = cause_str + '->' + effect_str
         return key
 
-    def run(self, show=None, file_name="", machine_type="CPU", **kwargs):
+    def run(self, show=None, file_name="", machine_type="CPU", *, backend=None, execution_options=None):
         """
-        
+        Run the quantum association rule mining algorithm.
+
+        Parameters
+            show: ``string``
+                Enumeration of the circuit show type, should be one of "None",
+                "Picture" and "OriginIR".
+            file_name: ``string``
+                The output file name that records the circuit information.
+            machine_type: ``string``
+                Backend mode, should be "CPU".  ``machine_type='QCloud'`` is
+                deprecated: it warns and requires an explicit ``backend``.
+            backend : execution backend, keyword-only
+                The sampling backend driving the search.  Defaults to the
+                local simulator.
+            execution_options : ``ExecutionOptions``, keyword-only
+                Sampling options (shots, timeout, ...).  Defaults to 1000
+                shots per search circuit.
+
+        Returns
+            conf_result : ``dict``
+                confidence result
         """
-        if machine_type == 'CPU':
-            machine = CPUQVM()
-        elif machine_type == 'QCloud':
-            api_key = kwargs['api_key']
-            service = QCloudService(api_key=api_key)
-            machine = service.backend("full_amplitude")
-        else:
+        if machine_type == 'QCloud':
+            warnings.warn(
+                "machine_type='QCloud' is deprecated and will be removed in a "
+                "future release; pass an explicit backend= instead of an api_key.",
+                DeprecationWarning, stacklevel=2)
+            if backend is None:
+                raise AlgorithmInputError(
+                    "machine_type='QCloud' requires an explicit backend= "
+                    "argument; provide a logged-in execution backend instead "
+                    "of an api_key.")
+        elif machine_type != 'CPU':
             raise TypeError('No such mode! Choose one mode from \'CPU\',\'QCloud\'.')
-        self.machine = machine
+        task = self.submit(show=show, file_name=file_name, backend=backend,
+                           execution_options=execution_options)
+        return task.result()
+
+    def submit(self, show=None, file_name="", *, backend=None, execution_options=None):
+        """Run the association rule mining as a resumable sampling task.
+
+        ``submit()`` returns before any search circuit is sampled; every
+        ``poll()`` samples the search circuit of one locating number
+        (candidate 1-itemset) and records the sampled transaction rows.  Once
+        all locating numbers are sampled the frequent sets and confidence
+        rules are finalized classically.  Checkpointing preserves the round,
+        and resuming continues from there without re-submitting completed
+        rounds.
+
+        The ``backend`` and ``execution_options`` parameters are keyword-only.
+        """
+        self._backend = resolve_backend(backend)
+        options = execution_options if execution_options is not None else ExecutionOptions()
         prog = QProg(self.number_qubits)
         qlist = prog.qubits()
         clist = prog.cbits()
+        c1 = self._create_c1(self.transaction_matrix)
+        state = {"round": 0, "c1": c1, "ck_dict": {}}
 
-        position = 0
-
-        conf_result = self._get_all_conf(qlist, clist, position, show, file_name, machine_type)
-        if conf_result:
-            return conf_result
-        else:
-            raise ValueError("""The data in the file could not mine any rules to satisfy
+        def make_advance(exec_backend):
+            def advance(state):
+                locating_number = state["c1"][state["round"]][0]
+                search_prog = self._search_prog(qlist, locating_number, show, file_name)
+                sample_task = exec_backend.submit_sample(search_prog, options=options)
+                counts = sample_task.result().single_counts()
+                rows = self._rows_from_counts(counts)
+                state["ck_dict"][(locating_number,)] = [row[0] for row in rows]
+                state["round"] += 1
+                if state["round"] < len(state["c1"]):
+                    return CompletedBackendTask(None, task_id=sample_task.id), False
+                fn, fn_dict = self._fk_result(state["ck_dict"])
+                conf_result = self._get_all_conf(fn, fn_dict)
+                if not conf_result:
+                    raise ValueError("""The data in the file could not mine any rules to satisfy
 the conditions of supporting greater than the min_support {}
 and confidence greater than the min_conf {}!
 You can change the data in the file or decrease the min_support and the min_conf,
 then try again!""".format(self.min_support, self.min_conf))
+                return CompletedBackendTask(conf_result, task_id=sample_task.id), True
+            return advance
+
+        register_algorithm("qarm", make_advance)
+        return AlgorithmTask(algorithm="qarm", initial_state=state,
+                             advance=make_advance(self._backend), backend=self._backend)
