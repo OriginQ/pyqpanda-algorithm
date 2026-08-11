@@ -233,7 +233,7 @@ def xy_mixer(domains, mixer_type='PXY'):
             Nodes of each XY mixer to be applied. If an integer n is given, the qubit list is divided into n parts. If a
             list is given, the mixer is applied to each domain.
 
-        mixer_type: ``string``
+        mixer_type: ``string`` or ``float``
             How the mixer is implemented. Should be one of
 
                     - ``PXY`` : Parity partition XY mixer.
@@ -242,10 +242,14 @@ def xy_mixer(domains, mixer_type='PXY'):
                         See 'complete_xy_mixer'
 
                 If not given, default by ``PXY``.
+                When a number is given instead, it is treated as the mixer
+                angle :math:`t` and ``domains`` as a flat qubit list, and the
+                parity-partition XY mixer circuit is returned directly.
 
     Return
-        mixer_circuit : ``func(pq.QCircuit)``
-            A function which use qubit list and angles as input, output a circuit of simulation a XY mixer :math:`e^{-iHt}`.
+        mixer_circuit : ``func(pq.QCircuit)`` or ``pyqpanda QCircuit``
+            By default, a function which use qubit list and angles as input, output a circuit of simulation a XY mixer :math:`e^{-iHt}`.
+            When the angle is given as the second argument, the XY mixer circuit is returned directly.
 
     Examples
         Generate a circuit of simulation a complete XY mixer :math:`e^{-iH\pi/2}` in qubits [0, 1] and [2, 3].
@@ -294,6 +298,18 @@ def xy_mixer(domains, mixer_type='PXY'):
         Physical Review A, 2020, 101(1): 012320. DOI:10.1103/PhysRevA.101.012320.
 
     """
+
+    if isinstance(mixer_type, (int, float)):
+        # Direct builder form: a flat qubit list and a mixer angle
+        # produce the parity-partition XY mixer circuit directly.
+        qlist = domains
+        angle = mixer_type
+        if not isinstance(qlist, list) or not all(isinstance(q, int) for q in qlist):
+            raise TypeError(
+                f"domains must be a list of qubit indices when the mixer "
+                f"angle is given, rather than {type(domains)}"
+            )
+        return parity_partition_xy_mixer(qlist, angle)
 
     def mixer_circuit(qlist, angle):
         q_num = len(qlist)
