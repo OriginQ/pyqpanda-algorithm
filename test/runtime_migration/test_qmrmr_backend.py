@@ -8,6 +8,7 @@ instead of sampled.
 """
 
 import numpy as np
+import pytest
 
 from pyqpanda_alg.QmRMR.QmRMR_core import Feature_Selection
 from test.execution.fakes import RecordingBackend
@@ -27,3 +28,61 @@ def test_qmrmr_runtime_uses_estimator_without_sampling():
     assert len(choice) == 2
     assert sum(choice) == 1
     assert his
+
+
+def test_qmrmr_objective_sign_pins_min_redundancy_minus_relevance():
+    """The objective is min E[x^T Q x] - E[x . l] (redundancy - relevance).
+
+    Standard QmRMR/mRMR form: the linear coefficients are relevance weights
+    (higher = more preferred), so relevance SUBTRACTS from the loss.  Hand
+    computation for linear=[0.6, 0.4], quadratic=[[0.3, 0.1], [0.1, 0.2]]:
+
+        x       x^T Q x           x . l       x^T Q x - x . l
+        [0, 0]  0.0               0.0         0.0
+        [1, 0]  0.3               0.6         -0.3
+        [0, 1]  0.2               0.4         -0.2
+        [1, 1]  0.3+0.1+0.1+0.2  1.0          -0.3
+                = 0.7
+
+    Bit strings are most-significant first and feature p maps to qubit
+    (m - 1 - p), so the observable's basis-state expectations are
+    {00: 0, 01: -0.3, 10: -0.2, 11: -0.3}.
+    """
+    linear = [0.6, 0.4]
+    quadratic = [[0.3, 0.1], [0.1, 0.2]]
+    model = Feature_Selection(quadratic, linear, 1)
+
+    # Independent classical evaluation of the objective per basis state:
+    # objective(x) = x^T Q x - x . l.
+    def objective(x):
+        x_quad = sum(
+            quadratic[row][col] * x[row] * x[col]
+            for row in range(2)
+            for col in range(2)
+        )
+        relevance = sum(linear[p] * x[p] for p in range(2))
+        return x_quad - relevance
+
+    expected = {
+        "00": objective([0, 0]),
+        "01": objective([1, 0]),
+        "10": objective([0, 1]),
+        "11": objective([1, 1]),
+    }
+    hand_values = {"00": 0.0, "01": -0.3, "10": -0.2, "11": -0.3}
+    for bits, value in expected.items():
+        assert value == pytest.approx(hand_values[bits], abs=1e-12)
+
+    # The observable's diagonal must match those hand-computed values.
+    # pyqpanda3 orders matrix rows with qubit 0 least significant, while the
+    # pipeline's bit strings are most-significant first, so flip the index.
+    matrix = model._observable.matrix()
+    for bits, value in expected.items():
+        index = int(bits[::-1], 2)
+        assert matrix[index, index].real == pytest.approx(value, abs=1e-12)
+
+    # The estimator returns the hand-computed value for the basis state the
+    # zero-parameter circuit prepares (|10>, i.e. feature 1 selected).
+    backend = RecordingBackend(expectations=[expected["10"]])
+    model._backend = backend
+    assert model.cal_loss([0.0]) == pytest.approx(expected["10"])

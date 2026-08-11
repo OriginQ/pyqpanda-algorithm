@@ -176,9 +176,11 @@ class Feature_Selection:
     qb_num : int
         Number of qubits required, equal to the number of features.
     l1 : list[float]
-        History of linear loss values during optimization.
+        History of the total expectation value (the full objective
+        E[x^T Q x] - E[x . l]) during optimization.
     l2 : list[float]
-        History of quadratic loss values during optimization.
+        History of the total expectation value (the full objective
+        E[x^T Q x] - E[x . l]) during optimization.
         
     >>> from pyqpanda_alg import QmRMR
     >>> import numpy as np
@@ -209,6 +211,10 @@ class Feature_Selection:
         self._execution_options = None
         linear_arr = np.asarray(linear, dtype=float)
         quadratic_arr = np.asarray(quadratic, dtype=float) if quadratic is not None else None
+        # Objective: minimize E[x^T Q x] - E[x . l] (redundancy - relevance),
+        # the standard QmRMR/mRMR form.  The linear coefficients are
+        # relevance weights (higher = more preferred), so relevance
+        # SUBTRACTS from the loss; hence the minus sign below.
         # Bit strings are most-significant first, so feature p maps to
         # qubit (m - 1 - p) in the observable.
         observable = 0 * PauliOperator({"": 1})

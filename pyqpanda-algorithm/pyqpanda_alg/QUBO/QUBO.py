@@ -572,9 +572,10 @@ class QUBO_QAOA(QuadraticBinary):
                         For ``TNC`` use ``maxfun`` instead of ``maxiter``.
 
         Returns
-            qaoa_result : ``list[tuple]``
-                List of all possible solutions with corresponding probabilities.
-                The solution of the problem we are looking for should generally be the maximum probability.
+            qaoa_result : ``dict``
+                Mapping of each possible solution (bit string) to its
+                corresponding probability.  The solution of the problem we are
+                looking for should generally be the maximum probability.
 
         Examples
             An example for minimization of quadratic binary function = -0.5 * x0 * x1 - 0.7 * x0 * x1 + 0.9 * x1 * x2 + 1.3 * x0 - x1 - 0.5 * x2
