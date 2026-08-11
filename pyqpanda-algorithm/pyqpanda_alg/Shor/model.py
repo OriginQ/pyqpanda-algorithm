@@ -79,12 +79,13 @@ class ShorResult:
 
     ``factors`` is the nontrivial factor pair when one was found and
     None otherwise; ``is_prime`` reports a classically proven prime
-    modulus.  ``used_quantum`` states whether a quantum order-finding
-    task was actually executed and ``task_ids`` records the submitted
-    task IDs when one was (empty otherwise).  ``order`` is the
-    recovered multiplicative order when order finding ran, and
-    ``metadata`` keeps free-form provenance without exposing any live
-    object.
+    modulus.  ``used_quantum`` is True when the result emerged from
+    the quantum attempt pipeline — order-finding success or exhaustion
+    — regardless of later classical resolution, and ``task_ids``
+    records the submitted task IDs when one was (empty otherwise).
+    ``order`` is the recovered multiplicative order when order finding
+    ran, and ``metadata`` keeps free-form provenance without exposing
+    any live object.
     """
 
     factors: tuple[int, int] | None = None

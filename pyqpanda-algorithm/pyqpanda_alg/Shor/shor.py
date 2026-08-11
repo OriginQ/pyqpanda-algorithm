@@ -29,18 +29,33 @@ Provenance
 Every attempt is recorded — base, sample task ID, each parsed sample
 with its count, candidate order, and rejection reason — in the
 ``attempts`` entry of the result metadata.  ``used_quantum`` is True
-exactly when the returned factorization was derived from a quantum
-order-finding task, and ``task_ids`` collects every submitted sample
-task ID in submission order.
+when the result emerged from the quantum attempt pipeline — an
+order-finding success or attempt exhaustion — regardless of the later
+classical resolution of the factorization, and ``task_ids`` collects
+every submitted sample task ID in submission order.
+
+Recovery
+--------
+:meth:`Shor.submit` runs the same attempt state machine as a resumable
+:class:`~pyqpanda_alg.execution.AlgorithmTask` whose JSON checkpoint
+carries the modulus, the config, the RNG draw position, and the full
+attempt history (bases, completed task IDs, histograms, candidate
+orders, and rejection reasons) — never the backend, credentials, or
+live task handles.  :meth:`~pyqpanda_alg.execution.AlgorithmTask.resume`
+rebuilds the attempt machine through the factory registered under the
+algorithm name ``shor``, continues the exact base sequence, and never
+resubmits a completed task.
 """
 
 import math
 import random
+from typing import Any
 
 from pyqpanda_alg.execution import (
     AlgorithmTask,
     CompletedBackendTask,
     ExecutionOptions,
+    register_algorithm,
     resolve_backend,
 )
 from pyqpanda_alg.execution.errors import AlgorithmInputError
@@ -102,6 +117,267 @@ def _exhausted_result(history: list[dict]) -> ShorResult:
     )
 
 
+def _result_snapshot(result: ShorResult) -> dict:
+    """Return the JSON-safe dict snapshot of ``result`` for task accumulation.
+
+    :class:`AlgorithmTask` accumulates each step's result verbatim and
+    checkpoints it, so the accumulated value must be JSON primitives;
+    the completed task's ``result()`` and a checkpoint's ``result``
+    field therefore carry this snapshot rather than a live
+    :class:`ShorResult` (which :meth:`run` still returns directly).
+    """
+    return {
+        "factors": list(result.factors) if result.factors is not None else None,
+        "is_prime": result.is_prime,
+        "used_quantum": result.used_quantum,
+        "task_ids": list(result.task_ids),
+        "order": result.order,
+        "metadata": result.metadata,
+    }
+
+
+class _ConstantRng:
+    """RNG stand-in that always returns one fixed base.
+
+    Rebuilt from checkpoint state for a resumed run whose original RNG
+    exposed no ``getstate()``: its constant draw equals the last
+    attempted base recorded in the history.
+    """
+
+    def __init__(self, value: int) -> None:
+        self._value = value
+
+    def randrange(self, a, b):
+        return self._value
+
+
+def _rng_snapshot(rng) -> Any:
+    """Return the JSON-safe draw position of ``rng`` for checkpoint state.
+
+    A ``random.Random`` exposes ``getstate()``/``setstate()``; the
+    snapshot is its state exactly as the checkpoint layer round-trips
+    it (tuples become lists on disk).  A test double providing only
+    ``randrange`` (like the runtime tests' ``FixedBaseRng``) has no
+    position to capture — its constant draw is recorded as the
+    attempted base in the history, which is what a resumed run
+    re-draws.
+    """
+    getstate = getattr(rng, "getstate", None)
+    if getstate is None:
+        return None
+    return getstate()
+
+
+def _restore_rng(state: dict) -> Any:
+    """Rebuild the attempt RNG from the checkpointed snapshot.
+
+    A ``random.Random`` snapshot restores the exact draw position; the
+    JSON round trip stores the internal state as a list, which
+    :meth:`random.Random.setstate` needs converted back to a tuple.
+    A constant double without ``getstate`` has no position: the
+    restored rng re-draws the last attempted base from the history
+    (falling back to a fresh unseeded ``random.Random`` before any
+    base was drawn).
+    """
+    snapshot = state.get("rng_state")
+    if snapshot is not None:
+        version, internal, gauss = snapshot
+        rng = random.Random()
+        rng.setstate((version, tuple(internal), gauss))
+        return rng
+    if state["history"]:
+        return _ConstantRng(state["history"][-1]["base"])
+    return random.Random()
+
+
+def _run_attempt(
+    modulus: int,
+    rng,
+    config: ShorConfig,
+    backend,
+    options,
+    history: list[dict],
+) -> ShorResult | None:
+    """Run one bounded attempt on ``backend`` and return the factor result.
+
+    Draws the base from ``rng``.  A base sharing a factor with the
+    modulus resolves the attempt classically.  Otherwise one
+    order-finding sample task is submitted and every nonzero phase
+    sample of the histogram is parsed by descending count: recover a
+    candidate order, reduce multiples of the true order, and derive
+    factors from ``gcd(base**(order // 2) - 1, modulus)`` and
+    ``gcd(base**(order // 2) + 1, modulus)``.  The record of the
+    attempt — base, task ID, samples, candidate orders, rejection
+    reasons — is appended to ``history``.
+    """
+    base = rng.randrange(2, modulus - 1)
+    common = math.gcd(base, modulus)
+    if common > 1:
+        history.append(
+            {
+                "base": base,
+                "task_id": None,
+                "samples": [],
+                "outcome": "classical_gcd",
+            }
+        )
+        return ShorResult(
+            factors=_sorted_pair(common, modulus // common),
+            used_quantum=False,
+            task_ids=_task_ids(history),
+            order=None,
+            metadata={
+                "preprocessing": "classical_gcd",
+                "attempts": history,
+            },
+        )
+    build = build_order_finding_circuit(base, modulus, config.phase_qubits)
+    sample_task = backend.submit_sample(build.program, options=options)
+    counts = sample_task.result().single_counts()
+    record = {
+        "base": base,
+        "task_id": sample_task.id,
+        "samples": [],
+        "outcome": "rejected",
+    }
+    history.append(record)
+    phase_bits = len(build.phase_qubits)
+    samples = sorted(
+        ((int(key, 2), count) for key, count in counts.items()),
+        key=lambda item: item[1],
+        reverse=True,
+    )
+    for sample, count in samples:
+        if sample == 0:
+            record["samples"].append(
+                {
+                    "sample": sample,
+                    "count": count,
+                    "candidate_order": None,
+                    "rejection": "zero sample carries no phase",
+                }
+            )
+            continue
+        order = recover_order(sample, phase_bits, base, modulus)
+        if order is None:
+            record["samples"].append(
+                {
+                    "sample": sample,
+                    "count": count,
+                    "candidate_order": None,
+                    "rejection": "no convergent denominator recovered an order",
+                }
+            )
+            continue
+        order = _reduce_order_multiples(order, base, modulus)
+        if order % 2 == 1:
+            record["samples"].append(
+                {
+                    "sample": sample,
+                    "count": count,
+                    "candidate_order": order,
+                    "rejection": "odd order leaves no square root of unity",
+                }
+            )
+            continue
+        half = pow(base, order // 2, modulus)
+        if half == modulus - 1:
+            record["samples"].append(
+                {
+                    "sample": sample,
+                    "count": count,
+                    "candidate_order": order,
+                    "rejection": "base power is -1 modulo the modulus",
+                }
+            )
+            continue
+        factor_a = math.gcd(half - 1, modulus)
+        factor_b = math.gcd(half + 1, modulus)
+        if factor_a in (1, modulus) or factor_b in (1, modulus):
+            record["samples"].append(
+                {
+                    "sample": sample,
+                    "count": count,
+                    "candidate_order": order,
+                    "rejection": "trivial gcd factors",
+                }
+            )
+            continue
+        record["samples"].append(
+            {
+                "sample": sample,
+                "count": count,
+                "candidate_order": order,
+                "rejection": None,
+            }
+        )
+        record["outcome"] = "factored"
+        return ShorResult(
+            factors=_sorted_pair(factor_a, factor_b),
+            used_quantum=True,
+            task_ids=_task_ids(history),
+            order=order,
+            metadata={
+                "preprocessing": "quantum_order_finding",
+                "attempts": history,
+            },
+        )
+    return None
+
+
+def _make_shor_advance(exec_backend, options, rng=None):
+    """Build the one-attempt-per-poll advance of the Shor state machine.
+
+    ``rng`` is the live attempt RNG of a fresh task; a resumed task
+    passes None and the advance rebuilds the RNG from the checkpointed
+    snapshot in the state.  Every attempt mutates the state (the draw
+    position and the history), so a checkpoint written between polls
+    captures exactly what a resumed run needs and no completed task is
+    ever resubmitted.
+    """
+
+    def advance(state: dict):
+        if not state["classical_done"]:
+            state["classical_done"] = True
+            outcome = classical_preprocess(state["modulus"])
+            if outcome.resolved:
+                return (
+                    CompletedBackendTask(
+                        _result_snapshot(_classical_result(outcome)), task_id=""
+                    ),
+                    True,
+                )
+        attempt_rng = rng if rng is not None else _restore_rng(state)
+        config = ShorConfig(**state["config"])
+        result = _run_attempt(
+            state["modulus"],
+            attempt_rng,
+            config,
+            exec_backend,
+            options,
+            state["history"],
+        )
+        state["rng_state"] = _rng_snapshot(attempt_rng)
+        if result is not None:
+            task_id = result.task_ids[-1] if result.task_ids else ""
+            return (
+                CompletedBackendTask(_result_snapshot(result), task_id=task_id),
+                True,
+            )
+        step_task_id = state["history"][-1].get("task_id") or ""
+        if len(state["history"]) >= config.max_attempts:
+            return (
+                CompletedBackendTask(
+                    _result_snapshot(_exhausted_result(state["history"])),
+                    task_id=step_task_id,
+                ),
+                True,
+            )
+        return CompletedBackendTask(None, task_id=step_task_id), False
+
+    return advance
+
+
 class Shor:
     """Small-scale Shor factorization facade with bounded quantum attempts.
 
@@ -155,179 +431,58 @@ class Shor:
         preprocessing, submit one order-finding sample, and parse its
         phase samples.  Classical fast paths complete on the first poll;
         otherwise the task finishes on the first factorization or when
-        the attempt budget is exhausted, and the completed task's result
-        is the same :class:`ShorResult` :meth:`run` would return.  The
-        local path performs no checkpoints — checkpointed recovery with
-        a registered advance factory is the runtime stage of the
-        package — so ``backend_task_ids`` and the result metadata are
-        the provenance record here.
+        the attempt budget is exhausted, and the completed task's
+        ``result()`` is the JSON-safe dict snapshot of the
+        :class:`ShorResult` :meth:`run` would return (a checkpoint's
+        ``result`` field carries the same snapshot — see
+        :func:`_result_snapshot`).
+
+        The task is checkpointable: ``task.checkpoint(path)`` persists
+        the modulus, config, RNG draw position, and the full attempt
+        history (bases, completed task IDs, histograms, candidate
+        orders, rejection reasons) as JSON, and
+        :meth:`~pyqpanda_alg.execution.AlgorithmTask.resume` rebuilds
+        the attempt machine through the factory registered under
+        ``shor`` — the backend, credentials, and live task handles are
+        never serialized — so a resumed run continues the exact base
+        sequence and never resubmits a completed task.
         """
         backend = resolve_backend(backend)
         options = (
             execution_options if execution_options is not None else ExecutionOptions()
         )
-        state = {"classical_done": False, "history": []}
+        state = {
+            "modulus": self.modulus,
+            "config": {
+                "max_attempts": self.config.max_attempts,
+                "phase_qubits": self.config.phase_qubits,
+            },
+            "rng_state": _rng_snapshot(self.rng),
+            "classical_done": False,
+            "history": [],
+        }
 
-        def advance(state):
-            if not state["classical_done"]:
-                state["classical_done"] = True
-                outcome = classical_preprocess(self.modulus)
-                if outcome.resolved:
-                    return (
-                        CompletedBackendTask(
-                            _classical_result(outcome), task_id=""
-                        ),
-                        True,
-                    )
-            result = self._attempt_once(backend, options, state["history"])
-            if result is not None:
-                task_id = result.task_ids[-1] if result.task_ids else ""
-                return CompletedBackendTask(result, task_id=task_id), True
-            step_task_id = state["history"][-1].get("task_id") or ""
-            if len(state["history"]) >= self.config.max_attempts:
-                return (
-                    CompletedBackendTask(
-                        _exhausted_result(state["history"]), task_id=step_task_id
-                    ),
-                    True,
-                )
-            return CompletedBackendTask(None, task_id=step_task_id), False
+        def make_factory(exec_backend):
+            return _make_shor_advance(exec_backend, options)
 
+        register_algorithm("shor", make_factory)
         return AlgorithmTask(
             algorithm="shor",
             initial_state=state,
-            advance=advance,
+            advance=_make_shor_advance(backend, options, rng=self.rng),
             backend=backend,
         )
 
     def _attempt_once(self, backend, options, history: list[dict]) -> ShorResult | None:
         """Run one bounded attempt and return the factor result, or None.
 
-        Draws the base from the injected RNG.  A base sharing a factor
-        with the modulus resolves the attempt classically.  Otherwise
-        one order-finding sample task is submitted and every nonzero
-        phase sample of the histogram is parsed by descending count:
-        recover a candidate order, reduce multiples of the true order,
-        and derive factors from ``gcd(base**(order // 2) - 1, modulus)``
-        and ``gcd(base**(order // 2) + 1, modulus)``.
-        The record of the attempt — base, task ID, samples, candidate
-        orders, rejection reasons — is appended to ``history``.
+        Delegates to :func:`_run_attempt` with the solver's modulus,
+        RNG, and config; see the module docstring for the per-attempt
+        pipeline and the provenance guarantees.
         """
-        base = self.rng.randrange(2, self.modulus - 1)
-        common = math.gcd(base, self.modulus)
-        if common > 1:
-            history.append(
-                {
-                    "base": base,
-                    "task_id": None,
-                    "samples": [],
-                    "outcome": "classical_gcd",
-                }
-            )
-            return ShorResult(
-                factors=_sorted_pair(common, self.modulus // common),
-                used_quantum=False,
-                task_ids=_task_ids(history),
-                order=None,
-                metadata={
-                    "preprocessing": "classical_gcd",
-                    "attempts": history,
-                },
-            )
-        build = build_order_finding_circuit(
-            base, self.modulus, self.config.phase_qubits
+        return _run_attempt(
+            self.modulus, self.rng, self.config, backend, options, history
         )
-        sample_task = backend.submit_sample(build.program, options=options)
-        counts = sample_task.result().single_counts()
-        record = {
-            "base": base,
-            "task_id": sample_task.id,
-            "samples": [],
-            "outcome": "rejected",
-        }
-        history.append(record)
-        phase_bits = len(build.phase_qubits)
-        samples = sorted(
-            ((int(key, 2), count) for key, count in counts.items()),
-            key=lambda item: item[1],
-            reverse=True,
-        )
-        for sample, count in samples:
-            if sample == 0:
-                record["samples"].append(
-                    {
-                        "sample": sample,
-                        "count": count,
-                        "candidate_order": None,
-                        "rejection": "zero sample carries no phase",
-                    }
-                )
-                continue
-            order = recover_order(sample, phase_bits, base, self.modulus)
-            if order is None:
-                record["samples"].append(
-                    {
-                        "sample": sample,
-                        "count": count,
-                        "candidate_order": None,
-                        "rejection": "no convergent denominator recovered an order",
-                    }
-                )
-                continue
-            order = _reduce_order_multiples(order, base, self.modulus)
-            if order % 2 == 1:
-                record["samples"].append(
-                    {
-                        "sample": sample,
-                        "count": count,
-                        "candidate_order": order,
-                        "rejection": "odd order leaves no square root of unity",
-                    }
-                )
-                continue
-            half = pow(base, order // 2, self.modulus)
-            if half == self.modulus - 1:
-                record["samples"].append(
-                    {
-                        "sample": sample,
-                        "count": count,
-                        "candidate_order": order,
-                        "rejection": "base power is -1 modulo the modulus",
-                    }
-                )
-                continue
-            factor_a = math.gcd(half - 1, self.modulus)
-            factor_b = math.gcd(half + 1, self.modulus)
-            if factor_a in (1, self.modulus) or factor_b in (1, self.modulus):
-                record["samples"].append(
-                    {
-                        "sample": sample,
-                        "count": count,
-                        "candidate_order": order,
-                        "rejection": "trivial gcd factors",
-                    }
-                )
-                continue
-            record["samples"].append(
-                {
-                    "sample": sample,
-                    "count": count,
-                    "candidate_order": order,
-                    "rejection": None,
-                }
-            )
-            record["outcome"] = "factored"
-            return ShorResult(
-                factors=_sorted_pair(factor_a, factor_b),
-                used_quantum=True,
-                task_ids=_task_ids(history),
-                order=order,
-                metadata={
-                    "preprocessing": "quantum_order_finding",
-                    "attempts": history,
-                },
-            )
-        return None
 
 
 def _sorted_pair(first: int, second: int) -> tuple[int, int]:
