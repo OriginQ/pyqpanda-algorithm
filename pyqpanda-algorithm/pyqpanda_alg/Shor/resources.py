@@ -92,9 +92,10 @@ class ShorResourceEstimate:
         _require_positive(self.controlled_multiplies, "controlled_multiplies")
         _require_positive(self.synthesized_gates, "synthesized_gates")
         _require_positive(self.estimated_depth, "estimated_depth")
+        _require_positive(self.total_qubits, "total_qubits")
         expected = self.phase_qubits + self.value_qubits + self.ancilla_qubits
         if self.total_qubits != expected:
-            raise ValueError(
+            raise AlgorithmInputError(
                 f"total_qubits {self.total_qubits} does not match "
                 f"phase + value + ancilla = {expected}"
             )
@@ -171,7 +172,7 @@ def _estimated_depth(value_bits: int, phase_bits: int) -> int:
 
 def _require_positive(value: Any, name: str) -> None:
     if not isinstance(value, int) or value < 1:
-        raise ValueError(f"{name} must be a positive integer, got {value!r}")
+        raise AlgorithmInputError(f"{name} must be a positive integer, got {value!r}")
 
 
 def _require_int(value, name: str, minimum: int) -> int:

@@ -84,6 +84,25 @@ def test_runtime_session_release_is_idempotent(runtime_backend, ansatz, observab
     assert session.raw_session.release_calls == 1
 
 
+def test_raw_session_release_deactivates_the_context(runtime_backend, ansatz, observable):
+    """The fake session mirrors the real SDK: after release, the session
+    is no longer entered and a raw run fails the context contract."""
+    session = runtime_backend.create_variational_session(
+        ansatz, observable, options=ExecutionOptions()
+    )
+    with session:
+        assert session.raw_session._in_context is True
+        session.run([0.1, 0.2])
+        # an explicit release deactivates the raw session while still
+        # inside the wrapper context
+        session.raw_session.release()
+        assert session.raw_session._in_context is False
+        with pytest.raises(RuntimeError, match="entered session"):
+            session.raw_session.run_vqtask([0.1, 0.2])
+    # the wrapper context exit also releases the raw session
+    assert session.raw_session._in_context is False
+
+
 def test_runtime_session_reentry_after_release_raises(runtime_backend, ansatz, observable):
     session = runtime_backend.create_variational_session(
         ansatz, observable, options=ExecutionOptions()

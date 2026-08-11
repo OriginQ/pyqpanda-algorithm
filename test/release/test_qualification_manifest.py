@@ -90,6 +90,25 @@ def test_manifest_rejects_non_utc_timestamp(valid_manifest):
         validate_manifest(valid_manifest)
 
 
+@pytest.mark.parametrize(
+    "timestamp",
+    [
+        "2026-08-12T08:00:00+08:00",  # non-zero UTC offset
+        "2026-08-12T08:00:00-05:30",
+    ],
+)
+def test_manifest_rejects_non_zero_utc_offsets(valid_manifest, timestamp):
+    """Timestamps must be UTC: only 'Z' or '+00:00' are accepted."""
+    valid_manifest["timestamp"] = timestamp
+    with pytest.raises(ManifestValidationError):
+        validate_manifest(valid_manifest)
+
+
+def test_manifest_accepts_explicit_utc_zero_offset(valid_manifest):
+    valid_manifest["timestamp"] = "2026-08-12T08:00:00+00:00"
+    validate_manifest(valid_manifest)
+
+
 def test_manifest_rejects_unpassed_verdict(valid_manifest):
     valid_manifest["cases"][0]["verdict"] = "skipped"
     with pytest.raises(ManifestValidationError):

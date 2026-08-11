@@ -11,10 +11,12 @@ first test below is verbatim from the task brief.
 import pytest
 
 pytest.importorskip("qpanda3_runtime")  # QPandaRuntimeBackend needs the package
+from pyqpanda3.core import H
+from pyqpanda3.hamiltonian import Hamiltonian
 
 from test.execution.fakes import FakeDevice, FakeRuntimeService
 from test.release.conftest import fake_service_with_bad_result
-from tools.release_qualification.cases import case_by_name
+from tools.release_qualification.cases import QualificationCase, case_by_name
 from tools.release_qualification.run_qpu import QPURunner
 
 #: Gate set and topology the fake device must advertise so the fixed
@@ -49,6 +51,32 @@ def test_runner_records_failed_verdict_for_threshold_failure():
     record = runner.run_case(case_by_name("bell"))
     assert record.verdict == "failed"
     assert record.parsed_result["00"] == 250  # digestable interpretation
+    assert record.task_ids
+
+
+def test_estimate_case_wraps_scalar_parsed_result_as_an_object():
+    """The schema requires ``parsed_result`` to be an object; a scalar
+    estimate (float) on the circuit+observable path must be recorded as
+    ``{"value": ...}`` instead of a schema-invalid bare float."""
+    service = FakeRuntimeService()
+    runner = QPURunner(service=service, device=_qpu_device())
+    case = QualificationCase(
+        algorithm="estimate-fixture",
+        # a Hamiltonian, not a bare string: the runtime backend requires
+        # an observable that exposes qubits()
+        builder=lambda: (H(0), Hamiltonian({"Z0": 1.0})),
+        domain=lambda parsed: isinstance(parsed, (int, float)),
+        mode="estimate",
+        required_capabilities=("estimation",),
+        shots=1000,
+        threshold=0.9,
+        seed=1,
+        max_attempts=1,
+        timeout=60.0,
+    )
+    record = runner.run_case(case)
+    assert record.verdict == "passed"
+    assert record.parsed_result == {"value": 0.5}
     assert record.task_ids
 
 

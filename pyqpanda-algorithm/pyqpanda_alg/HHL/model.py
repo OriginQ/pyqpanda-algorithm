@@ -33,9 +33,11 @@ class HHLConfig:
     phase_qubits: int = 4
 
     def __post_init__(self) -> None:
-        if self.max_condition_number <= 0:
+        if not (self.max_condition_number > 0):
+            # ``not (x > 0)`` rejects NaN, which ``x <= 0`` silently
+            # accepts and would otherwise disable the rejection itself.
             raise ValueError(
-                f"max_condition_number must be positive, got {self.max_condition_number}"
+                f"max_condition_number must be a positive number, got {self.max_condition_number}"
             )
         if self.phase_qubits < 1:
             raise ValueError(

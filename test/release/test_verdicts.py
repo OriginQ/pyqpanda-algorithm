@@ -6,8 +6,19 @@ committed case contract (domain predicate + fixed threshold) to any
 parsed result.  The first test below is verbatim from the task brief.
 """
 
-from tools.release_qualification.cases import SMOKE_CASES, case_by_name
-from tools.release_qualification.verdicts import Verdict, bell_verdict, verdict_for_case
+import pytest
+
+from tools.release_qualification.cases import (
+    SMOKE_CASES,
+    _GOOD_OUTCOMES,
+    case_by_name,
+)
+from tools.release_qualification.verdicts import (
+    Verdict,
+    bell_verdict,
+    verdict_for_case,
+    _GOOD_OUTCOMES as _VERDICT_GOOD_OUTCOMES,
+)
 
 
 def test_bell_case_passes_fixed_threshold():
@@ -52,3 +63,20 @@ def test_smoke_bell_case_is_the_committed_smoke_floor():
     case = case_by_name("bell")
     assert case in SMOKE_CASES
     assert case.threshold == 0.9
+
+
+def test_verdict_refuses_falsy_shot_counts_for_floor_cases():
+    """A falsy shot count would silently disable the committed
+    probability floor; the verdict layer must refuse it."""
+    case = case_by_name("bell")
+    with pytest.raises(ValueError, match="shot count"):
+        verdict_for_case(case, {"00": 490, "11": 480}, shots=0)
+    with pytest.raises(ValueError, match="shot count"):
+        verdict_for_case(case, {"00": 490, "11": 480}, shots=None)
+
+
+def test_good_outcomes_are_single_sourced_from_cases():
+    """The verdict layer must consume the committed good outcomes from
+    the case inventory, never a drifting local copy."""
+    assert _VERDICT_GOOD_OUTCOMES is _GOOD_OUTCOMES
+    assert _VERDICT_GOOD_OUTCOMES == {"bell": ("00", "11"), "Grover": ("11",)}

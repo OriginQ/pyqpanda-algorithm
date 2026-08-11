@@ -31,15 +31,7 @@ the committed floor.
 from dataclasses import dataclass
 from typing import Any
 
-from .cases import case_by_name
-
-#: The committed good outcomes of the counts-shaped probability-floor
-#: cases, mirrored from ``cases.py`` (bell: correlated pairs; Grover:
-#: the marked state).
-_GOOD_OUTCOMES = {
-    "bell": ("00", "11"),
-    "Grover": ("11",),
-}
+from .cases import _GOOD_OUTCOMES, case_by_name
 
 
 @dataclass(frozen=True)
@@ -108,6 +100,11 @@ def _threshold_bound(case: Any, parsed: Any, shots: int | None) -> bool | None:
     if not isinstance(parsed, dict):
         return None
     if not shots:
-        return None
+        # A falsy shot count would silently disable the committed
+        # probability floor; refuse it instead.
+        raise ValueError(
+            f"{case.algorithm} needs a positive shot count for its "
+            f"committed probability floor, got {shots!r}"
+        )
     probability = sum(parsed.get(key, 0) for key in good) / shots
     return probability >= case.threshold

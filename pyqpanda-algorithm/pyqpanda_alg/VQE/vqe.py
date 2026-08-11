@@ -236,7 +236,7 @@ class VQE:
             raise ValueError(
                 f"initial_parameters must be one-dimensional, got shape {initial.shape}"
             )
-        expected = self._ansatz.mutable_parameter_total()
+        expected = _ansatz_parameter_count(self._ansatz)
         if initial.shape[0] != expected:
             raise ValueError(
                 f"initial_parameters has {initial.shape[0]} entries, "
@@ -447,16 +447,58 @@ def _solver_fingerprint(solver: "VQE") -> dict:
     """Stable JSON-safe identity of the problem the solver optimizes.
 
     The canonical Pauli string covers the observable (terms and
-    coefficients) and the qubit count; the ansatz parameter count pins
-    the variational circuit shape.  The advance verifies the task
-    state's fingerprint on every poll, so resuming a checkpoint through
-    a solver that optimizes a different problem is refused instead of
-    silently computing the wrong energy.
+    coefficients); the ansatz parameter count pins the variational
+    circuit shape; and the ansatz circuit descriptor distinguishes
+    ansatzes with equal parameter counts but different structure, so
+    two solvers only share a fingerprint when they optimize the same
+    problem.  The advance verifies the task state's fingerprint on
+    every poll, so resuming a checkpoint through a solver that
+    optimizes a different problem is refused instead of silently
+    computing the wrong energy.
     """
     return {
         "hamiltonian": str(solver._hamiltonian.pauli_operator()),
-        "ansatz_parameters": solver._ansatz.mutable_parameter_total(),
+        "ansatz_parameters": _ansatz_parameter_count(solver._ansatz),
+        "ansatz": _ansatz_descriptor(solver._ansatz),
     }
+
+
+def _ansatz_parameter_count(ansatz: Any) -> int:
+    """Return the ansatz's declared parameter count, or refuse explicitly.
+
+    A custom ansatz following the documented callable contract but
+    without ``mutable_parameter_total()`` is reported with the
+    documented :class:`ValueError` instead of leaking an
+    :class:`AttributeError`.
+    """
+    try:
+        return ansatz.mutable_parameter_total()
+    except AttributeError:
+        raise ValueError(
+            "the ansatz must expose mutable_parameter_total() to declare "
+            "its parameter count, like a pyqpanda3 VQCircuit"
+        ) from None
+
+
+def _ansatz_descriptor(ansatz: Any) -> str:
+    """Stable JSON-safe circuit-structure descriptor of the ansatz.
+
+    ``display_ansatz()`` renders the gate list deterministically for a
+    pyqpanda3 :class:`VQCircuit`; other ansatz types fall back to their
+    type name and parameter count, which still distinguishes them when
+    their parameter counts differ.
+    """
+    display = getattr(ansatz, "display_ansatz", None)
+    if callable(display):
+        try:
+            return str(display())
+        except Exception:
+            pass
+    try:
+        count = _ansatz_parameter_count(ansatz)
+    except ValueError:
+        count = "?"
+    return f"{type(ansatz).__name__}:{count}"
 
 
 def _build_result(adapter, execution_backend, resume_supported, solver) -> VQEResult:

@@ -104,6 +104,29 @@ def test_qae_case_reference_probability_is_0_75():
     assert abs(p_estimated - 0.75) <= case.threshold
 
 
+def test_qae_domain_enforces_the_committed_reference_probability():
+    """The committed QAE reference is p = 0.75; the domain itself must
+    enforce the |p - 0.75| <= 0.05 bound, so a raw probability far from
+    the reference can never pass."""
+    case = case_by_name("QAE")
+    assert case.domain(0.75)
+    assert case.domain(0.72)
+    assert case.domain(0.78)
+    assert not case.domain(0.3)  # in [0, 1] but far from the reference
+    assert not case.domain(0.0)
+    assert not case.domain(1.0)
+
+
+def test_qsen_code_domain_enforces_the_committed_plus_state():
+    """The committed QSEncode state is |+>|+>, so the domain itself must
+    enforce the per-component |p_i - 0.5| <= 0.05 bound."""
+    case = case_by_name("QSEncode")
+    assert case.domain([0.5, 0.5])
+    assert case.domain([0.48, 0.52])
+    assert not case.domain([0.3, 0.3])  # in [0, 1] but far from 0.5
+    assert not case.domain([0.9, 0.1])
+
+
 def test_hhl_domain_predicate_accepts_sampled_observables_dict():
     """The sampled HHL path reports observables as a dict keyed by Pauli
     string; the domain predicate must gate that shape, never a list."""

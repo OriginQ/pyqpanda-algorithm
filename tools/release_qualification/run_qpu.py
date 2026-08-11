@@ -59,7 +59,7 @@ from pyqpanda_alg.execution import (
     RuntimeBackendTask,
 )
 
-from .cases import QUALIFICATION_CASES, SMOKE_CASES
+from .cases import QUALIFICATION_CASES, SMOKE_CASES, _SHOR_MODULUS
 from .manifest import (
     SCHEMA_VERSION,
     AlgorithmQualification,
@@ -78,10 +78,9 @@ from .run_preflight import (
 )
 from .verdicts import verdict_for_case
 
-#: Shor modulus fixed at release time (mirrors ``cases._shor_invoke``);
-#: the committed RNG policy is applied by the runner (see module notes).
-_SHOR_MODULUS = 15
-
+#: Shor modulus fixed at release time (imported from ``cases.py`` as the
+#: single source); the committed RNG policy is applied by the runner
+#: (see module notes).
 #: Default QPU chip for the qualification run; overridable via ``--chip-id``.
 _DEFAULT_CHIP_ID = "WK_C180"
 
@@ -167,9 +166,11 @@ class QPURunner:
                 parsed = task.result().single_counts()
         except Exception as exc:
             return self._failure_record(case, executor, exc)
-        # The parsed result (counts dict or estimate float) is itself the
-        # JSON-safe record on the circuit path.
-        return self._success_record(case, executor, parsed, record=parsed)
+        # The parsed result (counts dict or estimate float) is the JSON-safe
+        # record on the circuit path; a scalar parsed result is wrapped so
+        # ``parsed_result`` always stays an object per the schema.
+        parsed_record = parsed if isinstance(parsed, dict) else {"value": _jsonable(parsed)}
+        return self._success_record(case, executor, parsed, record=parsed_record)
 
     def _qualify_invoke(
         self, case: Any, executor: "_CaseExecutor", invoke: Callable

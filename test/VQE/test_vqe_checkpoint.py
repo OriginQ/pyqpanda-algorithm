@@ -14,7 +14,9 @@ import json
 
 import numpy as np
 import pytest
+from pyqpanda3.core import RY, RZ
 from pyqpanda3.hamiltonian import Hamiltonian
+from pyqpanda3.vqcircuit import VQCircuit
 
 from pyqpanda_alg.VQE import VQE, VQEConfig
 from pyqpanda_alg.execution import (
@@ -152,9 +154,14 @@ def test_vqe_checkpoint_resume_continues_at_iteration_two(
     # only -- never a live session
     payload = json.loads(path.read_text(encoding="utf-8"))
     assert set(payload["state"]) == {"optimizer", "resume_supported", "fingerprint"}
-    assert payload["state"]["fingerprint"]["hamiltonian"] == (
-        "{ qubit_total = 1, pauli_with_coef_s = { 'Z0 ':1 + 0j, } }"
-    )
+    # Assert on the fingerprint's own stable fields instead of pinning
+    # pyqpanda3's Hamiltonian repr, which is not part of this package's
+    # contract.
+    fingerprint = payload["state"]["fingerprint"]
+    assert set(fingerprint) == {"hamiltonian", "ansatz_parameters", "ansatz"}
+    assert "Z0" in fingerprint["hamiltonian"]
+    assert fingerprint["ansatz_parameters"] == 2
+    assert "RY" in fingerprint["ansatz"] and "RZ" in fingerprint["ansatz"]
     optimizer_state = payload["state"]["optimizer"]
     assert set(optimizer_state) == {
         "method",
@@ -272,6 +279,61 @@ def test_vqe_custom_optimizer_with_protocol_round_trips(
     assert result.iterations == 3
     assert len(result.energy_history) == 3
     assert result.metadata["resume_supported"] is True
+
+
+def _ryrz_ansatz() -> VQCircuit:
+    """One-qubit RY-then-RZ ansatz with two parameters."""
+    ansatz = VQCircuit(1)
+    ansatz.set_Param([2])
+    ansatz << RY(0, ansatz.Param([0]))
+    ansatz << RZ(0, ansatz.Param([1]))
+    return ansatz
+
+
+def _ryry_ansatz() -> VQCircuit:
+    """One-qubit RY-then-RY ansatz with the same parameter count."""
+    ansatz = VQCircuit(1)
+    ansatz.set_Param([2])
+    ansatz << RY(0, ansatz.Param([0]))
+    ansatz << RY(0, ansatz.Param([1]))
+    return ansatz
+
+
+def _fingerprint_of(solver, backend, tmp_path) -> dict:
+    task = solver.submit(
+        initial_parameters=[0.1, 0.2],
+        backend=backend,
+        config=VQEConfig(max_iterations=3, tolerance=1e-12),
+    )
+    path = task.checkpoint(tmp_path / "vqe.json")
+    return json.loads(path.read_text(encoding="utf-8"))["state"]["fingerprint"]
+
+
+@pytest.mark.runtime_contract
+def test_vqe_fingerprint_distinguishes_same_parameter_count_ansatzes(
+    estimator_only_backend, tmp_path
+):
+    """Two ansatzes with equal parameter counts but different structure
+    must not share a solver fingerprint.
+
+    Without the ansatz circuit descriptor in the fingerprint, a
+    checkpoint could be resumed through a structurally different solver
+    optimizing the same observable with the same parameter count.
+    """
+    fingerprint_ryrz = _fingerprint_of(
+        VQE(Hamiltonian({"Z0": 1.0}), ansatz=_ryrz_ansatz()),
+        estimator_only_backend,
+        tmp_path,
+    )
+    fingerprint_ryry = _fingerprint_of(
+        VQE(Hamiltonian({"Z0": 1.0}), ansatz=_ryry_ansatz()),
+        estimator_only_backend,
+        tmp_path,
+    )
+    assert fingerprint_ryrz["ansatz_parameters"] == 2
+    assert fingerprint_ryrz["ansatz_parameters"] == fingerprint_ryry["ansatz_parameters"]
+    assert fingerprint_ryrz["ansatz"] != fingerprint_ryry["ansatz"]
+    assert fingerprint_ryrz != fingerprint_ryry
 
 
 @pytest.mark.runtime_contract

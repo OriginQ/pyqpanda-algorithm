@@ -103,11 +103,12 @@ def contains_credentials(payload: Any) -> bool:
 class AlgorithmQualification:
     """Qualification record of one fixed algorithm case.
 
-    ``raw_result_digest`` is the SHA-256 digest of the raw service
-    response and ``parsed_result`` holds the digestable interpretation;
-    ``verdict`` is the outcome against the committed threshold
-    (``passed`` or ``failed``).  ``transpiled`` records the preflight
-    device-transpilation evidence.
+    ``raw_result_digest`` is the SHA-256 digest of the recorded parsed
+    result — the interpretation that enters the manifest; raw service
+    responses are never retained, so this digests ``parsed_result``, not
+    a stored raw response.  ``verdict`` is the outcome against the
+    committed threshold (``passed`` or ``failed``).  ``transpiled``
+    records the preflight device-transpilation evidence.
     """
 
     algorithm: str

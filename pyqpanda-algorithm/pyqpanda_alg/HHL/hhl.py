@@ -569,7 +569,13 @@ def _postselect(build: HHLCircuitBuild, statevector: np.ndarray) -> tuple[np.nda
     dimension = 1 << (data_count + phase_count + 1)
     indices = np.arange(dimension)
     success = ((indices >> build.success_qubit) & 1) == 1
-    zero_phase = ((indices >> data_count) & ((1 << phase_count) - 1)) == 0
+    # Mask of every phase-qubit position, derived from the build's
+    # actual register layout instead of assuming the phase register
+    # occupies a fixed bit range.
+    phase_mask = 0
+    for qubit in build.phase_qubits:
+        phase_mask |= 1 << qubit
+    zero_phase = (indices & phase_mask) == 0
     data_state = np.asarray(statevector[success & zero_phase], dtype=np.complex128)
     success_probability = float(np.sum(np.abs(statevector[success]) ** 2))
     return data_state, min(1.0, success_probability)

@@ -11,6 +11,7 @@ artifact.
 """
 
 import hashlib
+from importlib.metadata import version
 
 import pytest
 
@@ -46,6 +47,15 @@ def test_wheel_basename_keeps_default_for_none_or_dash():
     assert _wheel_basename("") == _DEFAULT_WHEEL
     assert _wheel_basename("-") == _DEFAULT_WHEEL
     assert _wheel_basename(_WHEEL_NAME) == _WHEEL_NAME
+
+
+def test_default_wheel_tracks_the_installed_package_version():
+    """The default wheel name is derived from the installed pyqpanda_alg
+    version, so the committed artifact name cannot drift from the
+    release it qualifies."""
+    installed = version("pyqpanda_alg")
+    assert _DEFAULT_WHEEL == f"pyqpanda_alg-{installed}-py3-none-any.whl"
+    assert _wheel_basename(f".artifacts/{installed}/wheel/{_WHEEL_NAME}") == _WHEEL_NAME
 
 
 def test_qualification_runner_records_directory_prefixed_wheel_as_basename(

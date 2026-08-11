@@ -121,6 +121,19 @@ _QKMEANS_SEED = 6
 _SAMPLE_X = np.array([[0.0, 0.0], [1.0, 1.0]])
 _SAMPLE_Y = np.array([0.0, 1.0])
 
+#: Committed good outcomes of the counts-shaped probability-floor cases
+#: (bell: correlated pairs; Grover: the marked state).  The verdict
+#: layer and the runners import these from here, so the committed
+#: outcomes cannot drift across modules.
+_GOOD_OUTCOMES = {
+    "bell": ("00", "11"),
+    "Grover": ("11",),
+}
+#: The committed Shor case's modulus and RNG seed; the runners and the
+#: preflight Shor fallback import them from here (single source).
+_SHOR_MODULUS = 15
+_SHOR_SEED = 42
+
 
 @dataclass(frozen=True)
 class QualificationCase:
@@ -366,11 +379,12 @@ def _hhl_invoke(backend):
 
 
 def _shor_invoke(backend):
-    """Shor factorization of 15; the base is drawn from the committed
-    RNG and the committed attempt budget, so no factor/order is encoded."""
+    """Shor factorization of :data:`_SHOR_MODULUS`; the base is drawn
+    from the committed RNG and the committed attempt budget, so no
+    factor/order is encoded."""
     solver = Shor(
-        15,
-        rng=random.Random(42),
+        _SHOR_MODULUS,
+        rng=random.Random(_SHOR_SEED),
         config=ShorConfig(max_attempts=6),
     )
     return solver.run(
@@ -517,8 +531,12 @@ QUALIFICATION_CASES: tuple[QualificationCase, ...] = (
     QualificationCase(
         algorithm="QAE",
         builder=lambda: _qae_invoke,
+        # The committed reference p = sin^2(pi/3) = 0.75, so the domain
+        # itself enforces the committed |p - 0.75| <= 0.05 tolerance;
+        # a raw probability inside [0, 1] but far from the reference
+        # (e.g. p = 0.3) must not pass.
         domain=lambda parsed: (
-            isinstance(parsed, (int, float)) and 0.0 <= parsed <= 1.0
+            isinstance(parsed, (int, float)) and abs(parsed - 0.75) <= 0.05
         ),
         mode="sample",
         required_capabilities=("sampling",),
@@ -615,10 +633,14 @@ QUALIFICATION_CASES: tuple[QualificationCase, ...] = (
     QualificationCase(
         algorithm="QSEncode",
         builder=lambda: _qsen_code_invoke,
+        # The committed state is |+>|+>, so the domain itself enforces
+        # the committed per-component |p_i - 0.5| <= 0.05 tolerance;
+        # any raw probability list inside [0, 1] but far from 0.5 (e.g.
+        # [0.3, 0.3]) must not pass.
         domain=lambda parsed: (
             isinstance(parsed, list)
             and len(parsed) == 2
-            and all(0.0 <= p <= 1.0 for p in parsed)
+            and all(abs(p - 0.5) <= 0.05 for p in parsed)
         ),
         mode="sample",
         required_capabilities=("sampling",),
@@ -666,13 +688,14 @@ QUALIFICATION_CASES: tuple[QualificationCase, ...] = (
         algorithm="Shor",
         builder=lambda: _shor_invoke,
         domain=lambda parsed: (
-            parsed["factors"] is not None and set(parsed["factors"]) == {3, 5}
+            parsed["factors"] is not None
+            and set(parsed["factors"]) == {3, 5}  # the factor pair of 15
         ),
         mode="sample",
         required_capabilities=("sampling",),
         shots=_SHOTS,
         threshold=0.9,  # confidence floor on the {3, 5} factorization
-        seed=42,
+        seed=_SHOR_SEED,
         max_attempts=6,
         timeout=_LONG_TIMEOUT,
     ),

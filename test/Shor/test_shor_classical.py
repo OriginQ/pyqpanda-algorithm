@@ -18,6 +18,7 @@ from pyqpanda_alg.Shor import (
     classical_preprocess,
     recover_order,
 )
+from pyqpanda_alg.Shor.classical import _convergent_denominators
 from pyqpanda_alg.execution import AlgorithmInputError
 
 
@@ -63,6 +64,20 @@ def test_recover_order_recovers_order_six_for_base_two_mod_twenty_one():
 
 def test_zero_phase_sample_recovers_no_order():
     assert recover_order(sample=0, phase_bits=8, base=2, modulus=15) is None
+
+
+def test_later_unit_convergent_is_skipped_not_brute_forced():
+    """A sample fraction at/above 1/2 produces a later 1/1 convergent.
+
+    Every unit-denominator convergent must be skipped -- not only the
+    first -- or the multiple scan of a 1/1 denominator degenerates into
+    brute-force order search.  Sample 192/256 = 3/4 has convergents
+    [1, 4]: the 0/1 and 1/1 convergents are both skipped, so only the
+    1/4 denominator is scanned and order 4 is recovered without ever
+    brute-forcing.
+    """
+    assert list(_convergent_denominators(192, 256)) == [4]
+    assert recover_order(sample=192, phase_bits=8, base=2, modulus=15) == 4
 
 
 @pytest.mark.parametrize("invalid", [True, False])

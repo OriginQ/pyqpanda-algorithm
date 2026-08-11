@@ -44,6 +44,19 @@ def test_hhl_local_four_by_four_tridiagonal_matches_solution_direction():
     assert result.residual < 0.05
 
 
+def test_hhl_local_signed_eigenvalues_match_solution_direction():
+    # A Hermitian matrix with a negative eigenvalue exercises the
+    # signed-eigenvalue handling of the phase estimation and reciprocal
+    # rotation; the recovered direction must still match the exact
+    # solution of the original system.
+    matrix = np.diag([-1.0, 2.0])
+    vector = np.array([1.0, 1.0])
+    result = HHL(matrix, vector, precision=1e-3).run(reconstruct=True)
+    expected = normalized(np.linalg.solve(matrix, vector))
+    assert abs(np.vdot(expected, normalized(result.classical_vector))) > 0.99
+    assert result.residual < 0.05
+
+
 def test_hhl_local_padded_three_by_three_ignores_padding():
     matrix = np.diag([1.0, 2.0, 3.0])
     vector = np.array([1.0, 2.0, 3.0])

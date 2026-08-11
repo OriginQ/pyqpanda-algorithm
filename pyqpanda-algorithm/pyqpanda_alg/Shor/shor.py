@@ -175,9 +175,11 @@ def _restore_rng(state: dict) -> Any:
     JSON round trip stores the internal state as a list, which
     :meth:`random.Random.setstate` needs converted back to a tuple.
     A constant double without ``getstate`` has no position: the
-    restored rng re-draws the last attempted base from the history
-    (falling back to a fresh unseeded ``random.Random`` before any
-    base was drawn).
+    restored rng re-draws the last attempted base from the history.
+    A checkpoint with neither a snapshot nor a history carries no draw
+    position at all — resuming it would continue with an unseeded
+    ``random.Random`` and silently lose reproducibility, so it is
+    refused instead.
     """
     snapshot = state.get("rng_state")
     if snapshot is not None:
@@ -187,7 +189,12 @@ def _restore_rng(state: dict) -> Any:
         return rng
     if state["history"]:
         return _ConstantRng(state["history"][-1]["base"])
-    return random.Random()
+    raise AlgorithmInputError(
+        "the shor checkpoint carries no rng_state and no attempted base "
+        "to re-draw, so the resumed run would continue with an unseeded "
+        "RNG; resubmit the factorization with an RNG that exposes "
+        "getstate()"
+    )
 
 
 def _run_attempt(
@@ -325,15 +332,44 @@ def _run_attempt(
     return None
 
 
-def _make_shor_advance(exec_backend, options, rng=None):
+def _options_snapshot(options: ExecutionOptions) -> dict:
+    """Return the JSON-safe subset of ``options`` persisted in checkpoints.
+
+    Only the committed knobs a resumed run must reproduce — the shot
+    count and the timeout — are stored; the runtime-facing flags stay
+    out of the durable state.
+    """
+    return {"shots": options.shots, "timeout": options.timeout}
+
+
+def _options_from_snapshot(snapshot: Any) -> ExecutionOptions:
+    """Rebuild :class:`ExecutionOptions` from a checkpointed snapshot.
+
+    A checkpoint without the snapshot (written by an older build)
+    falls back to the defaults; ``shots`` and ``timeout`` are the only
+    fields persisted.
+    """
+    if not isinstance(snapshot, dict):
+        return ExecutionOptions()
+    return ExecutionOptions(
+        shots=snapshot.get("shots", ExecutionOptions.shots),
+        timeout=snapshot.get("timeout", ExecutionOptions.timeout),
+    )
+
+
+def _make_shor_advance(exec_backend, options=None, rng=None):
     """Build the one-attempt-per-poll advance of the Shor state machine.
 
     ``rng`` is the live attempt RNG of a fresh task; a resumed task
     passes None and the advance rebuilds the RNG from the checkpointed
-    snapshot in the state.  Every attempt mutates the state (the draw
-    position and the history), so a checkpoint written between polls
-    captures exactly what a resumed run needs and no completed task is
-    ever resubmitted.
+    snapshot in the state.  ``options`` is the live submission options
+    of a fresh task; a resumed task passes None and the advance reads
+    the checkpointed execution options from the state, so a resumed run
+    uses the options its own submit committed — never those of a later
+    submit that replaced the registered factory.  Every attempt mutates
+    the state (the draw position and the history), so a checkpoint
+    written between polls captures exactly what a resumed run needs and
+    no completed task is ever resubmitted.
     """
 
     def advance(state: dict):
@@ -349,12 +385,15 @@ def _make_shor_advance(exec_backend, options, rng=None):
                 )
         attempt_rng = rng if rng is not None else _restore_rng(state)
         config = ShorConfig(**state["config"])
+        run_options = (
+            options if options is not None else _options_from_snapshot(state.get("execution_options"))
+        )
         result = _run_attempt(
             state["modulus"],
             attempt_rng,
             config,
             exec_backend,
-            options,
+            run_options,
             state["history"],
         )
         state["rng_state"] = _rng_snapshot(attempt_rng)
@@ -438,9 +477,10 @@ class Shor:
         :func:`_result_snapshot`).
 
         The task is checkpointable: ``task.checkpoint(path)`` persists
-        the modulus, config, RNG draw position, and the full attempt
-        history (bases, completed task IDs, histograms, candidate
-        orders, rejection reasons) as JSON, and
+        the modulus, config, RNG draw position, the submission options
+        (shots and timeout), and the full attempt history (bases,
+        completed task IDs, histograms, candidate orders, rejection
+        reasons) as JSON, and
         :meth:`~pyqpanda_alg.execution.AlgorithmTask.resume` rebuilds
         the attempt machine through the factory registered under
         ``shor`` — the backend, credentials, and live task handles are
@@ -460,10 +500,15 @@ class Shor:
             "rng_state": _rng_snapshot(self.rng),
             "classical_done": False,
             "history": [],
+            "execution_options": _options_snapshot(options),
         }
 
         def make_factory(exec_backend):
-            return _make_shor_advance(exec_backend, options)
+            # No live options are closed over: the advance reads the
+            # submission options from the checkpointed state, so a
+            # resumed task uses the options its own submit committed —
+            # never those of a later submit that replaced the factory.
+            return _make_shor_advance(exec_backend)
 
         register_algorithm("shor", make_factory)
         return AlgorithmTask(

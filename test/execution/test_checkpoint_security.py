@@ -94,6 +94,12 @@ def test_redaction_handles_non_string_keys():
     assert redact_credentials({1: "kept", "api_key": "dropped"}) == {1: "kept"}
 
 
+def test_redaction_normalizes_hyphenated_credential_keys():
+    # A hyphenated key like "api-key" is the same credential as
+    # "api_key" and must be redacted after hyphen normalization.
+    assert redact_credentials({"api-key": "dropped", "access-token": "x"}) == {}
+
+
 def test_resume_of_missing_checkpoint_raises(tmp_path):
     with pytest.raises(TaskRecoveryError, match="could not read"):
         AlgorithmTask.resume(tmp_path / "missing.json")

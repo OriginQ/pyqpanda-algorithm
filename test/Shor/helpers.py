@@ -17,11 +17,14 @@ def run_basis_permutation(circuit, control, value):
     """Apply ``circuit`` to the basis state and return the value register.
 
     ``value`` is prepared little-endian on ``circuit.value_qubits`` and
-    the control qubit(s) of ``circuit`` are set to ``control`` (either
-    the single ``control_qubit`` or, for an exponentiation circuit, all
-    ``exponent_qubits``).  Every qubit is then measured once; the value
-    register is decoded little-endian from the measurement and returned,
-    and all ``circuit.ancilla_qubits`` are asserted to read zero.
+    the control qubit(s) of ``circuit`` are set by ``control``: the
+    single ``control_qubit`` is set when ``control`` is truthy, while an
+    exponentiation circuit treats ``control`` as a bit mask over
+    ``exponent_qubits`` (bit ``k`` sets exponent qubit ``k``), so every
+    exponent value is addressable per-bit.  Every qubit is then measured
+    once; the value register is decoded little-endian from the
+    measurement and returned, and all ``circuit.ancilla_qubits`` are
+    asserted to read zero.
     """
     value_qubits = list(circuit.value_qubits)
     ancilla_qubits = list(circuit.ancilla_qubits)
@@ -38,8 +41,8 @@ def run_basis_permutation(circuit, control, value):
         if (value >> k) & 1:
             prog << X(qubit)
     if exponent_qubits:
-        for qubit in exponent_qubits:
-            if control:
+        for k, qubit in enumerate(exponent_qubits):
+            if (control >> k) & 1:
                 prog << X(qubit)
     elif control_qubit is not None and control:
         prog << X(control_qubit)

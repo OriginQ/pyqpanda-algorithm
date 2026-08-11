@@ -9,7 +9,7 @@ gate/depth estimates and the input rejection surface.
 
 import pytest
 
-from pyqpanda_alg.Shor.resources import estimate_shor_resources
+from pyqpanda_alg.Shor.resources import ShorResourceEstimate, estimate_shor_resources
 from pyqpanda_alg.execution import AlgorithmInputError
 
 
@@ -70,3 +70,38 @@ def test_even_modulus_is_rejected():
 def test_phase_qubits_below_one_are_rejected(invalid):
     with pytest.raises(AlgorithmInputError, match="phase_qubits"):
         estimate_shor_resources(15, phase_qubits=invalid)
+
+
+@pytest.mark.parametrize(
+    "field",
+    ["modulus", "phase_qubits", "value_qubits", "ancilla_qubits", "total_qubits"],
+)
+def test_direct_construction_rejects_non_positive_fields(field):
+    """Direct construction raises the same input error as the estimator."""
+    kwargs = {
+        "modulus": 15,
+        "phase_qubits": 8,
+        "value_qubits": 4,
+        "ancilla_qubits": 5,
+        "total_qubits": 17,
+        "controlled_multiplies": 8,
+        "synthesized_gates": 1,
+        "estimated_depth": 1,
+    }
+    kwargs[field] = 0
+    with pytest.raises(AlgorithmInputError, match="positive integer"):
+        ShorResourceEstimate(**kwargs)
+
+
+def test_direct_construction_rejects_inconsistent_total_qubits():
+    with pytest.raises(AlgorithmInputError, match="total_qubits"):
+        ShorResourceEstimate(
+            modulus=15,
+            phase_qubits=8,
+            value_qubits=4,
+            ancilla_qubits=5,
+            total_qubits=99,  # 8 + 4 + 5 = 17
+            controlled_multiplies=8,
+            synthesized_gates=1,
+            estimated_depth=1,
+        )

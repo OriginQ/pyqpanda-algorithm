@@ -115,6 +115,13 @@ def test_hhl_config_rejects_invalid_values():
         HHLConfig(phase_qubits=0)
 
 
+def test_hhl_config_rejects_nan_max_condition_number():
+    # NaN compares false against everything, so a plain ``<= 0`` check
+    # would silently accept it and disable the rejection itself.
+    with pytest.raises(ValueError, match="positive"):
+        HHLConfig(max_condition_number=float("nan"))
+
+
 def test_hhl_solution_rejects_non_finite_values():
     with pytest.raises(ValueError, match="finite"):
         HHLSolution(classical_vector=np.array([1.0, np.nan]))

@@ -15,7 +15,12 @@ import random
 import pytest
 
 from pyqpanda_alg.Shor import Shor, ShorConfig
-from pyqpanda_alg.execution import AlgorithmTask, TaskStatus
+from pyqpanda_alg.execution import (
+    AlgorithmInputError,
+    AlgorithmTask,
+    ExecutionOptions,
+    TaskStatus,
+)
 
 from test.execution.fakes import RecordingBackend
 from test.Shor.test_shor_runtime import FixedBaseRng
@@ -126,4 +131,62 @@ def test_shor_checkpoint_never_serializes_the_backend(tmp_path):
         "rng_state",
         "classical_done",
         "history",
+        "execution_options",
     }
+    assert payload["state"]["execution_options"] == {
+        "shots": ExecutionOptions().shots,
+        "timeout": ExecutionOptions().timeout,
+    }
+
+
+@pytest.mark.runtime_contract
+def test_shor_resume_uses_the_checkpointed_submission_options(tmp_path):
+    """A resumed run keeps the shots its own submit committed.
+
+    A later submit replaces the registered advance factory with
+    different options; the checkpointed execution options must win, or
+    the resumed run would silently use the later submit's shots.
+    """
+    checkpoint = tmp_path / "shor.json"
+    backend = RecordingBackend(sample_counts=[{"00000000": 1000}, {"00000000": 1000}])
+
+    task_a = Shor(15, rng=random.Random(7), config=ShorConfig(max_attempts=2)).submit(
+        backend=backend, execution_options=ExecutionOptions(shots=1000)
+    )
+    assert task_a.poll() is TaskStatus.RUNNING  # attempt 1 rejected
+    task_a.checkpoint(checkpoint)
+
+    # A second submit with different shots replaces the registered
+    # factory for the process.
+    Shor(15, rng=random.Random(7), config=ShorConfig(max_attempts=2)).submit(
+        backend=backend, execution_options=ExecutionOptions(shots=5000)
+    )
+
+    resumed = AlgorithmTask.resume(checkpoint, backend=backend)
+    assert resumed.poll() is TaskStatus.SUCCEEDED  # attempt 2, then exhaustion
+    (_, options) = backend.sample_calls[-1]  # the resumed attempt's submission
+    assert options.shots == 1000  # A's shots, not the later submit's 5000
+    assert resumed.result()["metadata"]["exhausted"] is True
+
+
+@pytest.mark.runtime_contract
+def test_shor_resume_without_rng_snapshot_nor_history_is_refused(tmp_path):
+    """A checkpoint with neither rng_state nor an attempted base cannot
+    continue deterministically; resuming must refuse instead of silently
+    falling back to an unseeded RNG."""
+    checkpoint = tmp_path / "shor.json"
+    backend = RecordingBackend(sample_counts=[{"00000000": 1000}])
+    # FixedBaseRng exposes no getstate(), so its snapshot is None; the
+    # checkpoint is written before the first poll, so the history is
+    # still empty and there is no attempted base to re-draw.
+    task = Shor(15, rng=FixedBaseRng(2), config=ShorConfig(max_attempts=2)).submit(
+        backend=backend
+    )
+    task.checkpoint(checkpoint)
+
+    payload = json.loads(checkpoint.read_text(encoding="utf-8"))
+    assert payload["state"]["rng_state"] is None
+    assert payload["state"]["history"] == []
+
+    with pytest.raises(AlgorithmInputError, match="rng_state"):
+        AlgorithmTask.resume(checkpoint, backend=backend).poll()

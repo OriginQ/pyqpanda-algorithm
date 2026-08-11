@@ -58,16 +58,43 @@ def test_multiply_with_control_clear_is_identity(value):
 
 
 @pytest.mark.parametrize("value", range(15))
-def test_exponentiation_clears_all_exponent_bits(value):
+def test_exponentiation_with_all_exponent_bits_set(value):
     circuit = controlled_modular_exponentiation(
         base=2,
         modulus=15,
         exponent_qubits=[5, 6, 7],
         value_qubits=[0, 1, 2, 3],
     )
-    # All exponent bits set: exponent 2**3 - 1 = 7.
-    observed = run_basis_permutation(circuit, control=1, value=value)
+    # The control is a per-bit mask over the exponent register: 0b111
+    # sets every exponent bit, i.e. exponent 2**3 - 1 = 7.
+    observed = run_basis_permutation(circuit, control=0b111, value=value)
     assert observed == (value * pow(2, 7, 15)) % 15
+
+
+@pytest.mark.parametrize("value", range(15))
+def test_exponentiation_with_exponent_one(value):
+    circuit = controlled_modular_exponentiation(
+        base=2,
+        modulus=15,
+        exponent_qubits=[5, 6, 7],
+        value_qubits=[0, 1, 2, 3],
+    )
+    # Only the least significant exponent bit set: exponent 1.
+    observed = run_basis_permutation(circuit, control=0b001, value=value)
+    assert observed == (value * pow(2, 1, 15)) % 15
+
+
+@pytest.mark.parametrize("value", range(15))
+def test_exponentiation_with_exponent_zero_is_identity(value):
+    circuit = controlled_modular_exponentiation(
+        base=2,
+        modulus=15,
+        exponent_qubits=[5, 6, 7],
+        value_qubits=[0, 1, 2, 3],
+    )
+    # No exponent bit set: exponent 0, the identity permutation.
+    observed = run_basis_permutation(circuit, control=0b000, value=value)
+    assert observed == value
 
 
 def test_multiply_rejects_base_not_coprime_to_modulus():

@@ -363,8 +363,13 @@ class FakeVQSession:
         )
 
     def release(self):
-        """Record the release request (idempotent in the real session)."""
+        """Record the release request (idempotent in the real session).
+
+        The session is deactivated so a subsequent ``run_vqtask`` fails
+        the context contract, mirroring the real SDK.
+        """
         self.release_calls += 1
+        self._in_context = False
 
 
 class FakeRuntimeService:

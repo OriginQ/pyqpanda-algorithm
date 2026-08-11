@@ -21,7 +21,8 @@ the continued-fraction convergent denominators of the sample and, for
 each denominator, checks the denominator and its multiples against
 ``pow(base, order, modulus) == 1``.  The multiple scan is what finds
 the true order when a convergent denominator is only a proper divisor
-of it.  The trivial 0/1 convergent is skipped so the scan never
+of it.  Every unit-denominator convergent is skipped — the trivial
+0/1 convergent and any later 1/1 convergent — so the scan never
 degenerates into brute force.
 
 The :class:`Shor` orchestration facade lives in
@@ -152,22 +153,21 @@ def recover_order(sample, phase_bits, base, modulus) -> int | None:
 def _convergent_denominators(numerator: int, denominator: int):
     """Yield the continued-fraction convergent denominators of a fraction.
 
-    The trivial 0/1 convergent (denominator one) is skipped: its
-    denominator divides every order, so scanning its multiples would
-    degenerate into brute force.  Denominators of later convergents
-    strictly increase.
+    Every convergent with denominator one is skipped — the trivial
+    0/1 convergent and any later 1/1 convergent (a sample fraction at
+    or above 1/2 always produces one).  A unit denominator divides
+    every order, so scanning its multiples would degenerate into brute
+    force.  Denominators of the remaining convergents strictly
+    increase.
     """
     previous, current = 1, 0
     a, b = numerator, denominator
-    first = True
     while b:
         quotient, remainder = divmod(a, b)
         a, b = b, remainder
         current, previous = quotient * current + previous, current
-        if first:
-            first = False
-            if current == 1:
-                continue
+        if current == 1:
+            continue
         yield current
 
 

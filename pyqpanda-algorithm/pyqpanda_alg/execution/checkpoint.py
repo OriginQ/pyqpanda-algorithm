@@ -161,6 +161,7 @@ def read_checkpoint(path: Union[str, Path]) -> AlgorithmCheckpoint:
 
 def _is_credential_key(key: Any) -> bool:
     lowered = key.lower() if isinstance(key, str) else str(key)
+    lowered = lowered.replace("-", "_")
     return any(part in lowered for part in _CREDENTIAL_KEY_PARTS)
 
 

@@ -46,7 +46,7 @@ from pyqpanda_alg.execution import (
 )
 from pyqpanda_alg.Shor.circuit import build_order_finding_circuit
 
-from .cases import QUALIFICATION_CASES, TRANSPILATION_CASES
+from .cases import _SHOR_MODULUS, _SHOR_SEED, QUALIFICATION_CASES, TRANSPILATION_CASES
 from .manifest import (
     SCHEMA_VERSION,
     AlgorithmQualification,
@@ -54,10 +54,21 @@ from .manifest import (
     validate_manifest,
 )
 
-#: Default wheel name when the CLI does not name one yet.
-_DEFAULT_WHEEL = "pyqpanda_alg-2.1.0-py3-none-any.whl"
 #: Placeholder digest used when the wheel file is not available yet.
 _UNKNOWN_DIGEST = "0" * 64
+
+
+def _package_version(name: str) -> str:
+    try:
+        return version(name)
+    except PackageNotFoundError:
+        return "unknown"
+
+
+#: Default wheel name when the CLI does not name one yet; derived from
+#: the installed package version so the committed artifact name tracks
+#: the release under qualification instead of drifting independently.
+_DEFAULT_WHEEL = f"pyqpanda_alg-{_package_version('pyqpanda_alg')}-py3-none-any.whl"
 
 
 def _wheel_basename(wheel: str | None) -> str:
@@ -66,16 +77,13 @@ def _wheel_basename(wheel: str | None) -> str:
     The manifest's ``wheel`` field is a filename (``schema.json``:
     "Wheel filename"), never a directory-prefixed path, so a path a
     workflow passes (e.g. ``.artifacts/2.1.0/wheel/...``) is reduced to
-    its basename here.  ``None``/``""``/``"-"`` keep the committed
-    default; an already-bare name is returned unchanged.
+    its basename here.  ``None``/``""``/``"-"`` keep the default wheel
+    name, which is derived from the installed package version (see
+    :data:`_DEFAULT_WHEEL`); an already-bare name is returned unchanged.
     """
     if not wheel or wheel == "-":
         return _DEFAULT_WHEEL
     return Path(wheel).name
-
-#: The committed Shor case's modulus and RNG seed (see ``cases.py``).
-_SHOR_MODULUS = 15
-_SHOR_SEED = 42
 
 
 class _PreflightBackend:
@@ -202,6 +210,7 @@ def _qualify(case: Any, fake: Any) -> AlgorithmQualification:
     """
     request = case.builder()
     error = None
+    note = ""
     if isinstance(request, (QCircuit, QProg)):
         circuits, raw_results, submitted = [request], [], 0
     elif isinstance(request, tuple) and len(request) == 2:
@@ -219,12 +228,25 @@ def _qualify(case: Any, fake: Any) -> AlgorithmQualification:
             # The committed Shor draw (seed 42, modulus 15) resolves
             # classically -- gcd(12, 15) = 3 -- so the solver submits
             # nothing; transpile the order-finding circuit the solver
-            # would build on its first coprime draw instead.
+            # would build on its first coprime draw instead.  The note
+            # makes the classical resolution visible in the record.
+            note = (
+                "classical resolution: the committed Shor draw submitted "
+                "no circuit; the order-finding circuit of the committed "
+                "first coprime draw was transpiled instead"
+            )
             circuits = [_shor_order_finding_program()]
 
     transpiled_list, failed_list = fake.transpile(circuits) if circuits else ([], [])
     transpiled = bool(transpiled_list) and not failed_list
     passed = error is None and transpiled
+    parsed_result = {
+        "submissions": submitted,
+        "transpiled_circuits": len(transpiled_list),
+        "outcome": "ok" if error is None else f"{type(error).__name__}: {error}",
+    }
+    if note:
+        parsed_result["note"] = note
     return AlgorithmQualification(
         algorithm=case.algorithm,
         execution_mode="preflight" if case.mode != "transpile" else "transpile",
@@ -232,11 +254,7 @@ def _qualify(case: Any, fake: Any) -> AlgorithmQualification:
         shots=case.shots,
         threshold=case.threshold,
         raw_result_digest=_digest(raw_results),
-        parsed_result={
-            "submissions": submitted,
-            "transpiled_circuits": len(transpiled_list),
-            "outcome": "ok" if error is None else f"{type(error).__name__}: {error}",
-        },
+        parsed_result=parsed_result,
         verdict="passed" if passed else "failed",
         transpiled=transpiled,
     )
@@ -297,13 +315,6 @@ def _git_commit() -> str:
         return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
     except (subprocess.SubprocessError, OSError):
         return "0" * 40  # placeholder; the QPU workflow pins the real commit
-
-
-def _package_version(name: str) -> str:
-    try:
-        return version(name)
-    except PackageNotFoundError:
-        return "unknown"
 
 
 def _sha256_file(path: Path) -> str:
