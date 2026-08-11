@@ -23,6 +23,7 @@ Overall, it provides a standardized set of tools for developers, allowing them t
     :caption: Execution Layer
 
     execution
+    runtime_algorithms
 
 .. toctree::
     :maxdepth: 2

@@ -88,9 +88,10 @@ class Grover:
         Examples
             An example for implementing an Grover search for state where q_0 `and` q_1 is 1.
 
-        >>> from pyqpanda3.core import CPUQVM, QCircuit, Z, TOFFOLI
+        >>> from pyqpanda3.core import QCircuit, Z, TOFFOLI, QProg, measure
         >>> from pyqpanda_alg import Grover
-        >>> m = CPUQVM()
+        >>> from pyqpanda_alg.execution import LocalBackend, ExecutionOptions
+        >>> backend = LocalBackend()
         >>> q_state = list(range(3))
 
         >>> def mark(qubits):
@@ -103,11 +104,12 @@ class Grover:
         >>> demo_search = Grover.Grover(flip_operator=mark)
         >>> prog = QProg()
         >>> prog << demo_search.cir(q_input=q_state[:2], q_flip=q_state, q_zero=q_state[:2], iternum=1)
-        >>> m.run(prog,1000)
-        >>> res = m.result().get_prob_dict(q_state[:2])
-        >>> print(res)
+        >>> prog << measure(q_state[:2], [0, 1])
+        >>> task = backend.submit_sample(prog, options=ExecutionOptions(shots=1000))
+        >>> counts = task.result().single_counts()
+        >>> print(counts)
         >>> print(prog)
-        {'00': 0.0, '01': 0.0, '10': 0.0, '11': 1.0000000000000004}
+        {'11': 1000}
 
         .. parsed-literal::
                       ┌─┐             ┌─┐ ┌─┐     ┌─┐ ┌─┐
@@ -163,9 +165,8 @@ def iter_num(q_num, sol_num):
         An example for the case we show in the Grover search circuit. And we know there
         is only one solution to be found. And total 2 qubits for the search space.
 
-    >>> from pyqpanda3.core import CPUQVM, QCircuit, Z, TOFFOLI
+    >>> from pyqpanda3.core import QCircuit, Z, TOFFOLI
     >>> from pyqpanda_alg import Grover
-    >>> m = CPUQVM()
     >>> q_state = list(range(3))
 
     >>> def mark(qubits):
@@ -205,9 +206,8 @@ def iter_analysis(q_num, sol_num, iternum=1):
         An example for the case we show in the Grover search circuit. And we know there
         is only one solution to be found. And total 2 qubits for the search space.
 
-    >>> from pyqpanda3.core import CPUQVM, QCircuit, Z, TOFFOLI
+    >>> from pyqpanda3.core import QCircuit, Z, TOFFOLI
     >>> from pyqpanda_alg import Grover
-    >>> m = CPUQVM()
     >>> q_state = list(range(3))
 
     >>> def mark(qubits):
@@ -264,9 +264,8 @@ def amp_operator(q_input=None, q_flip=None, q_zero=None, in_operator=None, flip_
         An example for constucting a amplitude amplification operator used in the case we show
         in the Grover search circuit.
 
-    >>> from pyqpanda3.core import CPUQVM, QCircuit, Z, TOFFOLI
+    >>> from pyqpanda3.core import QCircuit, Z, TOFFOLI
     >>> from pyqpanda_alg import Grover
-    >>> m = CPUQVM()
     >>> q_state = list(range(3))
 
     >>> def mark(qubits):
@@ -340,9 +339,10 @@ def mark_data_reflection(qubits: list = None, mark_data=None):
     Examples
         An example for searching '101' and '001' using the flip operator given by this function.
 
-    >>> from pyqpanda3.core import CPUQVM, QProg
+    >>> from pyqpanda3.core import QProg
     >>> from pyqpanda_alg import Grover
-    >>> m = CPUQVM()
+    >>> from pyqpanda_alg.execution import LocalBackend, ExecutionOptions
+    >>> backend = LocalBackend()
 
     >>> q_state = list(range(3))
     >>> def mark(qubits):
@@ -350,10 +350,9 @@ def mark_data_reflection(qubits: list = None, mark_data=None):
     >>> demo_search = Grover.Grover(flip_operator=mark)
     >>> prog = QProg()
     >>> prog << demo_search.cir(q_input=q_state)
-    >>> m.run(prog,1000)
-    >>> res = m.result().get_prob_dict(q_state)
-    >>> print(res)
-    {'000': 0.0, '001': 0.5000000000000002, '010': 0.0, '011': 0.0, '100': 0.0, '101': 0.5000000000000002, '110': 0.0, '111': 0.0}
+    >>> state = backend.submit_statevector(prog, options=ExecutionOptions()).result().single_statevector()
+    >>> print(abs(state[0b001]) ** 2, abs(state[0b101]) ** 2)
+    0.5000000000000002 0.5000000000000002
 
     """
     if not hasattr(qubits, '__len__'):

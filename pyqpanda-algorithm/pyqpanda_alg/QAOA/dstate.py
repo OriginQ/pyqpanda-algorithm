@@ -336,22 +336,21 @@ def prepare_dicke_state(q_list, k, compress=True):
     Examples
         .. code-block:: python
 
-            from pyqpanda3.core import CPUQVM, QProg
+            from pyqpanda3.core import QProg
             from pyqpanda_alg.QAOA import dstate
+            from pyqpanda_alg.execution import LocalBackend, ExecutionOptions
 
             n = 4
             k = 2
-            machine = CPUQVM()
             qubits = list(range(n))
             prog = QProg()
             prog << dstate.prepare_dicke_state(qubits, k)
-            print(prog)
-            machine.run(prog, shots=1)
-            results = machine.result().get_prob_dict()
-            for key, prob in results.items():
-                key_hmw = key.count('1')
-                if key_hmw == k:
-                    print(key, prob)
+            backend = LocalBackend()
+            state = backend.submit_statevector(prog, options=ExecutionOptions()).result().single_statevector()
+            for index, amp in enumerate(state):
+                key = format(index, '04b')[::-1]
+                if key.count('1') == k and abs(amp) ** 2 > 0:
+                    print(key, abs(amp) ** 2)
 
 
     The given example illustrates how to prepare the state :math:`D_4^{(2)}`.
@@ -453,21 +452,20 @@ def linear_w_state(q_list, compress=True):
     Example
         .. code-block:: python
 
-            from pyqpanda3.core import QProg, CPUQVM
+            from pyqpanda3.core import QProg
             from pyqpanda_alg.QAOA import dstate
+            from pyqpanda_alg.execution import LocalBackend, ExecutionOptions
 
             n = 3
-            machine = CPUQVM()
             qubits = list(range(n))
             prog = QProg()
             prog << dstate.linear_w_state(qubits, compress=True)
-            print(prog)
-            machine.run(prog, shots=1)
-            results = machine.result().get_prob_dict()
-            for key, prob in results.items():
-                key_hmw = key.count('1')
-                if key_hmw == 1:
-                    print(key, prob)
+            backend = LocalBackend()
+            state = backend.submit_statevector(prog, options=ExecutionOptions()).result().single_statevector()
+            for index, amp in enumerate(state):
+                key = format(index, '03b')[::-1]
+                if key.count('1') == 1 and abs(amp) ** 2 > 0:
+                    print(key, abs(amp) ** 2)
 
     The example prepare W state on a 3-qubit system which is linearly connected.
     The corresponding circuit reads as:

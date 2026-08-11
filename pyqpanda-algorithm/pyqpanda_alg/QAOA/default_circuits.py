@@ -379,24 +379,24 @@ def init_d_state(domains, k=1, compress=True):
     Examples
         The given example illustrates how to prepare the state :math:`D_4^{(2)}`.
 
-    >>> from pyqpanda3.core import CPUQVM, QProg
+    >>> from pyqpanda3.core import QProg
     >>> from pyqpanda_alg.QAOA import default_circuits
+    >>> from pyqpanda_alg.execution import LocalBackend, ExecutionOptions
     >>> n = 6
     >>> k = 2
-    >>> machine = CPUQVM()
     >>> qubits = list(range(n))
     >>> prog = QProg()
     >>> domain = [[0,1,2],[3,4,5]]
     >>> init_circuit = default_circuits.init_d_state(domain, k)
     >>> prog << init_circuit(qubits)
-    >>> print(prog)
-    >>> machine.run(prog, shots=1)
-    >>> results = machine.result().get_prob_dict()
-    >>> for key, value in results.items():
-    >>>     prob = results[key]
-    >>>     domain0_key = [list(key)[::-1][i] for i in domain[0]]
-    >>>     domain1_key = [list(key)[::-1][i] for i in domain[1]]
-    >>>     if value > 0:
+    >>> backend = LocalBackend()
+    >>> state = backend.submit_statevector(prog, options=ExecutionOptions()).result().single_statevector()
+    >>> for index, amp in enumerate(state):
+    >>>     key = format(index, '06b')[::-1]
+    >>>     prob = abs(amp) ** 2
+    >>>     domain0_key = [key[i] for i in domain[0]]
+    >>>     domain1_key = [key[i] for i in domain[1]]
+    >>>     if prob > 0:
     >>>         print(key, domain0_key.count('1'), domain1_key.count('1'), prob)
 
 
@@ -500,20 +500,20 @@ def prepare_dicke_state(q_list, k, compress=True):
     Examples
         The given example illustrates how to prepare the state :math:`D_4^{(2)}`.
 
-    >>> from pyqpanda3.core import CPUQVM, QProg
+    >>> from pyqpanda3.core import QProg
     >>> from pyqpanda_alg.QAOA.default_circuits import prepare_dicke_state
+    >>> from pyqpanda_alg.execution import LocalBackend, ExecutionOptions
     >>> n = 4
     >>> k = 2
-    >>> machine = CPUQVM()
     >>> qubits = list(range(n))
     >>> prog = QProg()
     >>> prog << prepare_dicke_state(qubits, k)
-    >>> print(prog)
-    >>> machine.run(prog, shots=1)
-    >>> results = machine.result().get_prob_dict()
-    >>> for key, value in results.items():
-    >>>     prob = results[key]
-    >>>     if value > 0:
+    >>> backend = LocalBackend()
+    >>> state = backend.submit_statevector(prog, options=ExecutionOptions()).result().single_statevector()
+    >>> for index, amp in enumerate(state):
+    >>>     key = format(index, '04b')[::-1]
+    >>>     prob = abs(amp) ** 2
+    >>>     if prob > 0:
     >>>         print(key, prob)
 
 
@@ -577,20 +577,20 @@ def linear_w_state(q_list, compress=True):
     Example
         .. code-block:: python
 
-            from pyqpanda3.core import CPUQVM, QProg
+            from pyqpanda3.core import QProg
             from pyqpanda_alg.QAOA import default_circuits
+            from pyqpanda_alg.execution import LocalBackend, ExecutionOptions
 
             n = 3
             qubits = list(range(n))
-            machine = CPUQVM()
             prog = QProg()
             prog << default_circuits.linear_w_state(qubits, compress=True)
-            print(prog)
-            machine.run(prog, shots=1)
-            results = machine.result().get_prob_dict()
-            for key, value in results.items():
-                if value > 0:
-                    print(key, value, key.count('1'))
+            backend = LocalBackend()
+            state = backend.submit_statevector(prog, options=ExecutionOptions()).result().single_statevector()
+            for index, amp in enumerate(state):
+                key = format(index, '03b')[::-1]
+                if abs(amp) ** 2 > 0:
+                    print(key, abs(amp) ** 2, key.count('1'))
 
     The example prepare W state on a 3-qubit system which is linearly connected.
     The corresponding circuit reads as:

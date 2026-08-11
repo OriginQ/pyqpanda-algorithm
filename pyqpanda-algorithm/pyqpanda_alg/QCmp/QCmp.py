@@ -51,16 +51,17 @@ def int_comparator(value, q_state, q_anc_cmp, function='geq', reuse=False):
     >>> from pyqpanda_alg import QCmp
     >>> import numpy as np
     >>> from pyqpanda3.core import *
+    >>> from pyqpanda_alg.execution import LocalBackend, ExecutionOptions
+    >>> backend = LocalBackend()
     >>> value = 2
-    >>> m = CPUQVM()
     >>> prog = QProg()
     >>> prog << H(0) << H(1)
     >>> cir = QCmp.int_comparator(value, [0, 1], [2, 3], function='g', reuse=True)
     >>> prog << cir
-    >>> m.run(prog, 1000)
-    >>> prob_dict_result = m.result().get_prob_dict([3])
-    >>> print(prob_dict_result)
-    {'0': 0.7500000000000003, '1': 0.2500000000000001}
+    >>> state = backend.submit_statevector(prog, options=ExecutionOptions()).result().single_statevector()
+    >>> prob_result = sum(abs(amp) ** 2 for i, amp in enumerate(state) if (i >> 3) & 1)
+    >>> print(prob_result)
+    0.2500000000000001
 
     """
     if not hasattr(q_state, '__len__'):
@@ -209,16 +210,17 @@ def interpolation_comparator(value, q_state, q_anc_cmp, function='g', reuse=Fals
     >>> from pyqpanda_alg import QCmp
     >>> import numpy as np
     >>> from pyqpanda3.core import *
+    >>> from pyqpanda_alg.execution import LocalBackend, ExecutionOptions
+    >>> backend = LocalBackend()
     >>> value = 3.3
-    >>> m = CPUQVM()
     >>> prog = QProg()
     >>> prog << X(0) << X(1) << I(2)
     >>> cir = QCmp.interpolation_comparator(value, [0, 1, 2], [3, 4, 5], function='g', reuse=True)
     >>> prog << cir
-    >>> m.run(prog, 1000)
-    >>> prob_dict_result = m.result().get_prob_dict([5])
-    >>> print(prob_dict_result)
-    {'0': 0.7999999999999997, '1': 0.20000000000000023}
+    >>> state = backend.submit_statevector(prog, options=ExecutionOptions()).result().single_statevector()
+    >>> prob_result = sum(abs(amp) ** 2 for i, amp in enumerate(state) if (i >> 5) & 1)
+    >>> print(prob_result)
+    0.20000000000000023
 
     """
     if not hasattr(q_state, '__len__'):
@@ -325,15 +327,16 @@ def qubit_comparator(q_state_1, q_state_2, q_anc_cmp, function='geq'):
     >>> from pyqpanda_alg import QCmp
     >>> import numpy as np
     >>> from pyqpanda3.core import *
-    >>> m = CPUQVM()
+    >>> from pyqpanda_alg.execution import LocalBackend, ExecutionOptions
+    >>> backend = LocalBackend()
     >>> prog = QProg()
     >>> prog << H(0) << H(1) << X(3)
     >>> cir = QCmp.qubit_comparator([0, 1], [2, 3],  [4, 5], function='g')
     >>> prog << cir
-    >>> m.run(prog, 1000)
-    >>> prob_dict_result = m.result().get_prob_dict([5])
-    >>> print(prob_dict_result)
-    {'0': 0.7500000000000003, '1': 0.2500000000000001}
+    >>> state = backend.submit_statevector(prog, options=ExecutionOptions()).result().single_statevector()
+    >>> prob_result = sum(abs(amp) ** 2 for i, amp in enumerate(state) if (i >> 5) & 1)
+    >>> print(prob_result)
+    0.2500000000000001
 
     """
 
@@ -462,16 +465,17 @@ def qft_comparator(value, q_state, q_cmp, function='geq'):
     >>> from pyqpanda_alg import QCmp
     >>> import numpy as np
     >>> from pyqpanda3.core import *
+    >>> from pyqpanda_alg.execution import LocalBackend, ExecutionOptions
+    >>> backend = LocalBackend()
     >>> value = 2
-    >>> m = CPUQVM()
     >>> prog = QProg()
     >>> prog << H(0) << H(1)
     >>> cir = QCmp.qft_comparator(value, [0, 1], [2], function='g')
     >>> prog << cir
-    >>> m.run(prog, 1000)
-    >>> prob_dict_result = m.result().get_prob_dict([2])
-    >>> print(prob_dict_result)
-    {'0': 0.750000000000001, '1': 0.2500000000000002}
+    >>> state = backend.submit_statevector(prog, options=ExecutionOptions()).result().single_statevector()
+    >>> prob_result = sum(abs(amp) ** 2 for i, amp in enumerate(state) if (i >> 2) & 1)
+    >>> print(prob_result)
+    0.2500000000000002
 
     """
     
@@ -540,15 +544,16 @@ def qft_qubit_comparator(q_state_1, q_state_2, q_cmp, function='geq'):
     >>> from pyqpanda_alg import QCmp
     >>> import numpy as np
     >>> from pyqpanda3.core import *
-    >>> m = CPUQVM()
+    >>> from pyqpanda_alg.execution import LocalBackend, ExecutionOptions
+    >>> backend = LocalBackend()
     >>> prog = QProg()
     >>> prog << H(0) << H(1) << X(3)
     >>> cir = QCmp.qft_qubit_comparator([0, 1], [2, 3], [4], function='g')
     >>> prog << cir
-    >>> m.run(prog, 1000)
-    >>> prob_dict_result = m.result().get_prob_dict([4])
-    >>> print(prob_dict_result)
-    {'0': 0.7500000000000007, '1': 0.2500000000000002}
+    >>> state = backend.submit_statevector(prog, options=ExecutionOptions()).result().single_statevector()
+    >>> prob_result = sum(abs(amp) ** 2 for i, amp in enumerate(state) if (i >> 4) & 1)
+    >>> print(prob_result)
+    0.2500000000000002
     
     """
 

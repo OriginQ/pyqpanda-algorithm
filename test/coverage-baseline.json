@@ -1,0 +1,66 @@
+{
+  "explicit_thresholds": {
+    "execution": {
+      "line": 85.0
+    }
+  },
+  "note": "Measured by `python -m pytest test --cov=pyqpanda_alg --cov-branch --cov-report=json:test/coverage-current.json` during Plan 3 Task 6; check_coverage_baseline.py exits nonzero when an existing package drops below these numbers. New modules without a baseline entry (VQE/HHL/Shor plans) use explicit plan thresholds instead.",
+  "packages": {
+    "Grover": {
+      "branch": 70.51,
+      "line": 82.68
+    },
+    "QAE": {
+      "branch": 76.25,
+      "line": 91.53
+    },
+    "QAOA": {
+      "branch": 45.0,
+      "line": 67.54
+    },
+    "QARM": {
+      "branch": 77.0,
+      "line": 88.89
+    },
+    "QCmp": {
+      "branch": 50.0,
+      "line": 63.33
+    },
+    "QKmeans": {
+      "branch": 87.5,
+      "line": 98.63
+    },
+    "QPCA": {
+      "branch": 58.0,
+      "line": 63.68
+    },
+    "QSEncode": {
+      "branch": 73.68,
+      "line": 88.37
+    },
+    "QSVD": {
+      "branch": 62.5,
+      "line": 78.69
+    },
+    "QSVM": {
+      "branch": 65.91,
+      "line": 88.57
+    },
+    "QSVR": {
+      "branch": 81.25,
+      "line": 91.57
+    },
+    "QUBO": {
+      "branch": 73.17,
+      "line": 89.29
+    },
+    "QmRMR": {
+      "branch": 91.67,
+      "line": 91.73
+    },
+    "plugin": {
+      "branch": 39.62,
+      "line": 43.87
+    }
+  }
+}
