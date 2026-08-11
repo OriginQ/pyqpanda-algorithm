@@ -14,6 +14,26 @@ rescaled by the original vector norm to recover the solution of the
 original unpadded system.  The solver never constructs a ``CPUQVM``
 itself; it always goes through the backend's submission surface.
 
+Runtime measurement plans
+-------------------------
+The exact state-vector path above is used on the CPU
+:class:`~pyqpanda_alg.execution.LocalBackend`.  Any other backend is
+executed through sampling with the runtime measurement plans: the
+success ancilla and the requested data observables are measured, and
+the success probability is the weight of the success outcomes in the
+counts.  With ``reconstruct=True`` the solution is recovered by
+Pauli-basis tomography — ``3 ** data_qubits`` X/Y/Z measurement
+circuits, exactly the count declared by
+:func:`~pyqpanda_alg.HHL.resources.estimate_hhl_resources` — submitted
+one basis batch per step of a resumable
+:class:`~pyqpanda_alg.execution.AlgorithmTask`, with a checkpoint
+after every completed batch.  The density matrix is reconstructed from
+the post-selected counts, its dominant eigenvector is truncated to the
+original dimension, and the reconstruction fidelity and uncertainty
+are reported in the result metadata.  The runtime default is success
+probability and requested observables, never full-vector
+reconstruction.
+
 Precision semantics
 -------------------
 ``precision`` is the QPE phase-resolution target: the phase register
@@ -26,13 +46,37 @@ for the reciprocal rotation to invert it faithfully.
 """
 
 import math
+import re
 
 import numpy as np
+from pyqpanda3.core import QProg, measure
 
-from ..execution import ExecutionOptions, resolve_backend
+from ..execution import (
+    AlgorithmInputError,
+    AlgorithmTask,
+    CompletedBackendTask,
+    DeviceCapabilityError,
+    ExecutionOptions,
+    LocalBackend,
+    TaskStatus,
+    register_algorithm,
+    resolve_backend,
+)
 from .circuit import HHLCircuitBuild, build_hhl_circuit
 from .model import HHLConfig, HHLSolution, NormalizedLinearSystem
+from .resources import estimate_hhl_resources
+from .tomography import (
+    apply_basis_rotation,
+    dominant_eigenvector,
+    pauli_basis_strings,
+    pauli_expectation,
+    reconstruct_density_matrix,
+)
 from .validation import _coerce_matrix, _coerce_vector, normalize_linear_system
+
+#: One observable token: a Pauli letter directly followed by the index
+#: of the data qubit it acts on (``X0Y1`` is X on qubit 0 and Y on 1).
+_OBSERVABLE_TOKEN = re.compile(r"([XYZ])(\d+)")
 
 
 class HHL:
@@ -86,10 +130,13 @@ class HHL:
         backend=None,
         execution_options: ExecutionOptions | None = None,
         reconstruct: bool = False,
+        observables: list[str] | None = None,
+        checkpoint_path=None,
     ) -> HHLSolution:
         """Solve the system on a backend and return the immutable result.
 
-        The measurement-free program is submitted through the backend's
+        On the CPU :class:`~pyqpanda_alg.execution.LocalBackend` the
+        measurement-free program is submitted through
         ``submit_statevector``; the ancilla success branch gives the
         success probability, and the post-selected data register is the
         solution of the padded system.  With ``reconstruct=False`` (the
@@ -99,35 +146,82 @@ class HHL:
         classical solution vector and the residual against the original
         unpadded system are computed as well.
 
+        On any other (runtime) backend the run is executed through
+        sampling: the success ancilla and the requested data observables
+        are measured, and the success probability is the weight of the
+        success outcomes.  With ``reconstruct=True`` the solution is
+        recovered by Pauli-basis tomography over the data register: the
+        ``3 ** data_qubits`` basis circuits declared by
+        :func:`~pyqpanda_alg.HHL.resources.estimate_hhl_resources` are
+        submitted one basis batch per step of a resumable
+        :class:`~pyqpanda_alg.execution.AlgorithmTask`, a checkpoint is
+        written after every completed batch when ``checkpoint_path`` is
+        given, and the density matrix reconstructed from the counts
+        yields the classical solution vector and the reconstruction
+        fidelity and uncertainty.  The sampling path requires a backend
+        advertising sampling capability.
+
         Args:
-            backend: The execution backend to submit the statevector
-                execution to.  Keyword-only.  When None, the local CPU
-                backend is used.
+            backend: The execution backend to submit the work to.
+                Keyword-only.  When None, the local CPU backend is used.
             execution_options: Submission options for the backend.
                 Keyword-only.  When None, defaults apply.
             reconstruct: Whether to reconstruct the classical solution
-                vector and compute the residual.  Keyword-only.
-                Defaults to False.
+                vector.  Keyword-only.  Defaults to False.  On the local
+                path the residual against the original unpadded system
+                is computed as well.
+            observables: Data-register Pauli strings to measure on the
+                sampling path, for example ``["Z0", "X0Y1"]``; each
+                expectation value is reported in
+                ``metadata["observables"]``.  Keyword-only.  Defaults
+                to None (no observable expectations).  Rejected on the
+                local state-vector path.
+            checkpoint_path: Where to checkpoint the tomography state
+                machine after each completed basis batch, so a failed
+                run can be resumed with
+                :meth:`~pyqpanda_alg.execution.AlgorithmTask.resume`.
+                Keyword-only.  Defaults to None (no checkpoints).
 
         Returns:
             The frozen :class:`HHLSolution`: ``classical_vector`` (unit
             norm, truncated to the original dimension) and ``residual``
             (``||A x - b|| / ||b||`` with ``x`` restored to the original
             scale) when ``reconstruct`` is true, the post-selected data
-            state, the success probability, and execution metadata.
+            state, the success probability, and execution metadata.  On
+            the sampling path ``statevector`` is always None and the
+            reconstruction fidelity and uncertainty are reported in
+            ``metadata["tomography"]``.
 
         Raises:
             AlgorithmExecutionError: If the backend submission or result
                 retrieval fails — the runtime failure is surfaced,
                 never silently retried on another backend.
+            DeviceCapabilityError: If a sampling backend does not
+                advertise sampling capability, before any submission.
+            AlgorithmInputError: If an observable is not a valid Pauli
+                string over the data register, or observables are
+                requested on the local state-vector path.
         """
-        build = self.build_circuit()
         execution_backend = resolve_backend(backend)
         options = (
             execution_options
             if execution_options is not None
             else ExecutionOptions()
         )
+        if not isinstance(execution_backend, LocalBackend):
+            return self._run_sampled(
+                execution_backend,
+                options,
+                reconstruct=reconstruct,
+                observables=observables,
+                checkpoint_path=checkpoint_path,
+            )
+        if observables is not None:
+            raise AlgorithmInputError(
+                "observables are measured through sampling; "
+                "the local state-vector path does not support them"
+            )
+        build = self.build_circuit()
         task = execution_backend.submit_statevector(build.program, options=options)
         statevector = np.asarray(task.result().single_statevector())
         data_state, success_probability = _postselect(build, statevector)
@@ -150,6 +244,275 @@ class HHL:
                 solution, build, self._system, data_state, self._matrix, self._vector
             )
         return solution
+
+
+    def _run_sampled(
+        self,
+        execution_backend,
+        options: ExecutionOptions,
+        *,
+        reconstruct: bool,
+        observables: list[str] | None,
+        checkpoint_path,
+    ) -> HHLSolution:
+        """Execute the runtime measurement plans on a sampling backend.
+
+        The default plan measures the success ancilla and, per requested
+        observable, the data register in that observable's basis; the
+        success probability is the weight of the success outcomes of the
+        first measurement circuit, and each observable expectation is
+        estimated from the post-selected counts.  The reconstruction
+        plan delegates to :meth:`_run_tomography`.
+        """
+        _require_sampling(execution_backend)
+        if reconstruct:
+            return self._run_tomography(
+                execution_backend, options, checkpoint_path
+            )
+        build = self.build_circuit()
+        plans = _measurement_plans(build, observables)
+        success_probability = None
+        expectations = {}
+        task_ids = []
+        for index, (program, pauli) in enumerate(plans):
+            task = execution_backend.submit_sample(program, options=options)
+            counts = task.result().single_counts()
+            if index == 0:
+                success_probability = _success_probability(counts)
+            if pauli is not None:
+                expectations[observables[index]] = pauli_expectation(
+                    pauli, _postselect_counts(counts)
+                )
+            task_ids.append(task.id)
+        metadata = _runtime_metadata(
+            execution_backend, task_ids, self._precision, build
+        )
+        if expectations:
+            metadata["observables"] = expectations
+        return HHLSolution(
+            success_probability=success_probability,
+            statevector=None,
+            metadata=metadata,
+        )
+
+    def _run_tomography(
+        self, execution_backend, options: ExecutionOptions, checkpoint_path
+    ) -> HHLSolution:
+        """Recover the classical solution by Pauli-basis tomography.
+
+        The ``3 ** data_qubits`` basis circuits declared by
+        :func:`estimate_hhl_resources` are submitted one basis batch per
+        step of a resumable :class:`AlgorithmTask`; a checkpoint written
+        after every completed basis batch carries the accumulated counts
+        and reconstruction progress, so a failed run can be resumed with
+        :meth:`AlgorithmTask.resume` without re-submitting completed
+        batches.  The post-selected counts reconstruct the density
+        matrix of the success branch, whose dominant eigenvector is
+        truncated to the original dimension and normalized to the
+        classical solution vector; its eigenvalue is reported as the
+        reconstruction fidelity.
+        """
+        build = self.build_circuit()
+        estimate = estimate_hhl_resources(self._matrix, self._vector, self._config)
+        basis_strings = pauli_basis_strings(len(build.data_qubits))
+        state = {"basis_strings": basis_strings, "basis_index": 0}
+
+        def make_advance(exec_backend):
+            def advance(state):
+                index = state["basis_index"]
+                basis = state["basis_strings"][index]
+                program = _basis_measurement_circuit(build, basis)
+                sample_task = exec_backend.submit_sample(program, options=options)
+                counts = sample_task.result().single_counts()
+                state["basis_index"] = index + 1
+                done = index + 1 >= len(state["basis_strings"])
+                return CompletedBackendTask([counts], task_id=sample_task.id), done
+
+            return advance
+
+        register_algorithm("hhl", make_advance)
+        task = AlgorithmTask(
+            algorithm="hhl",
+            initial_state=state,
+            advance=make_advance(execution_backend),
+            backend=execution_backend,
+        )
+        while task.poll() is not TaskStatus.SUCCEEDED:
+            if checkpoint_path is not None:
+                task.checkpoint(checkpoint_path)
+        if checkpoint_path is not None:
+            task.checkpoint(checkpoint_path)
+        counts_list = task.result()
+        basis_counts = {
+            basis: _postselect_counts(counts)
+            for basis, counts in zip(basis_strings, counts_list)
+        }
+        density = reconstruct_density_matrix(basis_counts, len(build.data_qubits))
+        fidelity, eigenvector = dominant_eigenvector(density)
+        truncated = np.asarray(eigenvector)[: self._system.original_dimension]
+        norm = float(np.linalg.norm(truncated))
+        if norm == 0.0:
+            raise RuntimeError(
+                "the reconstructed HHL solution has no weight in the "
+                "original unpadded registers"
+            )
+        metadata = _runtime_metadata(
+            execution_backend, task.backend_task_ids, self._precision, build
+        )
+        metadata["tomography"] = {
+            "circuits": estimate.tomography_circuits,
+            "shots": options.shots,
+            "fidelity": fidelity,
+            "uncertainty": 1.0 - fidelity,
+        }
+        return HHLSolution(
+            classical_vector=truncated / norm,
+            statevector=None,
+            success_probability=_success_probability(counts_list[0]),
+            metadata=metadata,
+        )
+
+
+def _require_sampling(execution_backend) -> None:
+    """Reject backends without sampling capability before submission."""
+    capabilities = getattr(execution_backend, "capabilities", None)
+    if capabilities is not None and not capabilities.sampling:
+        raise DeviceCapabilityError(
+            "HHL runtime execution requires a backend with sampling "
+            "capability"
+        )
+
+
+def _measurement_plans(
+    build: HHLCircuitBuild, observables: list[str] | None
+) -> list[tuple[object, str | None]]:
+    """Return the ``(program, pauli)`` measurement circuits of the plan.
+
+    Without observables the plan is one circuit measuring only the
+    success ancilla.  With observables each gets its own circuit
+    measuring the success ancilla and the data register in the
+    observable's basis; the paired positional Pauli string drives the
+    expectation estimate from the post-selected counts.
+    """
+    if not observables:
+        return [(_success_measurement_circuit(build), None)]
+    plans = []
+    for observable in observables:
+        basis, pauli = _parse_observable(observable, len(build.data_qubits))
+        program = QProg()
+        program << build.program
+        apply_basis_rotation(program, basis, build.data_qubits)
+        program << _measure_success_and_data(build)
+        plans.append((program, pauli))
+    return plans
+
+
+def _parse_observable(
+    observable: str, data_qubits: int
+) -> tuple[str, str]:
+    """Parse ``"X0Y1"`` into the (basis, positional pauli) strings.
+
+    The measurement basis over the data register measures identity
+    positions in Z, and the positional Pauli string keeps the letter on
+    every nontrivial data qubit so the expectation can be estimated
+    from the counts.  Observables referencing a qubit outside the data
+    register or using characters other than a Pauli letter plus an
+    index are rejected before any submission.
+    """
+    if not isinstance(observable, str) or not observable:
+        raise AlgorithmInputError(
+            "observables must be Pauli strings over the data register, "
+            "for example 'Z0' or 'X0Y1'"
+        )
+    basis = ["Z"] * data_qubits
+    pauli = ["I"] * data_qubits
+    covered = set()
+    position = 0
+    for match in _OBSERVABLE_TOKEN.finditer(observable):
+        letter, index = match.group(1), int(match.group(2))
+        if index >= data_qubits:
+            raise AlgorithmInputError(
+                f"observable {observable!r} references data qubit {index} "
+                f"outside the {data_qubits}-qubit data register"
+            )
+        if index in covered:
+            raise AlgorithmInputError(
+                f"observable {observable!r} acts on data qubit {index} twice"
+            )
+        basis[index] = letter
+        pauli[index] = letter
+        covered.add(index)
+        position = match.end()
+    if position != len(observable):
+        raise AlgorithmInputError(
+            f"observable {observable!r} is not a Pauli string over the "
+            "data register"
+        )
+    return "".join(basis), "".join(pauli)
+
+
+def _success_measurement_circuit(build: HHLCircuitBuild):
+    """The core circuit measuring only the success ancilla."""
+    program = QProg()
+    program << build.program
+    program << measure([build.success_qubit], [0])
+    return program
+
+
+def _basis_measurement_circuit(build: HHLCircuitBuild, basis: str):
+    """The core circuit measuring the success ancilla and the data
+    register in ``basis``, with the success ancilla first."""
+    program = QProg()
+    program << build.program
+    apply_basis_rotation(program, basis, build.data_qubits)
+    program << _measure_success_and_data(build)
+    return program
+
+
+def _measure_success_and_data(build: HHLCircuitBuild):
+    """A measure node over the success ancilla followed by the data
+    register, so outcome ``key[0]`` is the success bit."""
+    return measure(
+        [build.success_qubit] + list(build.data_qubits),
+        list(range(len(build.data_qubits) + 1)),
+    )
+
+
+def _success_probability(counts: dict[str, int]) -> float:
+    """Weight of the success-ancilla outcomes (first bit of each key)."""
+    total = sum(counts.values())
+    if total == 0:
+        return 0.0
+    successes = sum(
+        count for key, count in counts.items() if key and key[0] == "1"
+    )
+    return min(1.0, successes / total)
+
+
+def _postselect_counts(counts: dict[str, int]) -> dict[str, int]:
+    """Drop the outcomes where the success ancilla read 0.
+
+    The returned counts keep only the data bits of the success branch,
+    so ``key[j]`` is the outcome of data qubit ``j``.
+    """
+    return {
+        key[1:]: count for key, count in counts.items() if key and key[0] == "1"
+    }
+
+
+def _runtime_metadata(
+    execution_backend, task_ids, precision: float, build: HHLCircuitBuild
+) -> dict:
+    """Base metadata of a sampled run, mirroring the local path."""
+    return {
+        "backend": type(execution_backend).__name__,
+        "task_ids": list(task_ids),
+        "precision": precision,
+        "phase_qubits": len(build.phase_qubits),
+        "evolution_time": build.evolution_time,
+        "reciprocal_scale": build.reciprocal_scale,
+        "eigenvalue_bounds": build.eigenvalue_bounds,
+    }
 
 
 def _postselect(build: HHLCircuitBuild, statevector: np.ndarray) -> tuple[np.ndarray, float]:
