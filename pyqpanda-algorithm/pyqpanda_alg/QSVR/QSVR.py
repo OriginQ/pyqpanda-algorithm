@@ -27,16 +27,16 @@ class Quantum_SVR:
     quantum kernel based on variational quantum circuits.
 
     Parameters
-        x : ``array_like``\n
+        x : ``array_like``
             Input features for training. If the number of features is less than 2, it will be padded;
             if more than 2, dimensionality reduction via PCA will be applied to reduce to 2D.
-        y : ``array_like``\n
+        y : ``array_like``
             Target regression labels.
 
     Attributes
-        x : ``ndarray``\n
+        x : ``ndarray``
             2-dimensional input features after scaling and dimensionality adjustment.
-        y : ``ndarray``\n
+        y : ``ndarray``
             Corresponding regression target values.
 
     Methods

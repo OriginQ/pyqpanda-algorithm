@@ -24,13 +24,13 @@ def iswap(q1, q2, angle):
     Quantum circuits to generate a 2-qubit iswap gate, which can express as :math:`\exp(-i(X_i X_j + Y_i Y_j)t)`.
     
     Parameters
-        q1 : ``Qubit``\n
+        q1 : ``Qubit``
             Qubit 1.\n
             
-        q2 : ``Qubit``\n
+        q2 : ``Qubit``
             Qubit 2.\n
             
-        angle : ``float``\n
+        angle : ``float``
             angle :math:`t` of :math:`e^{-i(X_i X_j + Y_i Y_j)t}`\n
             
     Return
@@ -48,14 +48,14 @@ def parity_partition_xy_mixer(qlist, beta):
     Quantum circuits to approximate a parity-partition XY mixer.
 
     Parameters
-        qlist : ``list``\n
+        qlist : ``list``
             Qubits list.\n
 
-        beta : ``float``\n
+        beta : ``float``
             angle :math:`t` of :math:`e^{-iHt}`\n
 
     Return
-        cir : ``QCircuit``\n
+        cir : ``QCircuit``
             Circuit of simulation a parity-partition XY mixer :math:`e^{-iHt}`.\n
 
         
@@ -72,20 +72,20 @@ def parity_partition_xy_mixer(qlist, beta):
     .. parsed-literal::
 
 
-          ┌──────────────┐        ┌───────────────┐        ┌───────────────┐ ┌──────────────┐       ┌────┐ ┌───────────────┐       ┌────┐ ┌───────────────┐ 
-q_0:  |0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ──────┤CNOT├ ┤RZ(-3.14159265)├ ──────┤CNOT├ ┤RX(-1.57079633)├ 
-          ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ ├──────────────┤       └──┬─┘ ├───────────────┤       └──┬─┘ ├───────────────┤ 
-q_1:  |0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ───*─────┼── ┤RX(-3.14159265)├ ───*─────┼── ┤RX(-1.57079633)├ 
-          ├──────────────┤ └────┘ ├───────────────┤ └────┘ ├───────────────┤ ├──────────────┤ ┌──┴─┐   │   ├───────────────┤ ┌──┴─┐   │   ├───────────────┤ 
-q_2:  |0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ┤CNOT├───┼── ┤RZ(-3.14159265)├ ┤CNOT├───┼── ┤RX(-1.57079633)├ 
-          ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ ├──────────────┤ └────┘   │   ├───────────────┤ └────┘   │   ├───────────────┤ 
-q_3:  |0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ─────────*── ┤RX(-3.14159265)├ ─────────*── ┤RX(-1.57079633)├ 
-          └──────────────┘ └────┘ └───────────────┘ └────┘ └───────────────┘ └──────────────┘              └───────────────┘              └───────────────┘ 
- c :   / ═
+                  ┌──────────────┐        ┌───────────────┐        ┌───────────────┐ ┌──────────────┐       ┌────┐ ┌───────────────┐       ┌────┐ ┌───────────────┐ 
+        q_0:  \|0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ──────┤CNOT├ ┤RZ(-3.14159265)├ ──────┤CNOT├ ┤RX(-1.57079633)├ 
+                  ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ ├──────────────┤       └──┬─┘ ├───────────────┤       └──┬─┘ ├───────────────┤ 
+        q_1:  \|0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ───*─────┼── ┤RX(-3.14159265)├ ───*─────┼── ┤RX(-1.57079633)├ 
+                  ├──────────────┤ └────┘ ├───────────────┤ └────┘ ├───────────────┤ ├──────────────┤ ┌──┴─┐   │   ├───────────────┤ ┌──┴─┐   │   ├───────────────┤ 
+        q_2:  \|0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ┤CNOT├───┼── ┤RZ(-3.14159265)├ ┤CNOT├───┼── ┤RX(-1.57079633)├ 
+                  ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ ├──────────────┤ └────┘   │   ├───────────────┤ └────┘   │   ├───────────────┤ 
+        q_3:  \|0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ─────────*── ┤RX(-3.14159265)├ ─────────*── ┤RX(-1.57079633)├ 
+                  └──────────────┘ └────┘ └───────────────┘ └────┘ └───────────────┘ └──────────────┘              └───────────────┘              └───────────────┘ 
+         c :   / ═
           
 
     Note
-        For a given XY mixer Hamiltonian\n
+        For a given XY mixer Hamiltonian
 
          
         .. math::
@@ -132,14 +132,14 @@ def complete_xy_mixer(qlist, angle):
     Quantum circuits to approximate a complete XY mixer.
 
     Parameters
-        qlist : ``list``\n
+        qlist : ``list``
             Qubits list.\n
 
-        angle : ``float``\n
+        angle : ``float``
             beta :math:`t` of :math:`e^{-iHt}`\n
 
     Return
-        cir : ``QCircuit``\n
+        cir : ``QCircuit``
             Circuit of simulation a complete XY mixer :math:`e^{-iHt}`.\n
 
     Examples
@@ -153,28 +153,28 @@ def complete_xy_mixer(qlist, angle):
     >>> print(circuit)
 
     .. parsed-literal::
-          ┌──────────────┐        ┌───────────────┐        ┌───────────────┐ ┌──────────────┐               ┌───────────────┐ >
-q_0:  |0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ───*── ────── ┤RX(-3.14159265)├ >
-          ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ ├──────────────┤    │          ├───────────────┤ >
-q_1:  |0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ───┼── ───*── ┤RX(-3.14159265)├ >
-          ├──────────────┤ └────┘ ├───────────────┤ └────┘ ├───────────────┤ ├──────────────┤ ┌──┴─┐    │   ├───────────────┤ >
-q_2:  |0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ┤CNOT├ ───┼── ┤RZ(-3.14159265)├ >
-          ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ ├──────────────┤ └────┘ ┌──┴─┐ ├───────────────┤ >
-q_3:  |0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ────── ┤CNOT├ ┤RZ(-3.14159265)├ >
-          └──────────────┘ └────┘ └───────────────┘ └────┘ └───────────────┘ └──────────────┘        └────┘ └───────────────┘ >
- c :   / ═
+                  ┌──────────────┐        ┌───────────────┐        ┌───────────────┐ ┌──────────────┐               ┌───────────────┐ >
+        q_0:  \|0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ───*── ────── ┤RX(-3.14159265)├ >
+                  ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ ├──────────────┤    │          ├───────────────┤ >
+        q_1:  \|0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ───┼── ───*── ┤RX(-3.14159265)├ >
+                  ├──────────────┤ └────┘ ├───────────────┤ └────┘ ├───────────────┤ ├──────────────┤ ┌──┴─┐    │   ├───────────────┤ >
+        q_2:  \|0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ┤CNOT├ ───┼── ┤RZ(-3.14159265)├ >
+                  ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ ├──────────────┤ └────┘ ┌──┴─┐ ├───────────────┤ >
+        q_3:  \|0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ────── ┤CNOT├ ┤RZ(-3.14159265)├ >
+                  └──────────────┘ └────┘ └───────────────┘ └────┘ └───────────────┘ └──────────────┘        └────┘ └───────────────┘ >
+         c :   / ═
           
 
-                       ┌───────────────┐ ┌──────────────┐               ┌───────────────┐               ┌───────────────┐ 
-q_0:  |0>───*── ────── ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ───*── ────── ┤RX(-3.14159265)├ ───*── ────── ┤RX(-1.57079633)├ 
-            │          ├───────────────┤ ├──────────────┤    │          ├───────────────┤    │          ├───────────────┤ 
-q_1:  |0>───┼── ───*── ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ───┼── ───*── ┤RX(-3.14159265)├ ───┼── ───*── ┤RX(-1.57079633)├ 
-         ┌──┴─┐    │   ├───────────────┤ ├──────────────┤    │   ┌──┴─┐ ├───────────────┤    │   ┌──┴─┐ ├───────────────┤ 
-q_2:  |0>┤CNOT├ ───┼── ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ───┼── ┤CNOT├ ┤RZ(-3.14159265)├ ───┼── ┤CNOT├ ┤RX(-1.57079633)├ 
-         └────┘ ┌──┴─┐ ├───────────────┤ ├──────────────┤ ┌──┴─┐ └────┘ ├───────────────┤ ┌──┴─┐ └────┘ ├───────────────┤ 
-q_3:  |0>────── ┤CNOT├ ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ┤CNOT├ ────── ┤RZ(-3.14159265)├ ┤CNOT├ ────── ┤RX(-1.57079633)├ 
-                └────┘ └───────────────┘ └──────────────┘ └────┘        └───────────────┘ └────┘        └───────────────┘ 
- c :   / 
+                               ┌───────────────┐ ┌──────────────┐               ┌───────────────┐               ┌───────────────┐ 
+        q_0:  \|0>───*── ────── ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ───*── ────── ┤RX(-3.14159265)├ ───*── ────── ┤RX(-1.57079633)├ 
+                    │          ├───────────────┤ ├──────────────┤    │          ├───────────────┤    │          ├───────────────┤ 
+        q_1:  \|0>───┼── ───*── ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ───┼── ───*── ┤RX(-3.14159265)├ ───┼── ───*── ┤RX(-1.57079633)├ 
+                 ┌──┴─┐    │   ├───────────────┤ ├──────────────┤    │   ┌──┴─┐ ├───────────────┤    │   ┌──┴─┐ ├───────────────┤ 
+        q_2:  \|0>┤CNOT├ ───┼── ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ───┼── ┤CNOT├ ┤RZ(-3.14159265)├ ───┼── ┤CNOT├ ┤RX(-1.57079633)├ 
+                 └────┘ ┌──┴─┐ ├───────────────┤ ├──────────────┤ ┌──┴─┐ └────┘ ├───────────────┤ ┌──┴─┐ └────┘ ├───────────────┤ 
+        q_3:  \|0>────── ┤CNOT├ ┤RX(-1.57079633)├ ┤RX(1.57079633)├ ┤CNOT├ ────── ┤RZ(-3.14159265)├ ┤CNOT├ ────── ┤RX(-1.57079633)├ 
+                        └────┘ └───────────────┘ └──────────────┘ └────┘        └───────────────┘ └────┘        └───────────────┘ 
+         c :   / 
 
     Note
         For a given XY mixer Hamiltonian
@@ -187,7 +187,7 @@ q_3:  |0>────── ┤CNOT├ ┤RX(-1.57079633)├ ┤RX(1.57079633)�
     :math:`n` is the number of qubits. See details in [1]
 
     Reference
-        [1] WANG Z, RUBIN N C, DOMINY J M, et. XY-mixers: analytical and numerical results for QAOA[J/OL].\n
+        [1] WANG Z, RUBIN N C, DOMINY J M, et. XY-mixers: analytical and numerical results for QAOA[J/OL].
         Physical Review A, 2020, 101(1): 012320. DOI:10.1103/PhysRevA.101.012320.
 
     """
@@ -229,22 +229,22 @@ def xy_mixer(domains, mixer_type='PXY'):
     Generate XY mixer circuit.
 
     Parameters
-        domains : ``integer`` or ``list[list]``\n
+        domains : ``integer`` or ``list[list]``
             Nodes of each XY mixer to be applied. If an integer n is given, the qubit list is divided into n parts. If a
             list is given, the mixer is applied to each domain.
 
-        mixer_type: ``string``\n
+        mixer_type: ``string``
             How the mixer is implemented. Should be one of
 
-                    - ``PXY`` : Parity partition XY mixer.\n
+                    - ``PXY`` : Parity partition XY mixer.
                         See 'parity_partition_xy_mixer'
-                    - ``CXY`` : Complete XY mixer\n
+                    - ``CXY`` : Complete XY mixer
                         See 'complete_xy_mixer'
 
                 If not given, default by ``PXY``.
 
     Return
-        mixer_circuit : ``func(pq.QCircuit)``\n
+        mixer_circuit : ``func(pq.QCircuit)``
             A function which use qubit list and angles as input, output a circuit of simulation a XY mixer :math:`e^{-iHt}`.
 
     Examples
@@ -261,31 +261,31 @@ def xy_mixer(domains, mixer_type='PXY'):
     .. parsed-literal::
 
           ┌──────────────┐        ┌───────────────┐        ┌───────────────┐ 
-q_0:  |0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ 
-          ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ 
-q_1:  |0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ 
-          ├──────────────┤ └────┘ ├───────────────┤ └────┘ ├───────────────┤ 
-q_2:  |0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ 
-          ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ 
-q_3:  |0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ 
-          └──────────────┘ └────┘ └───────────────┘ └────┘ └───────────────┘ 
- c :   / ═
+        q_0:  \|0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ 
+                  ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ 
+        q_1:  \|0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ 
+                  ├──────────────┤ └────┘ ├───────────────┤ └────┘ ├───────────────┤ 
+        q_2:  \|0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ 
+                  ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ 
+        q_3:  \|0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ 
+                  └──────────────┘ └────┘ └───────────────┘ └────┘ └───────────────┘ 
+         c :   / ═
 
 
-          ┌──────────────┐        ┌───────────────┐        ┌───────────────┐ 
-q_0:  |0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ 
-          ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ 
-q_1:  |0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ 
-          ├──────────────┤ └────┘ ├───────────────┤ └────┘ ├───────────────┤ 
-q_2:  |0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ 
-          ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ 
-q_3:  |0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ 
-          └──────────────┘ └────┘ └───────────────┘ └────┘ └───────────────┘ 
- c :   / ═
+                  ┌──────────────┐        ┌───────────────┐        ┌───────────────┐ 
+        q_0:  \|0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ 
+                  ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ 
+        q_1:  \|0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ 
+                  ├──────────────┤ └────┘ ├───────────────┤ └────┘ ├───────────────┤ 
+        q_2:  \|0>─┤RX(1.57079633)├ ───*── ┤RX(-3.14159265)├ ───*── ┤RX(-1.57079633)├ 
+                  ├──────────────┤ ┌──┴─┐ ├───────────────┤ ┌──┴─┐ ├───────────────┤ 
+        q_3:  \|0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤RX(-1.57079633)├ 
+                  └──────────────┘ └────┘ └───────────────┘ └────┘ └───────────────┘ 
+         c :   / ═
 
     Note
         A XY mixer can enforce the state evolution in a feasible subspace which keep the hamming weight (total spin) of the
-        state to be conserved.\n
+        state to be conserved.
         For example, in one-hot coding problem, a W state as initial state combine with the XY mixer
         can keep all solutions remain in one-hot form. See details in [1].
 
@@ -334,28 +334,28 @@ def init_d_state(domains, k=1, compress=True):
     with in :math:`O(k*log(n/k))` depth in all-to-all connectivity architecture.
 
     Parameters
-        domains : ``integer`` or ``list[list]``\n
+        domains : ``integer`` or ``list[list]``
             Nodes of each XY mixer to be applied. If an integer n is given, the qubit list is divided into n parts. If a
             list is given, the mixer is applied to each domain.
-        k : ``integer``,  :math:`k>0` \n
+        k : ``integer``,  :math:`k>0`
             The target Hamming weight of the Dicke state to be prepared,
             *i.e.*, the :math:`k` of :math:`D_{n}^{(k)}`.
-        compress : ``bool``, ``optional``\n
+        compress : ``bool``, ``optional``
             If True, compress the basic gate implementation with simulated control
             gates otherwise using basic gate implementation; default is True.
 
     Return
-        init_state_circuit : ``function``\n
+        init_state_circuit : ``function``
             Return a function, which takes qubit list as input, and output a pyqpanda QCircuit which assumes
             the input state is all 0.
 
     Raises
-        ValueError\n
+        ValueError
             If the target Hamming weight is larger than the input qubit number (:math:`k<n`),
             or k is invalid (:math:`k<0`), or qubit number is 0 (:math:`n=0`).
 
     Reference
-        Bärtschi A, Eidenbenz S. Short-depth circuits for dicke state preparation[C]\n
+        Bärtschi A, Eidenbenz S. Short-depth circuits for dicke state preparation[C]
         2022 IEEE International Conference on Quantum Computing and Engineering (QCE). IEEE, 2022: 87-96.
         https://doi.org/10.1109/QCE53715.2022.00027
 
@@ -389,17 +389,17 @@ def init_d_state(domains, k=1, compress=True):
     .. parsed-literal::
 
                   ┌─┐                   ┌────┐                ┌────┐
-        q_0:  |0>─┤X├─────────── ────── ┤CNOT├ ───────■────── ┤CNOT├
+        q_0:  \|0>─┤X├─────────── ────── ┤CNOT├ ───────■────── ┤CNOT├
                   ├─┤            ┌────┐ └──┬─┘ ┌──────┴─────┐ └──┬─┘
-        q_1:  |0>─┤X├─────────── ┤CNOT├ ───■── ┤RY(1.570796)├ ───■──
+        q_1:  \|0>─┤X├─────────── ┤CNOT├ ───■── ┤RY(1.570796)├ ───■──
                   ├─┴──────────┐ └──┬─┘        └────────────┘
-        q_2:  |0>─┤RY(1.910633)├ ───■── ────── ────────────── ──────
+        q_2:  \|0>─┤RY(1.910633)├ ───■── ────── ────────────── ──────
                   ├─┬──────────┘        ┌────┐                ┌────┐
-        q_3:  |0>─┤X├─────────── ────── ┤CNOT├ ───────■────── ┤CNOT├
+        q_3:  \|0>─┤X├─────────── ────── ┤CNOT├ ───────■────── ┤CNOT├
                   ├─┤            ┌────┐ └──┬─┘ ┌──────┴─────┐ └──┬─┘
-        q_4:  |0>─┤X├─────────── ┤CNOT├ ───■── ┤RY(1.570796)├ ───■──
+        q_4:  \|0>─┤X├─────────── ┤CNOT├ ───■── ┤RY(1.570796)├ ───■──
                   ├─┴──────────┐ └──┬─┘        └────────────┘
-        q_5:  |0>─┤RY(1.910633)├ ───■── ────── ────────────── ──────
+        q_5:  \|0>─┤RY(1.910633)├ ───■── ────── ────────────── ──────
                   └────────────┘
 
     And the probability of all possible state are (with possible floating errors):
@@ -457,22 +457,22 @@ def prepare_dicke_state(q_list, k, compress=True):
     all-to-all connectivity architecture.
 
     Parameters
-        q_list : ``QVec``, ``List[Qubit]``, shape (n,)\n
+        q_list : ``QVec``, ``List[Qubit]``, shape (n,)
             Qubit addresses. List size is supposed to be the :math:`n`
             of :math:`D_{n}^{(k)}`.\n
-        k : ``integer``, k>0 \n
+        k : ``integer``, k>0
             The target Hamming weight of the Dicke state to be prepared,
             *i.e.*, the :math:`k` of :math:`D_{n}^{(k)}`.
-        compress : ``bool``, ``optional`` \n
+        compress : ``bool``, ``optional``
             If True, compress the basic gate implementation with simulated control
             gates otherwise using basic gate implementation; default is True.
 
     Return
-        circuit : ``pyqpanda QCircuit`` \n
+        circuit : ``pyqpanda QCircuit``
             A pyqpanda QCircuit which assumes the input state is all 0.\n
 
     Raises
-        ValueError\n
+        ValueError
             If the target Hamming weight is larger than the input qubit number (:math:`k<n`),
             or k is invalid (:math:`k<0`), or qubit number is 0 (:math:`n=0`).
 
@@ -505,13 +505,13 @@ def prepare_dicke_state(q_list, k, compress=True):
 
     .. parsed-literal::
                   ┌─┐     !                               ┌────┐         ! ┌────┐                ┌────┐
-        q_0:  |0>─┤X├ ────! ────────────── ────────────── ┤CNOT├──── ────! ┤CNOT├ ───────■────── ┤CNOT├
+        q_0:  \|0>─┤X├ ────! ────────────── ────────────── ┤CNOT├──── ────! ┤CNOT├ ───────■────── ┤CNOT├
                   ├─┤     !                               └──┬┬┴───┐     ! └──┬─┘ ┌──────┴─────┐ └──┬─┘
-        q_1:  |0>─┤X├ ────! ────────────── ────────────── ───┼┤CNOT├ ────! ───■── ┤RY(1.570796)├ ───■──
+        q_1:  \|0>─┤X├ ────! ────────────── ────────────── ───┼┤CNOT├ ────! ───■── ┤RY(1.570796)├ ───■──
                   └─┘     ! ┌────────────┐                   │└──┬─┘     ! ┌────┐ └────────────┘ ┌────┐
-        q_2:  |0>──── ────! ┤RY(2.300524)├ ───────■────── ───┼───■── ────! ┤CNOT├ ───────■────── ┤CNOT├
+        q_2:  \|0>──── ────! ┤RY(2.300524)├ ───────■────── ───┼───■── ────! ┤CNOT├ ───────■────── ┤CNOT├
                           ! └────────────┘ ┌──────┴─────┐    │           ! └──┬─┘ ┌──────┴─────┐ └──┬─┘
-        q_3:  |0>──── ────! ────────────── ┤RY(0.927295)├ ───■────── ────! ───■── ┤RY(1.570796)├ ───■──
+        q_3:  \|0>──── ────! ────────────── ┤RY(0.927295)├ ───■────── ────! ───■── ┤RY(1.570796)├ ───■──
                           !                └────────────┘                !        └────────────┘
 
     And the probability of all possible state are (with possible floating errors):
@@ -538,19 +538,19 @@ def linear_w_state(q_list, compress=True):
     exactly :math:`n-1` depth and :math:`3n-3` CNOT gates.
 
     Parameters
-        q_list : ``QVec``, ``List[Qubit]``, shape (n,)\n
+        q_list : ``QVec``, ``List[Qubit]``, shape (n,)
             Qubit addresses. List size is supposed to be the :math:`n` of :math:`D_{n}^{(1)}`.\n
 
-        compress : ``bool``, ``optional``\n
+        compress : ``bool``, ``optional``
             If True, compress the basic gate implementation with simulated control
             gates otherwise using basic gate implementation; default is True.\n
 
     Return
-        circuit : ``pyqpanda QCircuit`` \n
+        circuit : ``pyqpanda QCircuit``
             A pyqpanda QCircuit which assumes the input state is all 0.\n
 
     Raises
-        ValueError\n
+        ValueError
             If the input qubit number is zero.
 
     Reference
@@ -581,11 +581,11 @@ def linear_w_state(q_list, compress=True):
     
     .. parsed-literal::
                   ┌─┐                ┌────┐
-        q_0:  |0>─┤X├ ───────■────── ┤CNOT├ ────────────── ──────
+        q_0:  \|0>─┤X├ ───────■────── ┤CNOT├ ────────────── ──────
                   └─┘ ┌──────┴─────┐ └──┬─┘                ┌────┐
-        q_1:  |0>──── ┤RY(1.910633)├ ───■── ───────■────── ┤CNOT├
+        q_1:  \|0>──── ┤RY(1.910633)├ ───■── ───────■────── ┤CNOT├
                       └────────────┘        ┌──────┴─────┐ └──┬─┘
-        q_2:  |0>──── ────────────── ────── ┤RY(1.570796)├ ───■──
+        q_2:  \|0>──── ────────────── ────── ┤RY(1.570796)├ ───■──
                                             └────────────┘
 
     The resulting state should be like (with possible floating errors):

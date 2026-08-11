@@ -71,13 +71,12 @@ extensions.append('autoapi.extension')
 autoapi_type = 'python'
 autoapi_dirs = ['../../pyqpanda-algorithm/pyqpanda_alg']
 autoapi_options = [
-'members', 
-'undoc-members', 
-'private-members',               
-'show-inheritance', 
+'members',
+'undoc-members',
+'private-members',
+'show-inheritance',
 'show-module-summary',
-'special-members', 
-'imported-members', 
+'special-members',
 'show-inheritance-diagram']
 
 autoapi_file_patterns = ['*.py']
@@ -330,6 +329,26 @@ def autoapi_skip_member(app, what, name, obj, skip, options):
 #        if not hasattr(obj, '__qualname__') or '.' not in obj.__qualname__:
 #            return True
 
+_HTML_CONTEXT_HIDDEN = {}
+
+
+def _sanitize_html_context(app):
+    """Replace unpickleable theme values in html_context before env caching."""
+    ctx = app.config.html_context
+    for key in ("table_fix", "derender_toc"):
+        if key in ctx:
+            _HTML_CONTEXT_HIDDEN[key] = ctx[key]
+            ctx[key] = f"__html_context_placeholder_{key}__"
+
+
+def _restore_html_context(app, pagename, templatename, context, doctree):
+    """Reinject the theme's callables for template rendering."""
+    for key, value in _HTML_CONTEXT_HIDDEN.items():
+        context[key] = value
+
+
 def setup(sphinx):
-    """Add autoapi-skip-member."""
+    """Add autoapi-skip-member and html_context handlers."""
     sphinx.connect('autoapi-skip-member', autoapi_skip_member)
+    sphinx.connect('builder-inited', _sanitize_html_context, priority=900)
+    sphinx.connect('html-page-context', _restore_html_context)

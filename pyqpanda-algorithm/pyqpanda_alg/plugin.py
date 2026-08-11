@@ -51,7 +51,7 @@ def apply_QGate(qubit_list: list[int], func_obj) -> QCircuit:
             示例：pq.H（Hadamard门）、lambda q: pq.RX(q, 0.5)（带角度的RX门）。
 
     返回：
-        QCircuit: 包含所有量子门操作的电路对象，可通过`<<`操作符嵌入主程序（QProg）。
+        QCircuit: 包含所有量子门操作的电路对象，可通过<<操作符嵌入主程序（QProg）。
 
     异常：
         TypeError: 若`qubit_list`中元素不是整数，或`func_obj`返回值不是QGate类型。
@@ -390,7 +390,9 @@ def parse_quantum_result_dict(result: Dict[str, float], qubit_list: List[int], s
     参数：
         result (Dict[str, float]): 原始测量结果字典，键为二进制字符串（如"0110"），
             值为对应结果的概率（浮点数，范围[0,1]）。
+
         qubit_list (List[int]): 测量的量子比特索引列表，用于验证二进制字符串长度是否匹配。
+
         select_max (int, 可选): 限制返回结果的数量，默认为-1（返回所有结果）。
             取值范围：[-1, 2^len(qubit_list)]，其中-1表示无限制，正整数n表示返回前n个最高概率结果。
     
@@ -466,7 +468,9 @@ def parse_quantum_result_list(result: List[float], qubit_list: List[int], select
     参数：
         result (List[float]): 原始测量结果列表，元素为概率值（范围[0,1]），
             索引对应二进制结果（按整数解析，如索引3对应二进制"11"）。
+
         qubit_list (List[int]): 测量的量子比特索引列表，用于确定总结果数。
+
         select_max (int, 可选): 限制返回结果的数量，默认为-1（返回所有结果）。
             取值范围：[-1, 2^len(qubit_list)]，其中-1表示无限制，正整数n表示返回前n个最高概率结果。
     

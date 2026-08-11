@@ -68,13 +68,13 @@ class QuantumKernel_vqnet:
     A help class to create Quantum Kernal Matrix.The evaluate function can be used in ``sklearn.svm`` .
 
     Parameters
-        x_vec: ``ndarray``\n
+        x_vec: ``ndarray``
             Train or test dataset features.
-        y_vec: ``ndarray``\n
+        y_vec: ``ndarray``
             Train or test dataset labels.
 
     Returns
-        out: ``ndarray``\n
+        out: ``ndarray``
             Kernal matrix.
 
     Examples
@@ -195,13 +195,13 @@ class QuantumKernel_vqnet:
         Evaluation function to build quantum kernel.
 
         Parameters
-            x_vec: ``ndarray``\n
+            x_vec: ``ndarray``
                 Train or test dataset features.
-            y_vec: ``ndarray``\n
+            y_vec: ``ndarray``
                 Train or test dataset labels.
 
         Returns
-            out: ``ndarray``\n
+            out: ``ndarray``
                 Kernal matrix.
 
         Examples

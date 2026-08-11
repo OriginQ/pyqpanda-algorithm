@@ -19,18 +19,18 @@ class Grover:
     """ This class provides a framework for Grover Search algorithm [1].
 
     Parameters
-        in_operator : callable ``f(qubits)``\n
+        in_operator : callable ``f(qubits)``
             Operator/Circuit of the initial search state for the algorithm, default Hadamards.
-        flip_operator : callable ``f(qubits)``\n
+        flip_operator : callable ``f(qubits)``
             Operator/Circuit of marking the good states by phase-flip. Default doing a pauli-Z
             gate at the last qubit.
-        zero_flip : callable ``f(qubits)``\n
+        zero_flip : callable ``f(qubits)``
             Operator/Circuit of reflects 0s by phase-flip. Default doing a zero-controled pauli-Z
             gate on qubits.
-        mark_data : ``str``, ``list[str]``\n
+        mark_data : ``str``, ``list[str]``
             Marked target state. Default None.
             Only used when simply marking a known query state, as the designed flip_operator part.
-        amplify_operator : callable ``f(qubits)``\n
+        amplify_operator : callable ``f(qubits)``
             Constructed complete Grover amplitude amplification operator circuit. Default None.
             For users' special designed amplitude amplification operator.
 
@@ -62,20 +62,20 @@ class Grover:
         Get full circuit of Grover search.
 
         Parameters
-            q_input : ``QVec``\n
+            q_input : ``QVec``
                 Target qubit(s) for in_operator (initial preparation circuit).
                 Using Hadamard gates to create the uniform superposition at the beginning most of time.
                 Although in most simple cases it includes the full workspace qubits,
                 auxiliary qubits can be excluded when dealing with some complex problems.
-            q_flip : ``QVec``\n
+            q_flip : ``QVec``
                 Target qubit(s) for flip_operator.
-            q_zero : ``QVec``\n
+            q_zero : ``QVec``
                 Target qubit(s) for zero_flip.
-            iternum : ``int``\n
+            iternum : ``int``
                 The number of iterations. In another word number of repetition of applying the Grover operator.
 
         Returns
-            circuit : ``QCircuit``\n
+            circuit : ``QCircuit``
                 Full quantum circuit for given Grover search.
 
         Examples
@@ -104,11 +104,11 @@ class Grover:
 
         .. parsed-literal::
                       ┌─┐             ┌─┐ ┌─┐     ┌─┐ ┌─┐
-            q_0:  |0>─┤H├ ─■─ ─── ─■─ ┤H├ ┤X├ ─■─ ┤X├ ┤H├
+            q_0:  \|0>─┤H├ ─■─ ─── ─■─ ┤H├ ┤X├ ─■─ ┤X├ ┤H├
                       ├─┤  │       │  ├─┤ ├─┤ ┌┴┐ ├─┤ ├─┤
-            q_1:  |0>─┤H├ ─■─ ─── ─■─ ┤H├ ┤X├ ┤Z├ ┤X├ ┤H├
+            q_1:  \|0>─┤H├ ─■─ ─── ─■─ ┤H├ ┤X├ ┤Z├ ┤X├ ┤H├
                       └─┘ ┌┴┐ ┌─┐ ┌┴┐ └─┘ └─┘ └─┘ └─┘ └─┘
-            q_2:  |0>──── ┤X├ ┤Z├ ┤X├ ─── ─── ─── ─── ───
+            q_2:  \|0>──── ┤X├ ┤Z├ ┤X├ ─── ─── ─── ─── ───
                           └─┘ └─┘ └─┘
 
         """
@@ -144,9 +144,9 @@ def iter_num(q_num, sol_num):
     Calculate the optimal number of iterations in Grover search.
 
     Parameters
-        q_num : ``int``\n
+        q_num : ``int``
             The number of qubits in the search space. Search space size:  :math:`N = 2 ^ {\\text {q_num}}`.
-        sol_num : ``int``\n
+        sol_num : ``int``
             Number of target solution states.
 
     Returns
@@ -183,15 +183,15 @@ def iter_analysis(q_num, sol_num, iternum=1):
     amplification iteration number.
 
     Parameters
-        q_num : ``int``\n
+        q_num : ``int``
             The number of qubits in the search space. Search space size:  :math:`N = 2 ^ {\\text {q_num}}`.
-        sol_num : ``int``\n
+        sol_num : ``int``
             Number of target solution states.
-        iternum : ``int``\n
+        iternum : ``int``
             Given number of iteration.
 
     Returns
-        prob, theta : (``float``, ``float``)\n
+        prob, theta : (``float``, ``float``)
             The amplification probability and rotation angle for given iteration.
 
     Examples
@@ -231,26 +231,26 @@ def amp_operator(q_input=None, q_flip=None, q_zero=None, in_operator=None, flip_
     Can be part of Grover/Quantum Count/QAE and other amplitude amplification related algorithm.
 
     Parameters
-        q_input : ``QVec``\n
+        q_input : ``QVec``
             Target qubit(s) for in_operator (initial preparation circuit).
             Using Hadamard gates to create the uniform superposition at the beginning most of time.
             Although in most simple cases it includes the full workspace qubits,
             auxiliary qubits can be excluded when dealing with some complex problems.
-        q_flip : ``QVec``\n
+        q_flip : ``QVec``
             Target qubit(s) for flip_operator.
-        q_zero : ``QVec``\n
+        q_zero : ``QVec``
             Target qubit(s) for zero_flip.
-        in_operator : callable ``f(qubits)``\n
+        in_operator : callable ``f(qubits)``
             Operator/Circuit of the initial search state for the algorithm, default Hadamards.
-        flip_operator : callable ``f(qubits)``\n
+        flip_operator : callable ``f(qubits)``
             Operator/Circuit of marking the good states by phase-flip. Default doing a pauli-Z
             gate at the last qubit.
-        zero_flip : callable ``f(qubits)``\n
+        zero_flip : callable ``f(qubits)``
             Operator/Circuit of reflects 0s by phase-flip. Default doing a zero-controled pauli-Z
             gate on qubits.
 
     Returns
-        circuit : QCircuit\n
+        circuit : QCircuit
             Amplitude amplification operator.
 
     Examples
@@ -272,11 +272,11 @@ def amp_operator(q_input=None, q_flip=None, q_zero=None, in_operator=None, flip_
 
     .. parsed-literal::
                               ┌─┐ ┌─┐     ┌─┐ ┌─┐
-        q_0:  |0>──■─ ─── ─■─ ┤H├ ┤X├ ─■─ ┤X├ ┤H├
+        q_0:  \|0>──■─ ─── ─■─ ┤H├ ┤X├ ─■─ ┤X├ ┤H├
                    │       │  ├─┤ ├─┤ ┌┴┐ ├─┤ ├─┤
-        q_1:  |0>──■─ ─── ─■─ ┤H├ ┤X├ ┤Z├ ┤X├ ┤H├
+        q_1:  \|0>──■─ ─── ─■─ ┤H├ ┤X├ ┤Z├ ┤X├ ┤H├
                   ┌┴┐ ┌─┐ ┌┴┐ └─┘ └─┘ └─┘ └─┘ └─┘
-        q_2:  |0>─┤X├ ┤Z├ ┤X├ ─── ─── ─── ─── ───
+        q_2:  \|0>─┤X├ ┤Z├ ┤X├ ─── ─── ─── ─── ───
                   └─┘ └─┘ └─┘
 
     """
@@ -321,13 +321,13 @@ def mark_data_reflection(qubits: list = None, mark_data=None):
     Can be used to construct a phase flip operator for given target states.
 
     Parameters
-        qubits : ``QVec``\n
+        qubits : ``QVec``
             Target qubit(s) for flip_operator.
-        mark_data : ``str``, ``list[str]``\n
+        mark_data : ``str``, ``list[str]``
             Marked target state(s).
 
     Returns
-        flip_operator : ``QCircuit``\n
+        flip_operator : ``QCircuit``
             A phase flip operator for given target states
 
     Examples
@@ -377,13 +377,13 @@ class GroverAdaptiveSearch:
     """This class provides a framework for Grover Adaptive Search [2].
 
     Parameters
-        init_value : ``float``\n
+        init_value : ``float``
             The given initial value of the optimization function.
-        n_index : ``int``\n
+        n_index : ``int``
             The number of qubits in the search space. Search space size: N = 2 ** q_num.
-        init_circuit : callable ``f(qubits)``\n
+        init_circuit : callable ``f(qubits)``
             Operator/Circuit of the initial search state for the algorithm, default Hadamards.
-        oracle_circuit : callable ``f(qubits, value)``\n
+        oracle_circuit : callable ``f(qubits, value)``
             Operator/Circuit of marking the `better` states by phase-flip. Default doing a pauli-Z
             gate at the last qubit.
 
@@ -480,24 +480,24 @@ class GroverAdaptiveSearch:
         Run the Grover Adaptive Search algorithm to find the minimum.
 
         Parameters
-            continue_times : ``int``\n
+            continue_times : ``int``
                 The maximum number of repeated searches at the current optimal point.
-            n_value_function : callable ``f(value)``\n
+            n_value_function : callable ``f(value)``
                 Function for computing the number of qubits for marking the `better` states at current
                 best value, variable qubits not included.
-            value_function : callable ``f(var_array)``\n
+            value_function : callable ``f(var_array)``
                 Function for computing the problem value of given varriables array(str given as qpanda state).
-            rotation_change : ``str{'random', 'increase'}``, optional\n
+            rotation_change : ``str{'random', 'increase'}``, optional
                 The method to get the number of Grover iterations for each search of a search cycle.
 
                - ``random`` : The number of Grover iterations for each search is randomly obtained from a
                 increasing interval. (Default)
                - ``increase`` : The number of Grover iterations for each search is increasing.
-            process_show : ``bool``\n
+            process_show : ``bool``
                 Set to True to print the detail during search.
 
         Returns
-            minimum_indexes, minimum_res : ( ``list[list[int]]``, ``float``)\n
+            minimum_indexes, minimum_res : ( ``list[list[int]]``, ``float``)
                 The optimization result including the solution array and the optimal value.
 
         Examples

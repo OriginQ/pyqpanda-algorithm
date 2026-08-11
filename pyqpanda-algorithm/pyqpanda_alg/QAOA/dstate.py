@@ -309,22 +309,22 @@ def prepare_dicke_state(q_list, k, compress=True):
     all-to-all connectivity architecture.
 
     Parameters
-        q_list: ``List[int]``, shape (n,)\n
+        q_list: ``List[int]``, shape (n,)
             Qubit addresses. List size is supposed to be the :math:`n`
             of :math:`D_{n}^{(k)}`.
-        k : ``int``, k>0\n
+        k : ``int``, k>0
             The target Hamming weight of the Dicke state to be prepared,
             *i.e.*, the :math:`k` of :math:`D_{n}^{(k)}`.
-        compress : ``bool``, ``optional``\n
+        compress : ``bool``, ``optional``
             If True, compress the basic gate implementation with simulated control
             gates otherwise using basic gate implementation; default is True.
 
     Return
-        circuit : ``pyqpanda QCircuit``\n
+        circuit : ``pyqpanda QCircuit``
             A pyqpanda QCircuit which assumes the input state is all 0.
 
     Raises
-        ValueError\n
+        ValueError
             If the target Hamming weight is larger than the input qubit number (:math:`k<n`),
             or k is invalid (:math:`k<0`), or qubit number is 0 (:math:`n=0`).
 
@@ -360,13 +360,13 @@ def prepare_dicke_state(q_list, k, compress=True):
     .. parsed-literal::
 
                   ┌─┐     !                               ┌────┐         ! ┌────┐                ┌────┐
-        q_0:  |0>─┤X├ ────! ────────────── ────────────── ┤CNOT├──── ────! ┤CNOT├ ───────■────── ┤CNOT├
+        q_0:  \|0>─┤X├ ────! ────────────── ────────────── ┤CNOT├──── ────! ┤CNOT├ ───────■────── ┤CNOT├
                   ├─┤     !                               └──┬┬┴───┐     ! └──┬─┘ ┌──────┴─────┐ └──┬─┘
-        q_1:  |0>─┤X├ ────! ────────────── ────────────── ───┼┤CNOT├ ────! ───■── ┤RY(1.570796)├ ───■──
+        q_1:  \|0>─┤X├ ────! ────────────── ────────────── ───┼┤CNOT├ ────! ───■── ┤RY(1.570796)├ ───■──
                   └─┘     ! ┌────────────┐                   │└──┬─┘     ! ┌────┐ └────────────┘ ┌────┐
-        q_2:  |0>──── ────! ┤RY(2.300524)├ ───────■────── ───┼───■── ────! ┤CNOT├ ───────■────── ┤CNOT├
+        q_2:  \|0>──── ────! ┤RY(2.300524)├ ───────■────── ───┼───■── ────! ┤CNOT├ ───────■────── ┤CNOT├
                           ! └────────────┘ ┌──────┴─────┐    │           ! └──┬─┘ ┌──────┴─────┐ └──┬─┘
-        q_3:  |0>──── ────! ────────────── ┤RY(0.927295)├ ───■────── ────! ───■── ┤RY(1.570796)├ ───■──
+        q_3:  \|0>──── ────! ────────────── ┤RY(0.927295)├ ───■────── ────! ───■── ┤RY(1.570796)├ ───■──
                           !                └────────────┘                !        └────────────┘
 
     And the probability of all possible state are (with possible floating errors):
@@ -431,18 +431,18 @@ def linear_w_state(q_list, compress=True):
     exactly :math:`n-1` depth and :math:`3n-3` CNOT gates.
 
     Parameters
-         q_list: ``List[int]``, shape (n,)\n
+         q_list: ``List[int]``, shape (n,)
             Qubit addresses. List size is supposed to be the :math:`n` of :math:`D_{n}^{(1)}`.
-         compress  : ``bool``, ``optional``\n
+         compress  : ``bool``, ``optional``
             If True, compress the basic gate implementation with simulated control
             gates otherwise using basic gate implementation; default is True.
 
     Return
-        circuit : ``pyqpanda QCircuit``\n
+        circuit : ``pyqpanda QCircuit``
             A pyqpanda QCircuit which assumes the input state is all 0.
 
     Raises
-        ValueError\n
+        ValueError
             If the input qubit number is zero.
 
     Reference
@@ -474,11 +474,11 @@ def linear_w_state(q_list, compress=True):
 
     .. parsed-literal::
                   ┌─┐                ┌────┐
-        q_0:  |0>─┤X├ ───────■────── ┤CNOT├ ────────────── ──────
+        q_0:  \|0>─┤X├ ───────■────── ┤CNOT├ ────────────── ──────
                   └─┘ ┌──────┴─────┐ └──┬─┘                ┌────┐
-        q_1:  |0>──── ┤RY(1.910633)├ ───■── ───────■────── ┤CNOT├
+        q_1:  \|0>──── ┤RY(1.910633)├ ───■── ───────■────── ┤CNOT├
                       └────────────┘        ┌──────┴─────┐ └──┬─┘
-        q_2:  |0>──── ────────────── ────── ┤RY(1.570796)├ ───■──
+        q_2:  \|0>──── ────────────── ────── ┤RY(1.570796)├ ───■──
                                             └────────────┘
 
     The resulting state should be like (with possible floating errors):

@@ -202,13 +202,13 @@ def qpca(sample_A, k):
     QPCA is a quantum version of the classical PCA algorithm, which is widely used in data analysis and machine learning.
 
     Parameters:
-        sample_A: ``ndarray``\n
+        sample_A: ``ndarray``
             the input matrix for analysis
-        k: ``int``\n
+        k: ``int``
             the dimension to reduce
 
     Returns:
-        out: ``ndarray``\n
+        out: ``ndarray``
             the output matrix after reducing dimension
 
     Examples:

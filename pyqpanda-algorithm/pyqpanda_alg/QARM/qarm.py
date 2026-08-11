@@ -38,26 +38,27 @@ class QuantumAssociationRulesMining:
     and store it in a quantum superposition state.  Next, the quantum amplitude
     amplification algorithm is used to search the candidate K term sets that are not
     less than the predetermined threshold from the superposition quantum states.
+
     Parameters:
-        show: ``string``\n
-            Enumeration of the circuit show type,should be one of"None", "Picture"and"OriginIR"\n
-            - None : no output;\n
-            - Picture : Console output the quantum circuit,output default file name;\n
+        show: ``string``
+            Enumeration of the circuit show type,should be one of"None", "Picture"and"OriginIR"
+            - None : no output;
+            - Picture : Console output the quantum circuit,output default file name;
             - OriginIR : Console does not output,output the IR of the circuit.\n
 
-        file_name: ``string``\n
+        file_name: ``string``
             the output file namethat record the circuit information.
 
-        machine_type: ``string``\n
+        machine_type: ``string``
             enumeration of QVM type, should be one of "CPU", and "QCloud"
 
-        **kwargs: ``dict args``\n
-            Use keywords to pass parameters,the twoparameters areapi_keyand ip_compute.\n
-            - api_key : API key of the local platform account\n
+        ``**kwargs``: ``dict args``
+            Use keywords to pass parameters,the twoparameters areapi_keyand ip_compute.
+            - api_key : API key of the local platform account
             - ip_compute : The IP address of the local request computing task\n
 
     Returns:
-        out: ``dict``\n
+        out: ``dict``
             confidence result
 
     Examples

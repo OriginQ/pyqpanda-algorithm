@@ -21,25 +21,25 @@ def int_comparator(value, q_state, q_anc_cmp, function='geq', reuse=False):
     against a given classical integer.
 
     Parameters
-        value : ``int``\n
+        value : ``int``
             The given classical integer.
-        q_state : ``Qubit``, ``QVec``\n
+        q_state : ``Qubit``, ``QVec``
             State qubits.
-        q_anc_cmp : ``QVec``\n
+        q_anc_cmp : ``QVec``
             Ancilla and comparison result qubits. The comparison result qubit should be the last element.
             The qubit number of this register should be equal to q_state.
-        function : ``str{'geq', 'g', 'seq', 's'}``, optional\n
-            Evaluate conditions:\n
+        function : ``str{'geq', 'g', 'seq', 's'}``, optional
+            Evaluate conditions:
             - ``geq`` : evaluate a ``>=`` condition. (Default)
             - ``g``   : evaluate a ``>`` condition.
             - ``seq`` : evaluate a ``<=`` condition.
             - ``s``   : evaluate a ``<`` condition.
 
-        reuse : ``bool``\n
+        reuse : ``bool``
             Set to True to add a reverse circuit part to reuse ancilla qubits.
 
     Returns
-        circuit : ``QCircuit``\n
+        circuit : ``QCircuit``
             The result this function return is a quangtum circuit.
             The comparison result qubit would be in state  :math:`|1\\rangle` when the quantum state
             satisfies the comparison condition, otherwise  :math:`|0\\rangle`. Therefore we can get a
@@ -181,23 +181,23 @@ def interpolation_comparator(value, q_state, q_anc_cmp, function='g', reuse=Fals
     state with ``inf+delta``, the probability of smaller is delta.
 
     Parameters
-        value : ``float``\n
+        value : ``float``
             The given classical number.
-        q_state : ``Qubit``, ``QVec``\n
+        q_state : ``Qubit``, ``QVec``
             State qubits.
-        q_anc_cmp : ``QVec``\n
+        q_anc_cmp : ``QVec``
             Ancilla and comparison result qubits. The comparison result qubit should be the last element.
             The qubit number of this register should be equal to q_state.
-        function : ``str{'g', 's'}``, optional\n
-            Evaluate conditions:\n
+        function : ``str{'g', 's'}``, optional
+            Evaluate conditions:
             - ``g`` : evaluate a ``>`` condition.(Default)
             - ``s`` : evaluate a ``<`` condition.
 
-        reuse : ``bool``\n
+        reuse : ``bool``
             Set to True to add a reverse circuit part to reuse ancilla qubits.
 
     Returns
-        circuit : ``QCircuit``\n
+        circuit : ``QCircuit``
             The result this function return is a quangtum circuit.
             The comparison result qubit would be in state :math:`|1\\rangle` when the quantum state
             satisfies the comparison condition, otherwise :math:`|0\\rangle`. Therefore we can get a
@@ -294,26 +294,26 @@ def qubit_comparator(q_state_1, q_state_2, q_anc_cmp, function='geq'):
     This function provides comparators to compare between two basis states(can be superposition states).
 
     Parameters
-        q_state_1 : ``Qubit``, ``QVec``\n
+        q_state_1 : ``Qubit``, ``QVec``
             The first state qubits.
-        q_state_2 : ``Qubit``, ``QVec``\n
+        q_state_2 : ``Qubit``, ``QVec``
             The second state qubits.
-        q_anc_cmp : ``QVec``\n
+        q_anc_cmp : ``QVec``
             Ancilla and comparison result qubits. The comparison result qubit should be the last element.
             The qubit number of this register should be equal to q_state.
-        function : ``str{'geq', 'g', 'seq', 's', 'eq', 'neq'}``, optional\n
-            Evaluate conditions:\n
+        function : ``str{'geq', 'g', 'seq', 's', 'eq', 'neq'}``, optional
+            Evaluate conditions:
             - ``geq`` : evaluate a ``>=`` condition. (Default)
             - ``g``   : evaluate a ``>`` condition.
             - ``seq`` : evaluate a ``<=`` condition.
             - ``s``   : evaluate a ``<`` condition.
             - ``eq``  : evaluate a ``==`` condition.
             - ``neq`` : evaluate a ``!=`` condition.
-        reuse : bool\n
+        reuse : bool
             Set to True to add a reverse circuit part to reuse ancilla qubits.
 
     Returns
-        circuit : ``QCircuit``\n
+        circuit : ``QCircuit``
             The result this function return is a quangtum circuit.
             The comparison result qubit would be in state :math:`|1\\rangle` when the quantum state
             satisfies the comparison condition, otherwise :math:`|0\\rangle`. Therefore we can get a
@@ -436,21 +436,21 @@ def qft_comparator(value, q_state, q_cmp, function='geq'):
     against a given classical integer.
 
     Parameters
-        value : ``int``\n
+        value : ``int``
             The given classical integer in range [0,N).
-        q_state : ``Qubit``, ``QVec``\n
+        q_state : ``Qubit``, ``QVec``
             State qubits.
-        q_cmp : ``QVec``\n
+        q_cmp : ``QVec``
             The comparison result qubit.
-        function : ``str{'geq', 'g', 'seq', 's'}``, optional\n
-            Evaluate conditions:\n
+        function : ``str{'geq', 'g', 'seq', 's'}``, optional
+            Evaluate conditions:
             - ``geq`` : evaluate a ``>=`` condition. (Default)
             - ``g``   : evaluate a ``>`` condition.
             - ``seq`` : evaluate a ``<=`` condition.
             - ``s``   : evaluate a ``<`` condition.
 
     Returns
-        circuit : ``QCircuit``\n
+        circuit : ``QCircuit``
             The result this function return is a quangtum circuit.
             The comparison result qubit would be in state  :math:`|1\\rangle` when the quantum state
             satisfies the comparison condition, otherwise  :math:`|0\\rangle`. Therefore we can get a
@@ -514,21 +514,21 @@ def qft_qubit_comparator(q_state_1, q_state_2, q_cmp, function='geq'):
     This function provides qft_based comparators to compare between two basis states(can be superposition states).
 
     Parameters
-        q_state_1 : ``Qubit``, ``QVec``\n
+        q_state_1 : ``Qubit``, ``QVec``
             The first state qubits.
-        q_state_2 : ``Qubit``, ``QVec``\n
+        q_state_2 : ``Qubit``, ``QVec``
             The second state qubits.
-        q_cmp : ``QVec``\n
+        q_cmp : ``QVec``
             Comparison result qubit.
-        function : ``str{'geq', 'g', 'seq', 's'}``, optional\n
-            Evaluate conditions:\n
+        function : ``str{'geq', 'g', 'seq', 's'}``, optional
+            Evaluate conditions:
             - ``geq`` : evaluate a ``>=`` condition. (Default)
             - ``g``   : evaluate a ``>`` condition.
             - ``seq`` : evaluate a ``<=`` condition.
             - ``s``   : evaluate a ``<`` condition.
 
     Returns
-        circuit : ``QCircuit``\n
+        circuit : ``QCircuit``
             The result this function return is a quangtum circuit.
             The comparison result qubit would be in state :math:`|1\\rangle` when the quantum state
             satisfies the comparison condition, otherwise :math:`|0\\rangle`. Therefore we can get a

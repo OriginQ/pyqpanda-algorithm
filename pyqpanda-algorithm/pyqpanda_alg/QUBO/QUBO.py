@@ -66,12 +66,12 @@ class QuadraticBinary:
     method using two's complement.
 
     Parameters
-        problem : ``sympy.Basic`` or ``dict``\n
+        problem : ``sympy.Basic`` or ``dict``
             A quadratic form function with binary variables to be optimized. Support an expression in sympy.
             Keys followed should be included if expression in dict:
 
-            ``quadratic`` : A, Optional ``[Union[np.ndarray, List[List[float]]]]`` , the quadratic coefficients matrix.\n
-            ``linear`` : b, Optional ``[Union[np.ndarray, List[float]]]`` , the linear coefficients array.\n
+            ``quadratic`` : A, Optional ``[Union[np.ndarray, List[List[float]]]]`` , the quadratic coefficients matrix.
+            ``linear`` : b, Optional ``[Union[np.ndarray, List[float]]]`` , the linear coefficients array.
             ``constant`` : c, ``float``, a constant.\n
 
     """
@@ -102,7 +102,7 @@ class QuadraticBinary:
     def query_qnumber(self) -> List[int]:
         """
         Returns
-            [n_key, n_res] : ``list[int]``\n
+            [n_key, n_res] : ``list[int]``
                 Returns the size(number of qubits) of the variable and result registers for the given problem.
 
         Examples
@@ -144,13 +144,13 @@ class QuadraticBinary:
     def cir(self, q_key, q_res):
         """
         Parameters
-            q_key : ``QVec``\n
+            q_key : ``QVec``
                 Qubit(s) for the variable register.
-            q_res : ``QVec``\n
+            q_res : ``QVec``
                 Qubit(s) for the result register.
 
         Returns
-            main_cir : ``QCircuit``\n
+            main_cir : ``QCircuit``
                 Returns the quantum circuit for computing the function.
 
         Examples
@@ -171,27 +171,27 @@ class QuadraticBinary:
         >>> print(test0.cir(q_key, q_res))
         
         .. parsed-literal::
-            q_0:  |0>──── ───────■────── ───────■─────────────── ─────────────────────── ───────■────────────────────── >
+            q_0:  \|0>──── ───────■────── ───────■─────────────── ─────────────────────── ───────■────────────────────── >
                                  │              │                                               │                       >
-            q_1:  |0>──── ───────┼────── ───────┼───────■─────── ───────■─────────────── ───────■────────────────────── >
+            q_1:  \|0>──── ───────┼────── ───────┼───────■─────── ───────■─────────────── ───────■────────────────────── >
                                  │              │       │               │                       │                       >
-            q_2:  |0>──── ───────┼────── ───────┼───────┼─────── ───────┼───────■─────── ───────┼──────────────■─────── >
+            q_2:  \|0>──── ───────┼────── ───────┼───────┼─────── ───────┼───────■─────── ───────┼──────────────■─────── >
                       ┌─┐ ┌──────┴─────┐        │┌──────┴──────┐        │┌──────┴──────┐ ┌──────┴──────┐       │        >
-            q_3:  |0>─┤H├ ┤U1(2.042035)├ ───────┼┤U1(-1.570796)├ ───────┼┤U1(-0.785398)├ ┤U1(-1.884956)├───────┼─────── >
+            q_3:  \|0>─┤H├ ┤U1(2.042035)├ ───────┼┤U1(-1.570796)├ ───────┼┤U1(-0.785398)├ ┤U1(-1.884956)├───────┼─────── >
                       ├─┤ └────────────┘ ┌──────┴┴────┬────────┘ ┌──────┴┴─────┬───────┘ └─────────────┘┌──────┴──────┐ >
-            q_4:  |0>─┤H├ ────────────── ┤U1(4.084070)├───────── ┤U1(-3.141593)├──────── ───────────────┤U1(-1.570796)├ >
+            q_4:  \|0>─┤H├ ────────────── ┤U1(4.084070)├───────── ┤U1(-3.141593)├──────── ───────────────┤U1(-1.570796)├ >
                       └─┘                └────────────┘          └─────────────┘                        └─────────────┘ >
 
             
-            q_0:  |0>───────■─────── ────────────── ────────────── ─ ─── ────────────────── ───
+            q_0:  \|0>───────■─────── ────────────── ────────────── ─ ─── ────────────────── ───
                             │
-            q_1:  |0>───────■─────── ───────■────── ───────■────── ─ ─── ────────────────── ───
+            q_1:  \|0>───────■─────── ───────■────── ───────■────── ─ ─── ────────────────── ───
                             │               │              │
-            q_2:  |0>───────┼─────── ───────■────── ───────■────── ─ ─── ────────────────── ───
+            q_2:  \|0>───────┼─────── ───────■────── ───────■────── ─ ─── ────────────────── ───
                             │        ┌──────┴─────┐        │         ┌─┐
-            q_3:  |0>───────┼─────── ┤U1(1.413717)├ ───────┼────── X ┤H├ ─────────■──────── ───
+            q_3:  \|0>───────┼─────── ┤U1(1.413717)├ ───────┼────── X ┤H├ ─────────■──────── ───
                      ┌──────┴──────┐ └────────────┘ ┌──────┴─────┐ │ └─┘ ┌────────┴───────┐ ┌─┐
-            q_4:  |0>┤U1(-3.769911)├ ────────────── ┤U1(2.827433)├ X ─── ┤CR(1.570796).dag├ ┤H├
+            q_4:  \|0>┤U1(-3.769911)├ ────────────── ┤U1(2.827433)├ X ─── ┤CR(1.570796).dag├ ┤H├
                      └─────────────┘                └────────────┘       └────────────────┘ └─┘
 
         """
@@ -227,11 +227,11 @@ class QuadraticBinary:
     def function_value(self, var_array):
         """
         Parameters
-            var_array : ``array_like``\n
+            var_array : ``array_like``
                 An array of binary values.
 
         Returns
-            res : ``float``\n
+            res : ``float``
                 The result of the function under given variables array.
 
         Examples
@@ -260,7 +260,7 @@ class QuadraticBinary:
         Traversing the entire solution space to find the minimum value solution.
 
         Returns
-            index_list, min_value : ``list``, ``float``\n
+            index_list, min_value : ``list``, ``float``
                 The solution obtained by traversing the entire solution space.
 
         Examples
@@ -336,8 +336,6 @@ class QUBO_GAS_origin(QuadraticBinary):
     Represent a quadratic unconstrained binary optimization problem 
     and solve it using the Grover Adaptive Search.
 
-     .. math::
-        \\
     Inheritance class of QuadraticBinary. Using GAS to find the minimum value solution
     of given quadratic binary optimization problem.
 
@@ -351,12 +349,13 @@ class QUBO_GAS_origin(QuadraticBinary):
     method using two's complement.
 
     Parameters
-        problem : ``sympy.Basic`` or ``dict``\n
+        problem : ``sympy.Basic`` or ``dict``
             A quadratic form function with binary variables to be optimized. Support an expression in sympy.
-            Keys followed should be included if expression in dict:\n
-                ``quadratic`` : A, Optional ``[Union[np.ndarray, List[List[float]]]]`` , the quadratic coefficients matrix.\n
-                ``linear`` : b, Optional ``[Union[np.ndarray, List[float]]]`` , the linear coefficients array.\n
-                ``constant`` : c, ``float`` , a constant.\n
+            Keys followed should be included if expression in dict:
+
+            ``quadratic`` : A, Optional ``[Union[np.ndarray, List[List[float]]]]`` , the quadratic coefficients matrix.
+            ``linear`` : b, Optional ``[Union[np.ndarray, List[float]]]`` , the linear coefficients array.
+            ``constant`` : c, ``float`` , a constant.\n
     >>> from pyqpanda_alg import QUBO
     >>> import sympy as sp
     >>> x0, x1, x2 = sp.symbols('x0 x1 x2')
@@ -405,15 +404,15 @@ class QUBO_GAS_origin(QuadraticBinary):
         Run the solver to find the minimum.
 
         Parameters
-            continue_times : ``int``\n
+            continue_times : ``int``
                 The maximum number of repeated searches at the current optimal point in GAS algorithm.
-            init_value : ``float``\n
+            init_value : ``float``
                 The given initial value of the optimization function. Default the constant item of the problem.
-            process_show : ``bool``\n 
+            process_show : ``bool``
                 Set to True to print the detail during search.
 
         Returns
-            minimum_indexes, minimum_res : ``list[list[int]]``, ``float``\n
+            minimum_indexes, minimum_res : ``list[list[int]]``, ``float``
                 The optimization result including the solution array and the optimal value.
 
         Examples
@@ -441,8 +440,6 @@ class QUBO_QAOA(QuadraticBinary):
     Represent a quadratic unconstrained binary optimization problem 
     and solve it using the Quantum Approximate Optimization Algorithm.
 
-     .. math::
-        \\
     Inheritance class of QuadraticBinary. Using QAOA to find the minimum value solution
     of given quadratic binary optimization problem.
 
@@ -456,12 +453,13 @@ class QUBO_QAOA(QuadraticBinary):
     method using two's complement.
 
     Parameters
-        problem : ``sympy.Basic`` or ``dict``\n
+        problem : ``sympy.Basic`` or ``dict``
             A quadratic form function with binary variables to be optimized. Support an expression in sympy.
             Keys followed should be included if expression in dict:
-                ``quadratic`` : A, Optional ``[Union[np.ndarray, List[List[float]]]]``, the quadratic coefficients matrix.\n
-                ``linear`` : b, Optional ``[Union[np.ndarray, List[float]]]``, the linear coefficients array.\n
-                ``constant`` : c, ``float``, a constant.\n
+
+            ``quadratic`` : A, Optional ``[Union[np.ndarray, List[List[float]]]]``, the quadratic coefficients matrix.
+            ``linear`` : b, Optional ``[Union[np.ndarray, List[float]]]``, the linear coefficients array.
+            ``constant`` : c, ``float``, a constant.\n
 
     >>> from pyqpanda_alg import QUBO
     >>> import sympy as sp
@@ -484,30 +482,30 @@ class QUBO_QAOA(QuadraticBinary):
         Run the solver to find the minimum.
 
         Parameters
-            layer : ``int``\n
+            layer : ``int``
                 Layers number of QAOA circuit.
                 If optimize type is interp, then it represents the final layer of the optimization progress.
-            optimizer : ``str``, ``optional``\n
+            optimizer : ``str``, ``optional``
                 Type of solver. Should be one of
 
-                    - ``SPSA`` : See :ref: ``<spsa.spsa_minimize>``\n
+                    - ``SPSA`` : See ``spsa_minimize`` in the module ``pyqpanda_alg.QAOA.spsa``
                     - one of  ``['Nelder-Mead', 'Powell', 'CG', 'BFGS', 'Newton-CG', 'TNC', 'COBYLA', 'SLSQP', 'trust-constr','dogleg', 'trust-ncg', 'trust-exact', 'trust-krylov']``. See ``scipy.optimize.minimize``.
 
                 If not given, default by ``SLSQP``.
-            optimizer_option : ``dict``, ``optional``\n
-                A dictionary of solver options. Accept the following generic options:\n
-                    - bounds : ``List[tuple]``, ``optional``\n
-                        Bounds for the variables. Sequence of ``(min, max)`` pairs for each element in `x`.
+            optimizer_option : ``dict``, ``optional``
+                A dictionary of solver options. Accept the following generic options:
+                    - bounds : ``List[tuple]``, ``optional``
+                        Bounds for the variables. Sequence of ``(min, max)`` pairs for each element in ``x``.
                         If specified, variables are clipped to fit inside the bounds after each iteration.
                         None is used to specify no bound.
-                    - options : ``int``\n
+                    - options : ``int``
                         Maximum number of iterations to perform. Depending on the
                         method each iteration may use several function evaluations.
 
-                        For `TNC` use `maxfun` instead of `maxiter`.
+                        For ``TNC`` use ``maxfun`` instead of ``maxiter``.
 
         Returns
-            qaoa_result : ``list[tuple]``\n
+            qaoa_result : ``list[tuple]``
                 List of all possible solutions with corresponding probabilities.
                 The solution of the problem we are looking for should generally be the maximum probability.
 

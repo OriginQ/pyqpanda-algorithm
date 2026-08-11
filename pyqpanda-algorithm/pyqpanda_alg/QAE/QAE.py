@@ -24,15 +24,15 @@ class QAE:
     This class provides a framework for original Quantum Amplitude Estimation(QAE) algorithm [1].
 
     Parameters
-        operator_in : callable ``f(qubits)``\n
+        operator_in : callable ``f(qubits)``
             Operator/Circuit of the estimated qubits state.
-        qnumber : ``int``\n
+        qnumber : ``int``
             The number of all qubits used in circuit.
-        res_index : ``int``, ``list``\n
+        res_index : ``int``, ``list``
             The index of the estimated qubit(s).
-        epsilon : ``float``\n
+        epsilon : ``float``
             Estimated precision, i.e. the minimum error.
-        target_state : ``str``\n
+        target_state : ``str``
             Estimated target state.
 
 
@@ -128,7 +128,7 @@ class QAE:
         Run the quantum amplitude estimation algorithm.
 
         Returns
-            prob : ``float``\n
+            prob : ``float``
                 A probability value as the amplitude estimation result.
 
         Examples
@@ -136,9 +136,9 @@ class QAE:
         
         .. parsed-literal::
                       ┌────────────┐
-            q_0:  |0>─┤RY(1.047198)├ ─■─
+            q_0:  \|0>─┤RY(1.047198)├ ─■─
                       └────────────┘ ┌┴┐
-            q_1:  |0>─────────────── ┤X├
+            q_1:  \|0>─────────────── ┤X├
                                      └─┘
         >>> from pyqpanda_alg import QAE
         >>> import numpy as np
@@ -190,13 +190,13 @@ class IQAE:
     Estimated target state is  :math:`|1\\rangle`.
 
     Parameters
-        operator_in : callable ``f(qubits)``\n
+        operator_in : callable ``f(qubits)``
             Operator/Circuit of the estimated qubits state.\n
-        qnumber : ``int``\n
+        qnumber : ``int``
             The number of all qubits used in circuit.\n
-        res_index : ``int``\n
+        res_index : ``int``
             The index of the estimated qubit.\n
-        epsilon : ``float``\n
+        epsilon : ``float``
             Estimated precision, i.e. the minimum error.\n
 
 
@@ -255,7 +255,7 @@ class IQAE:
         Run the iterative quantum amplitude estimation algorithm.
 
         Returns
-            prob : ``float``\n
+            prob : ``float``
                 A probability value as the iterative amplitude estimation result.
 
         Examples
@@ -263,9 +263,9 @@ class IQAE:
         
         .. parsed-literal::
                       ┌────────────┐
-            q_0:  |0>─┤RY(1.047198)├ ─■─
+            q_0:  \|0>─┤RY(1.047198)├ ─■─
                       └────────────┘ ┌┴┐
-            q_1:  |0>─────────────── ┤X├
+            q_1:  \|0>─────────────── ┤X├
                                      └─┘
         >>> from pyqpanda_alg import QAE
         >>> import numpy as np

@@ -28,11 +28,11 @@ def p_1(n):
     Transfer binary variable :math:`x_n` to pauli operator :math:`\\frac{I-Z_n}{2}`
 
     Parameters
-        n : ``int``\n
+        n : ``int``
             index of the variable, start with 0.
 
     Return
-        operator : ``PauliOperator``\n
+        operator : ``PauliOperator``
             Pauli operator :math:`\\frac{I-Z_n}{2}`
 
     Examples
@@ -52,11 +52,11 @@ def p_0(n):
     Transfer binary variable :math:`x_n` to pauli operator :math:`\\frac{I+Z_n}{2}`
 
     Parameters
-        n : ``integer``\n
+        n : ``integer``
             index of the variable, start with 0.
 
     Return
-        operator : ``PauliOperator``\n
+        operator : ``PauliOperator``
             Pauli operator :math:`\\frac{I+Z_n}{2}`
 
     Examples
@@ -80,7 +80,7 @@ def problem_to_z_operator(problem, norm=False):
         problem : ``expression`` in sympy\n
 
     Return
-        hamiltonian : ``PauliOperator``\n
+        hamiltonian : ``PauliOperator``
             Pauli operators :math:`f(\\frac{I-Z_n}{2})` in list form.
 
     Examples
@@ -130,11 +130,11 @@ def parameter_interpolate(pm):
     from the optimal parameter found from :math:`p` layer QAOA circuit.
 
     Parameters
-        pm : ``array-like``\n
+        pm : ``array-like``
             Optimal parameters of :math:`p` layer QAOA circuit, with length :math:`2\times p`
 
     Return
-        operator : ``array-like``\n
+        operator : ``array-like``
             A guess for the initial parameter of :math:`p+1` layer QAOA, with length :math:`2\times (p+1)`
 
     References
@@ -176,20 +176,21 @@ def parameter_interpolate(pm):
 
 def pauli_z_operator_to_circuit(operator, qlist, gamma=np.pi):
     """
-    Circuit of simulation diagonal Hamiltonian :math:`e^{-iH\theta}`.
+    Circuit of simulation diagonal Hamiltonian :math:`e^{-iH\\theta}`.
 
     Parameters
-        operator : ``list``\n
+        operator : ``list``
             Pauli Operator in list form. (By method `operator.toHamiltonian(1)`)
-        qlist : ``qubit list``\n
-        gamma : ``float``\n
-            Value of theta in :math:`e^{-iH\theta}`.
+        qlist : ``qubit list``
+            List of qubits to apply the gates to.
+        gamma : ``float``
+            Value of theta in :math:`e^{-iH\\theta}`.
 
     Return
-        circuit : ``pq.QCircuit``\n
-            Circuit of simulation diagonal Hamiltonian :math:`e^{-iH\theta}`.
+        circuit : ``pq.QCircuit``
+            Circuit of simulation diagonal Hamiltonian :math:`e^{-iH\\theta}`.
 
-        constant : ``float``\n
+        constant : ``float``
             Constant number in the hamiltonian.
 
     Example
@@ -209,11 +210,11 @@ def pauli_z_operator_to_circuit(operator, qlist, gamma=np.pi):
     .. parsed-literal::
 
                   ┌────────────┐                              ┌─┐
-        q_0:  |0>─┤RZ(0.000000)├ ───■── ────────────── ───■── ┤I├
+        q_0:  \|0>─┤RZ(0.000000)├ ───■── ────────────── ───■── ┤I├
                   ├────────────┤ ┌──┴─┐ ┌────────────┐ ┌──┴─┐ ├─┤
-        q_1:  |0>─┤RZ(0.000000)├ ┤CNOT├ ┤RZ(0.000000)├ ┤CNOT├ ┤I├
+        q_1:  \|0>─┤RZ(0.000000)├ ┤CNOT├ ┤RZ(0.000000)├ ┤CNOT├ ┤I├
                   ├────────────┤ ├─┬──┘ └────────────┘ └────┘ └─┘
-        q_2:  |0>─┤RZ(0.000000)├ ┤I├─── ────────────── ────── ───
+        q_2:  \|0>─┤RZ(0.000000)├ ┤I├─── ────────────── ────── ───
                   └────────────┘ └─┘
 
 
@@ -252,15 +253,15 @@ class QAOA:
     optimization problem.
 
     Parameters
-        problem : ``expression`` in sympy or ``pq.PauliOperator``\n
+        problem : ``expression`` in sympy or ``pq.PauliOperator``
             A polynomial function with binary variables to be optimized. Support an expression in sympy. Next version will
             support an object from pypanda PauliOperator.
 
-        init_circuit : ``function``,  ``optional``\n
+        init_circuit : ``function``,  ``optional``
             The quantum circuit to create the initial state of QAOA algorithm. Default is Hadamard circuit to create an
             equal superposition state :math:`\ket{\psi} = 2^{-n/2}\sum_{i=0}^{2^n-1}\ket{i}`.
 
-        mixer_circuit : ``function``, ``optional``\n
+        mixer_circuit : ``function``, ``optional``
             The function which returns a mixer quantum circuit :math:`U_M(\\beta)=\exp(-i\\beta H_M)`.
             The function should accept two parameters (qubit list, array-like angles) as input, and return a quantum
             circuit as output. Default is X mixer circuit :math:`\exp(-i\\beta \sum_i X_i)=RX(2\\beta)^{\otimes n}`
@@ -269,11 +270,11 @@ class QAOA:
 
 
     Attributes
-        energy_dict : ``dict``\n
+        energy_dict : ``dict``
             The dict which stores the function value for solutions being sampled during the optimization.
-        problem_dimension : ``integer``\n
+        problem_dimension : ``integer``
             The problem dimension, and also the qubit number.
-        circuit iter : ``integer``\n
+        circuit iter : ``integer``
             The number of times the quantum circuit being called during optimization.
 
     Methods
@@ -287,7 +288,7 @@ class QAOA:
 
     Reference
         [1] FARHI E, GOLDSTONE J, GUTMANN S. A Quantum Approximate Optimization Algorithm[J/OL]. 2014[2022-03-09].
-        https://arxiv.org/abs/1411.4028v1. DOI:10.48550/arXiv.1411.4028.\n
+        https://arxiv.org/abs/1411.4028v1. DOI:10.48550/arXiv.1411.4028.
         [2] ZHOU L, WANG S T, CHOI S, et. Quantum Approximate Optimization Algorithm: Performance, Mechanism,
         and Implementation on Near-Term Devices[J/OL]. Physical Review X, 2020, 10(2): 021067.
         DOI:10.1103/PhysRevX.10.021067.
@@ -350,11 +351,11 @@ class QAOA:
         TODO: using new method to acccelrate the calculation.
 
         Parameter
-            x : ``array-like``\n
+            x : ``array-like``
                 one binary variables solution in vector form.
 
         Return 
-            ``float``\n
+            ``float``
             function value of the solution :math:`f(x)`.
 
         Example
@@ -432,13 +433,13 @@ class QAOA:
         Given qubit list and parameters, return the QAOA circuit.
 
         Parameters
-            qlist : ``list``\n
+            qlist : ``list``
                 qubit list\n
 
-            gammas : ``array-like``\n
+            gammas : ``array-like``
                 parameter gamma for QAOA phase circuit\n
 
-            betas : ``array-like``\n
+            betas : ``array-like``
                 parameter beta for QAOA mixer circuit\n
 
         Return
@@ -459,19 +460,19 @@ class QAOA:
         Given parameters, run the qaoa circuit and get the theoretical probability distribution.
 
         Parameters
-            gammas : ``array-like``\n
+            gammas : ``array-like``
                 Parameter gamma for QAOA phase circuit\n
 
-            betas : ``array-like``\n
+            betas : ``array-like``
                 Parameter beta for QAOA mixer circuit\n
 
-            shots : ``integer``, ``optional``\n
+            shots : ``integer``, ``optional``
                 Times of running the same circuit. Must be positive integer or -1.
                 If it is -1, the results are given as amplitudes of all state vectors,
                 which can be viewed as running the circuit infinite times. Default is -1.
 
         Return
-            prob_result : ``dict``\n
+            prob_result : ``dict``
                 Probability of each computational basis state. The keys are binary form
                 of qubits where the first qubit sits at the right-most position and the
                 items are the corresponding probability (if shots = -1) or frequency (if shots > 0).
@@ -540,7 +541,7 @@ class QAOA:
 
 
         Parameter
-            measure_result : ``dict``\n
+            measure_result : ``dict``
                 measured result if measure type is sample, or probability distribution if measure type is theoretical.
 
         Return
@@ -561,7 +562,7 @@ class QAOA:
         Given a result, calculate the CVaR energy expectation.
 
         Parameter
-            measure_result : ``dict``\n
+            measure_result : ``dict``
                 measured result if measure type is sample, or probability distribution if measure type is theoretical.
 
         Return
@@ -594,7 +595,7 @@ class QAOA:
         Given a result, calculate the Gibbs energy expectation.
 
         Parameter
-            measure_result : ``dict``\n
+            measure_result : ``dict``
                 measured result if measure type is sample, or probability distribution if measure type is theoretical.
 
         Return
@@ -618,7 +619,7 @@ class QAOA:
         Given parameters, run the QAOA circuit and calculate the loss function.
 
         Parameter
-            paras : ``array-like``\n
+            paras : ``array-like``
                 parameters of :math:`p` layer QAOA circuit, with length :math:`2\times p`
 
         Return
@@ -645,8 +646,8 @@ class QAOA:
         check bounds and make new bounds
 
         Parameters
-            initial_para : parameter to be bounded\n
-            gamma_bounds : gamma bounds\n
+            initial_para : parameter to be bounded
+            gamma_bounds : gamma bounds
             beta_bounds : beta bounds\n
 
         Returns
@@ -677,11 +678,11 @@ class QAOA:
         Optimize QAOA algorithm parameters in traditional way.
 
         Parameters
-            initial_para : ``array-like``\n
+            initial_para : ``array-like``
                 initial parameters of :math:`p` layer QAOA circuit, with length :math:`2\\times p`
 
         Return
-            final_para : ``array-like``\n
+            final_para : ``array-like``
                 optimized parameters of :math:`p` layer QAOA circuit, with length :math:`2\\times p`
 
         """
@@ -704,15 +705,15 @@ class QAOA:
         Optimize QAOA algorithm parameters by interp method.
 
         Parameters
-            initial_para : ``array-like``\n
+            initial_para : ``array-like``
                 initial parameters of :math:`p_0` layer QAOA circuit, with length :math:`2\\times p_0`. :math:`p_0` is the
                 start layer number of the optimization progress.
 
-            start_layer : ``integer``, ``optional``\n
+            start_layer : ``integer``, ``optional``
                 the start layer number of the optimization progress. Default is 1.
 
         Return
-            final_para : ``array-like``\n
+            final_para : ``array-like``
                 optimized parameters of :math:`p` layer QAOA circuit, with length :math:`2\\times p`
 
         """
@@ -784,43 +785,43 @@ class QAOA:
         Optimize the function by QAOA algorithm.
 
         Parameters
-            layer : ``integer``, ``optional``\n
+            layer : ``integer``, ``optional``
                 Layers number of QAOA circuit. Default is 1.
                 If optimize type is interp, then it represents the final layer of the optimization progress.
 
-            initial_para : ``array-like``, ``optional``\n
+            initial_para : ``array-like``, ``optional``
                 initial parameters of :math:`p` layer QAOA circuit, with length :math:`2\\times p`. If not given, a random
                 distribution from :math:`U(0, \pi)` of size :math:`2p` is generated.
 
-            shots : ``integer``, ``optional``\n
+            shots : ``integer``, ``optional``
                 Circuit measured times. If shots takes -1, then use theoretical probability (by state vector) instead.
                 Default is -1
 
-            loss_type : ``string``, ``optional``\n
+            loss_type : ``string``, ``optional``
                 The loss function used by the optimizer. Should be one of
 
-                    - ``default`` : Given a result, calculate the energy expectation.\n
+                    - ``default`` : Given a result, calculate the energy expectation.
                         See Note ``Energy expectation``
-                    - ``Gibbs`` : Given a result and argument temperature :math:`T`, calculate the Gibbs energy expectation.\n
+                    - ``Gibbs`` : Given a result and argument temperature :math:`T`, calculate the Gibbs energy expectation.
                         See Note ``Gibbs energy``
-                    - ``CVaR`` : Given a result and argument :math:`\\alpha`, calculate the CVaR loss function.\n
+                    - ``CVaR`` : Given a result and argument :math:`\\alpha`, calculate the CVaR loss function.
                         See Note ``CVaR loss functio``
 
                 If not given, default by ``default``.
 
-            optimize_type : ``string``, ``optional``\n
+            optimize_type : ``string``, ``optional``
                 The method to optimize the QAOA circuit. Should be one of
 
-                    - ``default``: Directly optimize the :math:`p` layer QAOA circuit.\n
-                    - ``interp``: Use interpolate method to train a big QAOA circuit.\n
+                    - ``default``: Directly optimize the :math:`p` layer QAOA circuit.
+                    - ``interp``: Use interpolate method to train a big QAOA circuit.
                         See Note ``interp method``
 
                 If not given, default by ``default``.
 
-            optimizer : ``string``, ``optional``\n
+            optimizer : ``string``, ``optional``
                 Type of solver. Should be one of
 
-                    - ``SPSA`` : See ``spsa.spsa_minimize``\n
+                    - ``SPSA`` : See ``spsa.spsa_minimize``
 
                     - one of ``Nelder-Mead``, ``Powell``, ``CG``, ``BFGS``, ``Newton-CG``, ``TNC``, ``COBYLA``, ``SLSQP``,
                     ``trust-constr``, ``dogleg``, ``trust-ncg``, ``trust-exact``, ``trust-krylov``.
@@ -828,35 +829,35 @@ class QAOA:
 
                 If not given, default by ``SLSQP``.
 
-            optimizer_option : ``dict``, ``optional``\n
-                A dictionary of solver options. Accept the following generic options:\n
-                    - bounds : ``List[tuple]``, ``optional``\n
+            optimizer_option : ``dict``, ``optional``
+                A dictionary of solver options. Accept the following generic options:
+                    - bounds : ``List[tuple]``, ``optional``
                         Bounds for the variables. Sequence of ``(min, max)`` pairs for each element in `x`.
                         If specified, variables are clipped to fit inside the bounds after each iteration.
                         None is used to specify no bound.
-                    - options : ``integer``\n
+                    - options : ``integer``
                         Maximum number of iterations to perform. Depending on the
                         method each iteration may use several function evaluations.
 
                         For `TNC` use `maxfun` instead of `maxiter`.
 
-            loss_option :\n
+            loss_option :
 
-                temperature : ``float``, ``optional``\n
+                temperature : ``float``, ``optional``
                     parameter calculated in _loss_function_Gibbs. Default is 1. See Note ``Gibbs energy``.
 
-                alpha : ``float``, ``optional``\n
+                alpha : ``float``, ``optional``
                     parameter calculated in _loss_function_cvar. Default is 1. See Note ``Gibbs energy``.
 
         Return
-            qaoa_result : ``dict``\n
+            qaoa_result : ``dict``
                 dict of all possible solutions with corresponding probabilities.
                 The elements are arranged in descending order of probability.
 
-            para_result : ``array-like``\n
+            para_result : ``array-like``
                 Array of the optimized QAOA parameters.
 
-            loss_result : ``float``\n
+            loss_result : ``float``
                 Loss function value of the optimized QAOA parameters.
 
         Example
@@ -884,7 +885,7 @@ class QAOA:
 
 
         Notes
-            - Energy expectation:\n
+            - Energy expectation:
                 In traditional QAOA algorithm, the parameter is optimized by minimize the energy expectation
 
                 :math:`\\bra{\psi(\gamma, \\beta}H\ket{\psi(\gamma, \\beta)}`
@@ -898,7 +899,7 @@ class QAOA:
 
                 :math:`E=\sum_{i=0}^{2^n-1} p_iE_i`.
 
-            - Gibbs energy:\n
+            - Gibbs energy:
 
                 Inspired by Ref[1]. Instead of the traditional energy expectation value, using the Gibbs function as the
                 object function. The function is
@@ -918,7 +919,7 @@ class QAOA:
                     :math:`G=-\log (\sum_{i=0}^{2^n-1} p_i \exp(-E_i/T))`.
 
 
-            - CVaR loss function:\n
+            - CVaR loss function:
                 Inspired by Ref[3].Instead of the traditional energy expectation value, using the Conditional Value at
                 Risk function as the object function. The function is
 
@@ -936,16 +937,16 @@ class QAOA:
 
                     :math:`E=\sum_{i=0}^{k} p_iE_i + (\\alpha - p_{k+1})E_{k+1}, \sum_{i=0}^k p_i < \\alpha`
 
-            - Interpolate method:\n
+            - Interpolate method:
                 Inspired by Ref[2].
 
         Reference
             [1] LI L, FAN M, CORAM M, et. Quantum Optimization with a Novel Gibbs Objective Function and Ansatz
-            Architecture Search[J/OL]. Physical Review Research, 2020, 2(2): 023074. DOI:10.1103/PhysRevResearch.2.023074.\n
+            Architecture Search[J/OL]. Physical Review Research, 2020, 2(2): 023074. DOI:10.1103/PhysRevResearch.2.023074.
 
             [2] ZHOU L, WANG S T, CHOI S, et. Quantum Approximate Optimization Algorithm:
             Performance, Mechanism, and Implementation on Near-Term Devices[J/OL].
-            Physical Review X, 2020, 10(2): 021067. DOI:10.1103/PhysRevX.10.021067.\n
+            Physical Review X, 2020, 10(2): 021067. DOI:10.1103/PhysRevX.10.021067.
 
             [3] BARKOUTSOS P K, NANNICINI G, ROBERT A, et. Improving Variational Quantum Optimization using CVaR[J/OL].
             Quantum, 2020, 4: 256. DOI:10.22331/q-2020-04-20-256.\n

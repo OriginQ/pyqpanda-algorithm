@@ -25,25 +25,25 @@ class SVD:
     which estimates the singular values of an input matrix via parameterized quantum circuits.
 
     Parameters
-        matrix_in : ``array_like``, optional\n
+        matrix_in : ``array_like``, optional
             The input real-valued matrix to be decomposed. The matrix will be zero-padded to the nearest power-of-two shape.
-        depth : ``int``, optional (default=8)\n
+        depth : ``int``, optional (default=8)
             The number of variational layers used in the parameterized quantum circuits. Must be in the range [2, 10].
 
     Attributes
-        matrix : ``ndarray``\n
+        matrix : ``ndarray``
             The input matrix converted into a 2D NumPy array.
-        q0 : ``int``\n
+        q0 : ``int``
             Number of qubits required to encode the number of matrix rows.
-        q1 : ``int``\n
+        q1 : ``int``
             Number of qubits required to encode the number of matrix columns.
-        q_matrix : ``ndarray``\n
+        q_matrix : ``ndarray``
             The zero-padded version of the input matrix to fit a 2^n × 2^m dimension.
-        normal_value : ``float``\n
+        normal_value : ``float``
             Normalization factor (Frobenius norm of the input matrix).
-        iter_depth : ``int``\n
+        iter_depth : ``int``
             Depth of the variational quantum circuit layers.
-        parameter : ``ndarray``\n
+        parameter : ``ndarray``
             Initial random parameters used for variational optimization.
 
     Methods

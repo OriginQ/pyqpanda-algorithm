@@ -50,80 +50,84 @@ def spsa_minimize(func, x0, args=(), tol=None, bounds=None, callback=None, **opt
     This function provides a simple approach for two-measurement SPSA method.
 
     Parameters
-        func : ``callable``\n
+        func : ``callable``
             The objective function to be optimized.
             ``fun(x, *args) -> float``
             where ``x`` is a 1-D array with shape (n,).
             It is warned that we do not check with the return
             type of func to ensure a minimum query to
             the objective function.
-        x0 : ``ndarray``, shape (n,)\n
+        x0 : ``ndarray``, shape (n,)
             Initial guess. Array of real elements of size (n,),
             where ``n`` is the number of independent variables.
-        args : ``tuple``, ``optional``\n
+        args : ``tuple``, ``optional``
             Extra arguments passed to the objective function.
-        tol : ``float``, ``optional``\n
+        tol : ``float``, ``optional``
             Tolerance for termination. Algorithm stops when gradient lies between
             the range of the specified tolerance. Otherwise, it stops until
             the maximum iteration is reached.
-        bounds : ``List[tuple]``, ``optional``\n
+        bounds : ``List[tuple]``, ``optional``
             Bounds for the variables. Sequence of ``(min, max)`` pairs for each element in `x`.
             If specified, variables are clipped to fit inside the bounds after each iteration.
             None is used to specify no bound.
-        callback : ``callable``, ``optional``\n
+        callback : ``callable``, ``optional``
             Called after each iteration.
             ``callback(xk)``
             where ``xk`` is the current parameter vector.
-        options : ``dict``, ``optional``\n
+        options : ``dict``, ``optional``
             A dictionary of parameter options. See details in Notes.
 
     Return
-        x : ``ndarray``, shape (n,)\n
+        x : ``ndarray``, shape (n,)
             Optimized variables.
 
     Raises
-        ValueError\n
+        ValueError
             If any parameter ``a, c, alpha, gamma, A`` is too small  :math:`(< 1e-8)`
             or less than  :math:`0`.
-        TypeError\n
+        TypeError
             If the user-provided objective function return a non-scalar value.
 
     Notes
-        The update rule for SPSA is:\n  
+        The update rule for SPSA is:
              :math:`\\vec x_{k+1}=\\vec x_{k}-\\frac{a_{k}}{c_{k}}\cdot\\frac{[f(\\vec x_k+c_k\\vec b)-f(\\vec x_k-c_k\\vec b)]}{2\\vec b}` 
+
         where b is uniformly chosen from {-1, 1} (symmetric Bernoulli perturbation).
-        The learning rate a(k) is defined as\n
+
+        The learning rate a(k) is defined as
            :math:`a(k) = \\frac{a}{(A + k + 1) ^ {\\alpha}}`
-        The perturbation strength is defined as\n
+
+        The perturbation strength is defined as
            :math:`c(k) = \\frac{c}{(k + 1) ^ {\gamma}}`
 
-        The ``option`` dictionary includes following parameters:\n
-             :math:`maxiter` : ``int``\n
+        The ``option`` dictionary includes following parameters:
+             :math:`maxiter` : ``int``
                 Maximum iteration after which the algorithm stops.\n
-             :math:`a` : ``float``, a > 0\n
+             :math:`a` : ``float``, a > 0
                 Learning rate amplitude. A value between 0 and 1 is recommended.\n
-             :math:`c` : ``float``, c > 0\n
+             :math:`c` : ``float``, c > 0
                 Perturbation strength. A value between 0 and 1 is recommended.\n
-             :math:`alpha` : ``float``, alpha > 0\n
+             :math:`alpha` : ``float``, alpha > 0
                 Scaling of learning rate on the round of iteration.\n
-             :math:`gamma` : ``float``, gamma > 0\n
+             :math:`gamma` : ``float``, gamma > 0
                 Scaling of perturbation strength on the round of iteration.\n
-             :math:`A` : ``int``, ``float``, A > 0\n
+             :math:`A` : ``int``, ``float``, A > 0
                 Modification of learning rate scaling. It is recommended to be about maxiter / 10.\n
 
     Reference
-        [1] Spall J C.\n
+        [1] Spall J C.
             Multivariate stochastic approximation using a simultaneous perturbation gradient approximation[J].
             IEEE transactions on automatic control, 1992, 37(3): 332-341.
             https://doi.org/10.1109/9.119632\n
-        [2] Spall J C.\n
+        [2] Spall J C.
             Implementation of the simultaneous perturbation algorithm for stochastic optimization[J].
             IEEE Transactions on aerospace and electronic systems, 1998, 34(3): 817-823.
             https://doi.org/10.1109/7.705889\n
 
     Example
-        Suppose we are going to minimize a function:\n
+        Suppose we are going to minimize a function:
          :math:`f(x) = x^2 + N(0, 1)`
+
         where  :math:`N(0, 1)` is Gaussian noise. Each query of  :math:`f(x)` contains an
         unavoidable perturbation. We consider a dimension of  :math:`4` and given
         an initial guess  :math:`x = (1, 2, 3, 4)`.

@@ -62,13 +62,13 @@ class QuantumKmeans:
     QKMeans (Quantum K-Means) is a quantum algorithm that is used for clustering data into k clusters. 
     
     Parameters:
-            data: ``ndarray``\n
+            data: ``ndarray``
                 Input array, can be complex.
 
     Returns:
-        centers_new: ``int``\n
+        centers_new: ``int``
                   Cluster center of input data.
-        clusters: ``int``\n
+        clusters: ``int``
                Category number of the entered data.
 
     Examples
@@ -155,7 +155,7 @@ class QuantumKmeans:
         Classify the input data.
 
         Parameters:
-            data: ``ndarray``\n
+            data: ``ndarray``
                 Input array, can be complex.
 
 

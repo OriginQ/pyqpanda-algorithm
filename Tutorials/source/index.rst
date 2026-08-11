@@ -34,16 +34,4 @@ Overall, it provides a standardized set of tools for developers, allowing them t
     :caption: API Reference
     :maxdepth: 2
 
-    autoapi/pyqpanda_alg/QAOA/index
-    autoapi/pyqpanda_alg/QARM/index
-    autoapi/pyqpanda_alg/QKmeans/index
-    autoapi/pyqpanda_alg/QPCA/index
-    autoapi/pyqpanda_alg/QSVM/index
-    autoapi/pyqpanda_alg/Grover/index
-    autoapi/pyqpanda_alg/QAE/index
-    autoapi/pyqpanda_alg/QCmp/index
-    autoapi/pyqpanda_alg/QmRMR/index
-    autoapi/pyqpanda_alg/QSEncode/index
-    autoapi/pyqpanda_alg/QSVD/index
-    autoapi/pyqpanda_alg/QSVR/index
-    autoapi/pyqpanda_alg/QUBO/index
+    autoapi/index
