@@ -12,12 +12,11 @@
 
 import numpy as np
 import pandas as pd
-from pyqpanda3.core import CPUQVM, QCircuit, QProg, RY, X
+from pyqpanda3.core import QCircuit, QProg, RY, X, Encode
+from pyqpanda3.hamiltonian import Hamiltonian
 from scipy.optimize import minimize
-from pyqpanda3.quantum_info import StateVector
 
-from .. plugin import *
-from pyqpanda3.core import Encode
+from ..execution import DeviceCapabilityError, ExecutionOptions, resolve_backend
 
 class SVD:
     """
@@ -108,6 +107,10 @@ class SVD:
         self.normal_value = np.sum(self.matrix.copy().flatten()**2)**0.5
         self.iter_depth = depth
         self.parameter = 0.5 * np.pi * np.random.random((self.q0 + self.q1) * self.iter_depth)
+        self._backend = None
+        self._execution_options = None
+        self.loss_value = None
+        self.loss_uncertainty = None
 
     def cir(self, qlist, para):
         Qcir = QCircuit()
@@ -119,8 +122,33 @@ class SVD:
                     Qcir << X(qlist[j+1]).control(qlist[j])
         return Qcir
 
+    def _overlap_observable(self):
+        """
+        Diagonal-overlap Hamiltonian whose expectation is the QSVD cost.
+
+        The cost counts the probability that the row and column registers
+        read the same index: ``sum_i P(row=i, col=i)``.  For
+        ``n = min(q0, q1)`` shared index bits this projector sum expands
+        into ``2**n`` Pauli terms ``2**-n * sum_A Z_A(row) Z_A(col)`` over
+        every bit subset ``A`` of the diagonal, which is exactly what
+        ``submit_estimate`` can evaluate.
+        """
+        n = min(self.q0, self.q1)
+        hamiltonian = {}
+        for mask in range(1 << n):
+            coefficient = 2.0 ** (-n)
+            if mask == 0:
+                hamiltonian[""] = coefficient
+                continue
+            terms = []
+            for a in range(n):
+                if mask & (1 << a):
+                    terms.append("Z%d" % (self.q0 + a))
+                    terms.append("Z%d" % a)
+            hamiltonian[" ".join(terms)] = coefficient
+        return Hamiltonian(hamiltonian)
+
     def loss(self, ls, return_type=True):
-        machine = CPUQVM()
         prog = QProg(self.q0 + self.q1)
         qvec0 = prog.qubits()[:self.q0]
         qvec1 = prog.qubits()[self.q0:]
@@ -131,21 +159,64 @@ class SVD:
         cir << self.cir(qlist=qvec0, para=ls[0:self.q0 * self.iter_depth])
         cir << self.cir(qlist=qvec1, para=ls[self.q0 * self.iter_depth:(self.q0 + self.q1) * self.iter_depth])
         prog << cir
-        machine.run(prog, 1000)
-        re = machine.result().get_prob_list(qvec0 + qvec1)
-        re = np.array(parse_quantum_result_list(re, qvec0+qvec1, select_max=-1))
-        stv = StateVector(self.q0 + self.q1)
-        phase = stv.evolve(cir).ndarray().real
-        phase = phase.reshape(2**self.q1, 2**self.q0)
-        prob = np.diagonal(re.reshape(2**self.q1, 2**self.q0))
-        same_p = np.sum(prob)
         if return_type:
-            return 1-same_p
-        else:
-            return phase, np.argmax(abs(phase))
+            backend = self._backend if self._backend is not None else resolve_backend(None)
+            options = self._execution_options if self._execution_options is not None else ExecutionOptions()
+            estimate = backend.submit_estimate((prog, self._overlap_observable()), options=options)
+            same_p = estimate.result().single_value()
+            self.loss_value = 1 - same_p
+            # Statistical uncertainty of the estimate: the overlap operator
+            # is a projector sum (0 <= O <= I), so its variance is bounded
+            # by p(1-p) with p = E[O]; the Bernoulli standard error is
+            # therefore a conservative shot-count estimate.
+            p = min(max(same_p, 0.0), 1.0)
+            self.loss_uncertainty = (p * (1 - p) / options.shots) ** 0.5
+            return 1 - same_p
+        return self._singular_vector_phase(prog)
 
-    def QSVD_min(self):
-        final_x = minimize(self.loss, x0=self.parameter, method='SLSQP', tol=1e-10).x
+    def _singular_vector_phase(self, prog):
+        """Return the real phase matrix of ``prog`` and its peak index.
+
+        Exact singular vectors need full state access, so backends
+        without state-vector (or tomography) capability are rejected
+        before any submission.
+        """
+        backend = self._backend if self._backend is not None else resolve_backend(None)
+        options = self._execution_options if self._execution_options is not None else ExecutionOptions()
+        if not (backend.capabilities.statevector or backend.capabilities.tomography):
+            raise DeviceCapabilityError(
+                "exact singular vectors require a backend with state-vector "
+                "or tomography capability"
+            )
+        statevector_task = backend.submit_statevector(prog, options=options)
+        phase = np.asarray(statevector_task.result().single_statevector()).real
+        phase = phase.reshape(2**self.q1, 2**self.q0)
+        return phase, np.argmax(abs(phase))
+
+    def QSVD_min(self, *, backend=None, execution_options=None, maxiter=100):
+        """
+        Optimize the variational parameters using classical optimization (SLSQP).
+
+        Parameters
+            backend : ``ExecutionBackend``, ``optional``
+                The execution backend evaluating the overlap cost as an
+                observable expectation. Keyword-only. If not given, the
+                CPU LocalBackend is used.
+
+            execution_options : ``ExecutionOptions``, ``optional``
+                Options controlling the backend submissions. Keyword-only.
+
+            maxiter : ``int``, ``optional``
+                Maximum number of SLSQP iterations. Keyword-only.
+        """
+        self._backend = resolve_backend(backend)
+        self._execution_options = (
+            execution_options if execution_options is not None else ExecutionOptions()
+        )
+        final_x = minimize(
+            self.loss, x0=self.parameter, method='SLSQP', tol=1e-10,
+            options={'maxiter': maxiter},
+        ).x
         return final_x
 
     def return_diag(self, par):
@@ -153,27 +224,35 @@ class SVD:
         return abs(res)
 
     def max_eig(self, return_mat='0', par=None, max_index=0):
-        machine = CPUQVM()
+        backend = self._backend if self._backend is not None else resolve_backend(None)
+        options = self._execution_options if self._execution_options is not None else ExecutionOptions()
+        if not (backend.capabilities.statevector or backend.capabilities.tomography):
+            raise DeviceCapabilityError(
+                "exact singular vectors require a backend with state-vector "
+                "or tomography capability"
+            )
         cir = QCircuit()
         ss = max_index % 2**self.q0
         bi0 = '{:b}'.format(ss).rjust(self.q0, '0')
         bi1 = '{:b}'.format(ss).rjust(self.q1, '0')
         if return_mat == '0':
-            qvec = QProg(self.q0).qubits()
+            prog = QProg(self.q0)
+            qvec = prog.qubits()
             for j in range(len(qvec)):
                 if bi0[-j-1] == '1':
                     cir << X(qvec[j])
             cir << self.cir(qlist=qvec, para=par[0:self.q0 * self.iter_depth]).dagger()
-            stv = StateVector(self.q0)
-            t = stv.evolve(cir).ndarray().real            
-            return t
-        
+            prog << cir
+            statevector_task = backend.submit_statevector(prog, options=options)
+            return np.asarray(statevector_task.result().single_statevector()).real
+
         elif return_mat == '1':
-            qvec = QProg(self.q1).qubits()
+            prog = QProg(self.q1)
+            qvec = prog.qubits()
             for j in range(len(qvec)):
                 if bi1[-j-1] == '1':
                     cir << X(qvec[j])
             cir << self.cir(qlist=qvec, para=par[self.q0 * self.iter_depth:(self.q0 + self.q1) * self.iter_depth]).dagger()
-            stv = StateVector(self.q1)
-            t = stv.evolve(cir).ndarray().real
-            return t
+            prog << cir
+            statevector_task = backend.submit_statevector(prog, options=options)
+            return np.asarray(statevector_task.result().single_statevector()).real
