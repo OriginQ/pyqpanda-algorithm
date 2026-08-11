@@ -127,24 +127,40 @@ class SVD:
         Diagonal-overlap Hamiltonian whose expectation is the QSVD cost.
 
         The cost counts the probability that the row and column registers
-        read the same index: ``sum_i P(row=i, col=i)``.  For
-        ``n = min(q0, q1)`` shared index bits this projector sum expands
-        into ``2**n`` Pauli terms ``2**-n * sum_A Z_A(row) Z_A(col)`` over
-        every bit subset ``A`` of the diagonal, which is exactly what
-        ``submit_estimate`` can evaluate.
+        read the same index: ``sum_i P(row=i, col=i)`` over
+        ``i < 2**min(q0, q1)``.  For the ``n = min(q0, q1)`` shared index
+        bits this projector sum expands into ``2**n`` Pauli terms
+        ``2**-n * sum_A Z_A(row) Z_A(col)`` over every bit subset ``A``
+        of the shared diagonal, which is exactly what ``submit_estimate``
+        can evaluate.
+
+        For rectangular matrices the larger register also has
+        ``|q0 - q1|`` extra high bits that must read zero so that
+        ``row == col`` stays within the smaller register's index range.
+        Each extra bit contributes its zero projector ``(I + Z)/2``,
+        expanding the total to ``2**max(q0, q1)`` Pauli terms of weight
+        ``2**-max(q0, q1)``.  The row register occupies physical qubits
+        ``0..q0-1`` (bit ``b`` of the row index is qubit ``b``) and the
+        column register occupies physical qubits ``q0..q0+q1-1`` (bit
+        ``b`` of the column index is qubit ``q0 + b``), so the extra
+        row bits sit on qubits ``n..q0-1`` and the extra column bits on
+        qubits ``q0+n..q0+q1-1``.
         """
         n = min(self.q0, self.q1)
+        extra_row_bits = range(n, self.q0)
+        extra_col_bits = range(self.q0 + n, self.q0 + self.q1)
+        extra_bits = list(extra_row_bits) + list(extra_col_bits)
         hamiltonian = {}
-        for mask in range(1 << n):
-            coefficient = 2.0 ** (-n)
-            if mask == 0:
-                hamiltonian[""] = coefficient
-                continue
+        for mask in range(1 << (n + len(extra_bits))):
+            coefficient = 2.0 ** (-(n + len(extra_bits)))
             terms = []
             for a in range(n):
                 if mask & (1 << a):
                     terms.append("Z%d" % (self.q0 + a))
                     terms.append("Z%d" % a)
+            for j, qubit in enumerate(extra_bits):
+                if mask & (1 << (n + j)):
+                    terms.append("Z%d" % qubit)
             hamiltonian[" ".join(terms)] = coefficient
         return Hamiltonian(hamiltonian)
 
@@ -191,6 +207,12 @@ class SVD:
         statevector_task = backend.submit_statevector(prog, options=options)
         phase = np.asarray(statevector_task.result().single_statevector()).real
         phase = phase.reshape(2**self.q1, 2**self.q0)
+        # Exact path: the statevector yields the exact diagonal overlap,
+        # so record the exact loss with zero statistical uncertainty here
+        # instead of leaving the stale values of a previous estimate.
+        same_p = float(np.sum(np.diag(phase) ** 2))
+        self.loss_value = 1 - same_p
+        self.loss_uncertainty = 0.0
         return phase, np.argmax(abs(phase))
 
     def QSVD_min(self, *, backend=None, execution_options=None, maxiter=100):
