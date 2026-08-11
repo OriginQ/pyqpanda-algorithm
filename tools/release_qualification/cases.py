@@ -60,7 +60,7 @@ from typing import Any, Callable
 
 import numpy as np
 import sympy as sp
-from pyqpanda3.core import H, QCircuit, QProg, RY, X
+from pyqpanda3.core import CNOT, H, QCircuit, QProg, RY
 from pyqpanda3.hamiltonian import Hamiltonian
 
 from pyqpanda_alg import QARM
@@ -151,9 +151,15 @@ class QualificationCase:
 
 
 def _bell_builder():
-    """2-qubit Bell state with measurement attached (smoke check)."""
+    """2-qubit Bell state with measurement attached (smoke check).
+
+    The controlled-NOT is built with ``CNOT(0, 1)`` -- not
+    ``X(1).control(0)`` -- so the circuit's reported gate names
+    (``count_ops``) match the device gate-set convention the runtime
+    preflight validates against ("CNOT", not "CX").
+    """
     prog = QProg()
-    prog << H(0) << X(1).control(0)
+    prog << H(0) << CNOT(0, 1)
     prog << measure_all([0, 1], [0, 1])
     return prog
 
