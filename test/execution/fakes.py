@@ -152,13 +152,16 @@ class FakeDevice:
     def __init__(self, chip_id: str = "fake-chip", channel: str = "qcloud") -> None:
         self.chip_id = MagicMock(return_value=chip_id)
         self.channel = MagicMock(return_value=channel)
-        self.available_qubits = MagicMock(return_value=[0, 1, 2, 3, 4, 5])
+        #: Twenty advertised qubits: the qualification cases reach 17
+        #: qubits (Shor's order-finding circuit for modulus 15).
+        self.available_qubits = MagicMock(return_value=list(range(20)))
         self.basic_gates = MagicMock(
             return_value=["H", "X", "Y", "Z", "RX", "RY", "RZ", "CNOT", "CZ", "SWAP"]
         )
         self.chip_topo_edges = MagicMock(
-            return_value=[[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]]
+            return_value=[[i, i + 1] for i in range(19)]
         )
+        self.name = MagicMock(return_value="fake chip device")
         self.fake_backend = MagicMock(return_value=FakeFakeBackend())
 
 
@@ -367,9 +370,9 @@ class FakeVQSession:
 class FakeRuntimeService:
     """Deterministic stand-in for a qpanda3-runtime ``RuntimeService``.
 
-    Records every ``sample``/``estimate``/``vqsession`` call with the
-    exact keyword arguments the adapter forwards, so tests can assert
-    option mapping.  ``submit_error`` makes submission raise and
+    Records every ``sample``/``estimate``/``vqsession``/``device`` call
+    with the exact keyword arguments the adapter forwards, so tests can
+    assert option mapping.  ``submit_error`` makes submission raise and
     ``query_error`` makes the returned task's result access raise, both
     simulating transport failures without any network.
     """
@@ -378,6 +381,7 @@ class FakeRuntimeService:
         self.sample_calls: list = []
         self.estimate_calls: list = []
         self.vqsession_calls: list = []
+        self.device_calls: list = []
         self.recovered_task_paths: list = []
         self.submit_error = None
         self.query_error = None
@@ -385,6 +389,16 @@ class FakeRuntimeService:
         self.estimate_results = [0.5]
         self.finished = True
         self.recovered_task = None
+
+    def device(self, chip_id, channel: str = "qcloud"):
+        """Return the fake QDevice stand-in for the requested chip.
+
+        Mirrors ``RuntimeService.device``: the preflight runner queries
+        the device by explicit chip id and then constructs its fake
+        backend from the returned device.
+        """
+        self.device_calls.append({"chip_id": chip_id, "channel": channel})
+        return FakeDevice(chip_id=chip_id, channel=channel)
 
     def sample(self, circuits, device, **kwargs):
         """Record the sampling submission and return a fake task."""
