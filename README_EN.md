@@ -17,7 +17,7 @@ Official Website: [https://qcloud.originqc.com.cn/zh/programming/pyqpanda-algori
 4. **Comprehensive Documentation & Examples**
    Detailed API docs, usage examples, and annotated code lower the learning barrier, making it ideal for beginners and researchers to quickly start with machine learning and combinatorial optimization tasks.
 5. **Strong Ecosystem Integration**
-   Works with other Origin Quantum frameworks and toolchains (e.g., VQNet, Origin Liangyu), supporting the full workflow from algorithm design to verification. Support for real quantum hardware and quantum cloud services is planned for later releases.
+   Works with other Origin Quantum frameworks and toolchains (e.g., VQNet, Origin Liangyu), supporting the full workflow from algorithm design to verification. Remote execution is available through the optional qpanda3-runtime backend; real-hardware support is delivered as release qualification and is mandatory before any release can be created.
 
 ------
 
@@ -73,6 +73,22 @@ Optional: to use the qpanda3-runtime remote execution backend, install with the 
 
 #### Note:
 Add `sudo` if you encounter permission issues on Linux.
+
+------
+
+## Runtime Guarantees and Release Gate
+
+### qpanda3-runtime remote execution
+The optional qpanda3-runtime backend is installed with `pip install pyqpanda_alg[runtime]`. Remote execution requires explicit injection of an already logged-in `RuntimeService` and an explicitly selected device: `QPandaRuntimeBackend(service, device)` never authenticates or selects a device on its own.
+
+### Capability errors
+Requesting a capability the device does not advertise (e.g. statevector or variational sessions) raises `DeviceCapabilityError`; a remote failure never silently falls back to the CPU backend or to a classical substitute result.
+
+### Small-scale guarantees
+Remote and real-hardware guarantees are scoped to the fixed, small-scale cases committed for release qualification (fixed circuits, shots, and statistical thresholds). They are not a general claim about arbitrary problem sizes or arbitrary devices.
+
+### Mandatory QPU release gate
+Release creation for 2.1.0 requires real-QPU qualification: the manually dispatched `runtime-rc` workflow runs the fixed preflight and QPU cases against an explicitly selected device and uploads a sanitized qualification manifest; the tag release job refuses to create a GitHub Release unless the manifest matches the candidate commit, wheel digest, version, device record, and every case verdict. Qualification output is never committed (committing it would change the commit the manifest attests to), and this repository does not claim any particular device has passed beyond what the manifest records.
 
 ------
 

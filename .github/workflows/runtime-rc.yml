@@ -1,0 +1,118 @@
+name: Runtime RC Qualification
+
+# Manual release-candidate qualification for pyqpanda-algorithm 2.1.0.
+# Dispatched by an operator who names the CI run whose
+# pyqpanda_alg-wheel artifact holds the exact candidate wheel and the
+# explicit device to qualify against.  The job downloads that exact
+# wheel, verifies (and records) its SHA-256, installs the wheel with
+# the [runtime] extra, runs the fixed preflight and real-QPU
+# qualification cases, and uploads the sanitized manifest for release
+# review.  The release job in main.yml requires this artifact; without
+# it no GitHub Release can be created.
+#
+# QPANDA3_API_KEY is supplied exclusively from repository secrets and
+# is never echoed: it only reaches the qualification runners through
+# the step environment.  Every written artifact passes through the
+# manifest sanitizer, so no credential-shaped value can be uploaded.
+
+on:
+  workflow_dispatch:
+    inputs:
+      wheel_artifact_run_id:
+        description: >-
+          Run ID of the CI run whose pyqpanda_alg-wheel artifact holds
+          the exact candidate wheel (e.g. the release/2.1.0 CI run).
+        required: true
+        type: string
+      chip_id:
+        description: Explicitly selected device id, e.g. WK_C180.
+        required: true
+        type: string
+      expected_wheel_sha256:
+        description: >-
+          Optional SHA-256 of the candidate wheel; the job fails when
+          the downloaded wheel does not match this digest.
+        required: false
+        type: string
+
+jobs:
+  qualify:
+    name: Qualify candidate on ${{ inputs.chip_id }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Download candidate wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: pyqpanda_alg-wheel
+          path: .artifacts/2.1.0/wheel/
+          run-id: ${{ inputs.wheel_artifact_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify wheel SHA-256
+        shell: bash
+        run: |
+          WHEEL="$(ls .artifacts/2.1.0/wheel/*.whl | head -n 1)"
+          echo "candidate wheel: ${WHEEL##*/}"
+          DIGEST="$(sha256sum "$WHEEL" | cut -d' ' -f1)"
+          echo "wheel sha256: $DIGEST"
+          if [ -n "${{ inputs.expected_wheel_sha256 }}" ]; then
+            if [ "$DIGEST" != "${{ inputs.expected_wheel_sha256 }}" ]; then
+              echo "expected: ${{ inputs.expected_wheel_sha256 }}" >&2
+              exit 1
+            fi
+            echo "wheel digest matches the expected value"
+          fi
+
+      - name: Install candidate wheel with runtime extra
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          WHEEL="$(ls .artifacts/2.1.0/wheel/*.whl | head -n 1)"
+          python -m pip install "${WHEEL}[runtime]"
+
+      - name: Run preflight qualification
+        shell: bash
+        env:
+          QPANDA3_API_KEY: ${{ secrets.QPANDA3_API_KEY }}
+        run: |
+          WHEEL="$(ls .artifacts/2.1.0/wheel/*.whl | head -n 1)"
+          python -m tools.release_qualification.run_preflight \
+            --chip-id "${{ inputs.chip_id }}" \
+            --wheel "$WHEEL" \
+            --output-dir .artifacts/2.1.0/preflight
+
+      - name: Run QPU qualification
+        shell: bash
+        env:
+          QPANDA3_API_KEY: ${{ secrets.QPANDA3_API_KEY }}
+        run: |
+          WHEEL="$(ls .artifacts/2.1.0/wheel/*.whl | head -n 1)"
+          python -m tools.release_qualification.run_qpu \
+            --chip-id "${{ inputs.chip_id }}" \
+            --wheel "$WHEEL" \
+            --output-dir .artifacts/2.1.0
+
+      - name: Validate qualification manifest
+        shell: bash
+        run: |
+          WHEEL="$(ls .artifacts/2.1.0/wheel/*.whl | head -n 1)"
+          python tools/release_qualification/check_release.py \
+            --manifest .artifacts/2.1.0/manifest.json \
+            --commit "$(git rev-parse HEAD)" \
+            --wheel "$WHEEL"
+          python -c "import json; from tools.release_qualification.manifest import contains_credentials; m = json.load(open('.artifacts/2.1.0/manifest.json', encoding='utf-8')); assert not contains_credentials(m), 'manifest contains credential-shaped keys'"
+
+      - name: Upload qualification manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-qualification-2.1.0
+          path: .artifacts/2.1.0/manifest.json
+          retention-days: 30

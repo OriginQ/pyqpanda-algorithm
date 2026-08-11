@@ -16,10 +16,22 @@ Features
   work to a remote qpanda3-runtime service.  The dependency is optional
   and installed via the ``runtime`` extra (``pip install
   pyqpanda_alg[runtime]``); a runtime failure never silently falls back
-  to the CPU backend or to a classical substitute result.
-* Remote runtime qualification and real-hardware support are planned in
-  later releases; this baseline does not claim qualified support for
-  real quantum hardware.
+  to the CPU backend or to a classical substitute result.  Remote
+  execution requires explicit injection of an already logged-in
+  ``RuntimeService`` and an explicitly selected device; requesting an
+  unadvertised capability raises ``DeviceCapabilityError``.
+* Runtime release qualification is implemented and mandatory.  The
+  manually dispatched ``runtime-rc`` workflow installs the candidate
+  wheel with the ``[runtime]`` extra, runs the fixed preflight
+  (FakeBackend) and real-QPU cases against an explicitly selected
+  device, and uploads a sanitized qualification manifest; the tag
+  release job refuses to create a GitHub Release unless
+  ``check_release.py`` verifies that the manifest attests the exact
+  commit, wheel digest, version, device record, and all-passed case
+  verdicts.  Qualification output is never committed (committing it
+  would change the commit the manifest attests to), and guarantees are
+  scoped to the fixed small-scale cases: this release does not claim
+  any particular device has passed beyond what the manifest records.
 * ``QPCA.qpca`` default sampling shots changed from 8192 to the
   execution layer's 1000.  Results are normalized by the actual shot
   count, so the output shape is preserved.

@@ -113,12 +113,19 @@ jobs:
           retention-days: 7
 
   # Release artifacts are assembled only after every gate succeeds;
-  # GitHub Actions skips this job when any dependency fails.
+  # GitHub Actions skips this job when any dependency fails.  On tag
+  # pushes, release creation additionally requires the qualification
+  # manifest produced by the manual runtime-rc workflow: the manifest
+  # must attest the exact tag commit and wheel with every case passed,
+  # or the job fails before any GitHub Release is created.
   release:
     name: Assemble release artifacts
     needs: [build, test, docs]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download wheel
         uses: actions/download-artifact@v4
         with:
@@ -130,6 +137,30 @@ jobs:
         with:
           name: documentation-html
           path: release_package/docs/
+
+      - name: Fetch qualification manifest
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          RUN_ID="$(gh run list --workflow runtime-rc.yml --status success --limit 1 \
+            --json databaseId --jq '.[0].databaseId // empty')"
+          test -n "$RUN_ID" || {
+            echo "no successful runtime-rc qualification run found; release is blocked" >&2
+            exit 1
+          }
+          gh run download "$RUN_ID" --name runtime-qualification-2.1.0 \
+            --dir release_package/qualification/
+
+      - name: Check release policy
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          python -m pip install --quiet jsonschema
+          WHEEL="$(ls release_package/wheels/*.whl | head -n 1)"
+          python tools/release_qualification/check_release.py \
+            --manifest release_package/qualification/manifest.json \
+            --commit "$(git rev-parse HEAD)" \
+            --wheel "$WHEEL"
 
       - name: Upload release package
         uses: actions/upload-artifact@v4

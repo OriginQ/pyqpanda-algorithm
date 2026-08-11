@@ -44,3 +44,7 @@ pyqpanda-algorithm/pyqpanda_alg/QSolver/*.lib
 /pyqpanda-algorithm/pyqpanda_alg/QSolver/libcurl.dll
 
 .ccls-cache
+
+# Release-qualification output is never committed: committing it would
+# change the commit the qualification manifest attests to.
+.artifacts/
