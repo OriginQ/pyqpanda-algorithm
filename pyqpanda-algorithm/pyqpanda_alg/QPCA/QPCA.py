@@ -10,28 +10,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pyqpanda3.core import CPUQVM, QCircuit, QProg, TOFFOLI, SWAP, CNOT, U1, U3, CR, I, H, X, Y, measure
+from pyqpanda3.core import QCircuit, QProg, TOFFOLI, SWAP, CNOT, U1, U3, CR, H, X, Y, measure
 import numpy as np
 import math
 import sys
 
+from ..execution import ExecutionOptions, resolve_backend
 from .. plugin import *
 
 
 
 class _QMachine:
     def __init__(self, q_bit_count, c_bit_count):
-        self.machine = CPUQVM()
         self.q_list = QProg(q_bit_count).qubits()
 
     def __del__(self):
         pass
-
-
-def _init_cir(qm, state_vector, n=2):
-    prog = QProg()
-    prog << I(qm.q_list[0])
-    return qm.machine.run(prog, 1000)
 
 
 def _phase_estimation_cir(q_list, m, tao, n=2):
@@ -197,7 +191,7 @@ def _preprocessing(x):
     return norm_x, covariance_matrix
 
 
-def qpca(sample_A, k):
+def qpca(sample_A, k, *, backend=None, execution_options=None):
     """
     QPCA is a quantum version of the classical PCA algorithm, which is widely used in data analysis and machine learning.
 
@@ -206,6 +200,12 @@ def qpca(sample_A, k):
             the input matrix for analysis
         k: ``int``
             the dimension to reduce
+        backend: execution backend, keyword-only
+            The sampling backend running the phase-estimation circuit.
+            Defaults to the local simulator.
+        execution_options: ``ExecutionOptions``, keyword-only
+            Sampling options (shots, timeout, ...) applied to the
+            phase-estimation submission.
 
     Returns:
         out: ``ndarray``
@@ -240,17 +240,20 @@ def qpca(sample_A, k):
 
     prog = QProg()
     cir = QCircuit()
-    _init_cir(qm, state_vector, A.shape[0])
     cir << _phase_estimation_cir(qm.q_list, lambda_A, tao, A.shape[0])
     cir << _transition_cir(qm.q_list, A.shape[0])
     cir << _cnot_cir(qm.q_list)
     cir << _transition_reverse_cir(qm.q_list, A.shape[0])
     cir << _phase_estimation_reverse_cir(qm.q_list, lambda_A, tao, A.shape[0])
     prog << cir
-    prog <<_measure_cir(prog, qm.q_list, qm.q_list)
-    # result = qm.machine.run_with_configuration(prog, qm.c_list, 8192)
-    qm.machine.run(prog, 8192)
-    result = qm.machine.result().get_prob_dict(qm.q_list)
+    prog << _measure_cir(prog, qm.q_list, qm.q_list)
+
+    exec_backend = resolve_backend(backend)
+    options = execution_options if execution_options is not None else ExecutionOptions()
+    sample_task = exec_backend.submit_sample(prog, options=options)
+    counts = sample_task.result().single_counts()
+    shots = sum(counts.values())
+    result = {key: value / shots for key, value in counts.items()}
     a = []
     data = 0
     if A.shape[0] == 2:

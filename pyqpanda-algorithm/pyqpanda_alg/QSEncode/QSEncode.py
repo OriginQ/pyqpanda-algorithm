@@ -12,10 +12,11 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-from pyqpanda3.core import CPUQVM, QCircuit, QProg, Encode, H
+from pyqpanda3.core import QCircuit, QProg, Encode, H, measure
 from scipy.fft import fft
 from sympy import fwht
 
+from ..execution import DeviceCapabilityError, ExecutionOptions, resolve_backend
 from .. plugin import *
 
 class QSpare_Code:
@@ -209,20 +210,63 @@ class QSpare_Code:
             raise ValueError('mode only support walsh or fourier')
         return Qcir
 
-    def Quantum_Res(self):
+    def Quantum_Res(self, observables=None, *, backend=None, execution_options=None):
         """
-        Simulates the sparse quantum state circuit and returns the resulting measurement distribution.
+        Runs the sparse quantum state circuit and returns the resulting distribution.
+
+        Parameters
+        ----------
+        observables : list[str], optional
+            Explicit observables to estimate. When provided, expectation
+            values are returned instead of a probability distribution.
+        backend : execution backend, keyword-only
+            The backend executing the encoding circuit. Defaults to the
+            local simulator.
+        execution_options : ExecutionOptions, keyword-only
+            Execution options (shots, timeout, ...) applied to the
+            submission.
 
         Returns
         -------
         list[float]
-            The probability distribution from the simulated quantum circuit.
+            The probability distribution from the quantum circuit, or the
+            requested observable expectation values.
         """
-        machine = CPUQVM()
+        exec_backend = resolve_backend(backend)
+        options = execution_options if execution_options is not None else ExecutionOptions()
+
         prog = QProg(self.qubits_num)
         qubit = prog.qubits()
         prog << self.quantum_cir(qubit)
-        machine.run(prog, 1000)
-        result = machine.result().get_prob_list(qubit)
-        result = parse_quantum_result_list(result, qubit, select_max=-1)
-        return result
+
+        if observables is not None:
+            if not exec_backend.capabilities.estimation:
+                raise DeviceCapabilityError(
+                    "Estimation of observables is not supported by the supplied backend"
+                )
+            values = []
+            for observable in observables:
+                estimate_task = exec_backend.submit_estimate(
+                    (prog, observable), options=options
+                )
+                values.append(estimate_task.result().single_value())
+            return values
+
+        if exec_backend.capabilities.statevector:
+            statevector_task = exec_backend.submit_statevector(prog, options=options)
+            statevector = statevector_task.result().single_statevector()
+            return list(np.abs(np.asarray(statevector)) ** 2)
+
+        if exec_backend.capabilities.sampling:
+            prog << measure(qubit, qubit)
+            sample_task = exec_backend.submit_sample(prog, options=options)
+            counts = sample_task.result().single_counts()
+            shots = sum(counts.values())
+            return [
+                counts.get(format(i, "0%db" % self.qubits_num), 0) / shots if shots else 0
+                for i in range(2 ** self.qubits_num)
+            ]
+
+        raise DeviceCapabilityError(
+            "The supplied backend supports neither state-vector nor sampling execution"
+        )

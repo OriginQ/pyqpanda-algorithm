@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pyqpanda3.core import CPUQVM, QCircuit, QProg, RX, RY, CZ, H
+from pyqpanda3.core import QCircuit, QProg, RX, RY, CZ, H, measure
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -19,6 +19,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 
+from ..execution import ExecutionOptions, resolve_backend
 from .. plugin import *
 
 class Quantum_SVR:
@@ -108,31 +109,43 @@ class Quantum_SVR:
             Qcir << RX(qb[i], cs[n - 1 - i])
         return Qcir
 
-    def dist(self, x, y):
-        machine = CPUQVM()
+    def dist(self, x, y, *, backend=None, options=None):
+        exec_backend = resolve_backend(backend)
+        options = options if options is not None else ExecutionOptions()
         prog = QProg(2)
         qv = prog.qubits()
         prog << self.cir_real(qv, x) << self.cir_real(qv, y).dagger()
-        machine.run(prog, 1000)
-        re = machine.result().get_prob_dict(qv)
-        re = parse_quantum_result_dict(re, qv, select_max=-1)['0' * 2]
-        return re
+        prog << measure(qv, qv)
+        sample_task = exec_backend.submit_sample(prog, options=options)
+        counts = sample_task.result().single_counts()
+        shots = sum(counts.values())
+        return counts.get('0' * 2, 0) / shots if shots else 0
 
-    def k_kernel(self, X, Y):
+    def k_kernel(self, X, Y, *, backend=None, options=None):
         matrix = np.zeros((len(X), len(Y)))
         for i in range(len(X)):
             for j in range(len(Y)):
-                matrix[i][j] = self.dist(X[i], Y[j])
+                matrix[i][j] = self.dist(X[i], Y[j], backend=backend, options=options)
         return matrix
 
-    def get_res(self):
-        svr = SVR(kernel=self.k_kernel, gamma=0.1)
+    def get_res(self, *, backend=None, execution_options=None):
+        exec_backend = resolve_backend(backend)
+        options = execution_options if execution_options is not None else ExecutionOptions()
+        svr = SVR(
+            kernel=lambda X, Y: self.k_kernel(X, Y, backend=exec_backend, options=options),
+            gamma=0.1,
+        )
         svr.fit(self.x, self.y)
         y_ppp = svr.predict(self.x)
         return y_ppp, self.y
 
-    def show_res(self):
-        svr = SVR(kernel=self.k_kernel, gamma=0.1)
+    def show_res(self, *, backend=None, execution_options=None):
+        exec_backend = resolve_backend(backend)
+        options = execution_options if execution_options is not None else ExecutionOptions()
+        svr = SVR(
+            kernel=lambda X, Y: self.k_kernel(X, Y, backend=exec_backend, options=options),
+            gamma=0.1,
+        )
         svr.fit(self.x, self.y)
         x0_test = np.linspace(min(self.x[:, 0]), max(self.x[:, 1]), 30)
         x1_test = np.linspace(min(self.x[:, 0]), max(self.x[:, 1]), 30)

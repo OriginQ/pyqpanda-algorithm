@@ -13,13 +13,15 @@
 import numpy as np
 from copy import deepcopy
 from numpy import pi
-from pyqpanda3.core import CPUQVM, QCircuit, QProg, SWAP, U3, H, measure, draw_qprog
+from pyqpanda3.core import QCircuit, QProg, SWAP, U3, H, measure, draw_qprog
+
+from ..execution import ExecutionOptions, resolve_backend
 
 
 
 
-def _QuantumKmeansCircuit(theta0, phi0, theta, phi):
-    machine = CPUQVM()
+def _QuantumKmeansProg(theta0, phi0, theta, phi):
+    """Build the swap-test distance circuit measuring the ancilla qubit."""
     prog = QProg(3)
     qlist = prog.qubits()
     cir = QCircuit()
@@ -32,13 +34,10 @@ def _QuantumKmeansCircuit(theta0, phi0, theta, phi):
     prog << measure(qlist[2], qlist[2])
 
     draw_qprog(prog)
-
-    machine.run(prog, 1024)
-    result = machine.result().get_prob_dict([qlist[2]])
-    return result
+    return prog
 
 
-def _point_centroid_distances(point, centroids, k):
+def _point_centroid_distances(point, centroids, k, backend, options):
     xval = [point[0]]
     for i in range(k):
       xval.append(centroids[i][0])
@@ -52,8 +51,11 @@ def _point_centroid_distances(point, centroids, k):
     results_list = []
 
     for i in range(1, k + 1):
-        result = _QuantumKmeansCircuit(theta_c[0], theta_t[0], theta_c[i], theta_t[i])
-        results_list.append(result['1'] if '1' in result else 0)
+        prog = _QuantumKmeansProg(theta_c[0], theta_t[0], theta_c[i], theta_t[i])
+        sample_task = backend.submit_sample(prog, options=options)
+        counts = sample_task.result().single_counts()
+        shots = sum(counts.values())
+        results_list.append(counts.get('1', 0) / shots if shots else 0)
     return results_list
 
 
@@ -150,16 +152,25 @@ class QuantumKmeans:
         self.K = k
         self.tol = tol
 
-    def fit(self, data):
+    def fit(self, data, *, backend=None, execution_options=None):
         """
         Classify the input data.
 
         Parameters:
             data: ``ndarray``
                 Input array, can be complex.
+            backend: execution backend, keyword-only
+                The sampling backend driving the distance estimation.
+                Defaults to the local simulator.
+            execution_options: ``ExecutionOptions``, keyword-only
+                Sampling options (shots, timeout, ...) applied to every
+                distance circuit.
 
 
         """
+        exec_backend = resolve_backend(backend)
+        options = execution_options if execution_options is not None else ExecutionOptions()
+
         n = data.shape[0]
         c = data.shape[1]
 
@@ -178,7 +189,7 @@ class QuantumKmeans:
         while abs(error - upper_error) > self.tol:
             centers = centers_new
 
-            distances = np.array(list(map(lambda x: _point_centroid_distances(x, centers, self.K), data)))
+            distances = np.array(list(map(lambda x: _point_centroid_distances(x, centers, self.K, exec_backend, options), data)))
 
             clusters = np.argmin(distances, axis=1)
 

@@ -11,9 +11,9 @@
 # limitations under the License.
 
 import numpy as np
-from pyqpanda3.core import CPUQVM, QCircuit, QProg, CNOT, U1, U2, measure
+from pyqpanda3.core import QCircuit, QProg, CNOT, U1, U2, measure
 
-
+from ..execution import ExecutionOptions, resolve_backend
 from ..plugin import *
 
 
@@ -50,17 +50,14 @@ def _build_circuit(qlist, n_qbits, weights_x, weights_y):
     return circuit
 
 
-def _run_circuit(n_qbits, weights_x, weights_y):
-    machine = CPUQVM()
+def _build_svm_prog(n_qbits, weights_x, weights_y):
     prog = QProg(n_qbits)
     qubits = prog.qubits()
     circuit = QCircuit()
     circuit << _build_circuit(qubits, n_qbits, weights_x, weights_y)
     prog << circuit
     prog << measure(qubits, qubits)
-    machine.run(prog, 1024)
-    result = machine.result().get_counts()
-    return result
+    return prog
 
 
 class QuantumKernel_vqnet:
@@ -190,7 +187,14 @@ class QuantumKernel_vqnet:
 
         self._n_qbits = n_qbits
 
-    def evaluate(self, x_vec: np.ndarray, y_vec: np.ndarray = None) -> np.ndarray:
+    def evaluate(
+        self,
+        x_vec: np.ndarray,
+        y_vec: np.ndarray = None,
+        *,
+        backend=None,
+        execution_options=None,
+    ) -> np.ndarray:
         """
         Evaluation function to build quantum kernel.
 
@@ -199,6 +203,12 @@ class QuantumKernel_vqnet:
                 Train or test dataset features.
             y_vec: ``ndarray``
                 Train or test dataset labels.
+            backend: execution backend, keyword-only
+                The sampling backend running the kernel circuits.
+                Defaults to the local simulator.
+            execution_options: ``ExecutionOptions``, keyword-only
+                Sampling options (shots, timeout, ...) applied to every
+                kernel circuit.
 
         Returns
             out: ``ndarray``
@@ -353,6 +363,9 @@ class QuantumKernel_vqnet:
         measurement = not is_statevector_sim
         measurement_basis = "0" * self._n_qbits
 
+        exec_backend = resolve_backend(backend)
+        options = execution_options if execution_options is not None else ExecutionOptions()
+
         for idx in range(0, len(mus), self._batch_size):
             to_be_computed_data_pair = []
             to_be_computed_index = []
@@ -367,7 +380,9 @@ class QuantumKernel_vqnet:
 
             matrix_elements = []
             for x, y in to_be_computed_data_pair:
-                result = _run_circuit(self._n_qbits, x, y)
+                prog = _build_svm_prog(self._n_qbits, x, y)
+                sample_task = exec_backend.submit_sample(prog, options=options)
+                result = sample_task.result().single_counts()
                 try:
                     counts = result[measurement_basis]
                     states = np.sum(list(result.values()))
