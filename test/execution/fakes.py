@@ -323,7 +323,10 @@ class FakeVQSession:
     ``run_vqtask(gate_params, measure_list)``, and a release counter.
     ``raise_on_run`` makes the next run raise (simulating a session-side
     failure); the returned task carries ``results`` and the
-    ``finished``/``error`` flags like the other fakes.
+    ``finished``/``error`` flags like the other fakes.  Like the real
+    SDK, ``run_vqtask`` requires an entered session (``_in_context`` is
+    only set by ``__enter__``), so adapters that skip the context
+    contract fail here instead of only against the real service.
     """
 
     def __init__(self, results=None, *, finished: bool = True, error=None) -> None:
@@ -333,13 +336,20 @@ class FakeVQSession:
         self.results = results if results is not None else [0.5]
         self.finished = finished
         self.error = error
+        self._in_context = False
 
     def __enter__(self):
         """Activate the session, like the real VQSession context."""
+        self._in_context = True
         return self
 
     def run_vqtask(self, gate_params, measure_list=None):
         """Record the run; optionally raise, else return a fake task."""
+        if not self._in_context:
+            raise RuntimeError(
+                "FakeVQSession.run_vqtask requires an entered session, "
+                "mirroring qpanda3-runtime"
+            )
         self.run_calls.append(
             {"gate_params": list(gate_params), "measure_list": measure_list}
         )

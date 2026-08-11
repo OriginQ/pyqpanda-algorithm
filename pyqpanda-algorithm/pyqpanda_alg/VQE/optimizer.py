@@ -9,6 +9,15 @@ submitted estimation, and the convergence flag.  ``state_dict`` /
 ``load_state_dict`` expose the state as JSON-primitive dicts so the
 checkpoint layer can snapshot and resume a run exactly where it
 stopped.
+
+Two driving modes exist.  ``minimize(evaluate, initial_parameters)``
+runs the whole optimization in one call; ``step(evaluate)`` runs one
+classical iteration from the current parameters, which is how the
+resumable VQE state machine advances one poll per iteration.  Custom
+optimizer adapters implement the same surface: the one-shot
+``minimize`` contract always works, and a resumable adapter additionally
+implements ``step``, the state attributes below, and the
+``state_dict`` / ``load_state_dict`` protocol.
 """
 
 from typing import Callable, Optional
@@ -27,6 +36,14 @@ class SciPyOptimizer:
     the optimizer returns, one final evaluation at the returned optimum
     pins ``parameters``/``energy`` to the same point, and that value
     closes the energy history.
+
+    ``step(evaluate)`` is the resumable counterpart: it runs exactly one
+    classical iteration from the current ``parameters`` (seeded by the
+    caller or left by a previous step), records one energy-history entry
+    at the returned point, and reports convergence.  Probe evaluations
+    inside the step submit to the backend and record their task IDs, but
+    only the recorded evaluation closes an iteration, so the history
+    length always equals the iteration count.
     """
 
     resume_supported = True
@@ -90,6 +107,47 @@ class SciPyOptimizer:
         objective(self.parameters)
         self.converged = bool(result.success)
         return result
+
+    def step(self, evaluate: Callable[[np.ndarray], float]) -> bool:
+        """Run one classical optimization iteration from the current point.
+
+        One iteration evaluates the objective at the current point and
+        its finite-difference neighbors, lets the optimizer take one
+        step, and records the energy at the returned point in the state
+        (energy and parameter history, iteration counter).  The internal
+        probe evaluations do not enter the history, so the history
+        length equals the iteration count.  Returns True once the
+        optimizer reports convergence; a run that never converges keeps
+        returning False until the iteration budget is exhausted.
+
+        Raises:
+            ValueError: If ``parameters`` was never seeded — call
+                :meth:`minimize` first or set ``parameters`` directly.
+        """
+        if self.parameters is None:
+            raise ValueError(
+                "step() requires current parameters; seed the adapter's "
+                "parameters attribute or run minimize() first"
+            )
+        current = np.asarray(self.parameters, dtype=float).copy()
+        result = minimize(
+            evaluate,
+            current,
+            method=self.method,
+            tol=self.tolerance,
+            options={"maxiter": 1},
+        )
+        # Pin parameters and energy to the exact point the step returned;
+        # the recorded evaluation closes this iteration.
+        self.parameters = np.asarray(result.x, dtype=float).copy()
+        energy = float(evaluate(self.parameters))
+        self.energy = energy
+        self.energy_history.append(energy)
+        self.parameter_history.append(self.parameters.copy())
+        self.iterations += 1
+        if result.success:
+            self.converged = True
+        return self.converged
 
     def state_dict(self) -> dict:
         """Return the explicit state as JSON-primitive dict."""
