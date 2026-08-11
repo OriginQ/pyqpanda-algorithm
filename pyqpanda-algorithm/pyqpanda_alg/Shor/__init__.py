@@ -10,8 +10,9 @@ approved public surface is exactly ``__all__``; callers import from
 ``pyqpanda_alg.Shor`` and nothing deeper.
 """
 
-from .classical import Shor, classical_preprocess, recover_order
+from .classical import classical_preprocess, recover_order
 from .model import NEEDS_QUANTUM, RESOLVED, PreprocessOutcome, ShorConfig, ShorResult
+from .shor import Shor
 
 __all__ = [
     "NEEDS_QUANTUM",

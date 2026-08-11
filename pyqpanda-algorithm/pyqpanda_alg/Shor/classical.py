@@ -24,9 +24,8 @@ the true order when a convergent denominator is only a proper divisor
 of it.  The trivial 0/1 convergent is skipped so the scan never
 degenerates into brute force.
 
-The :class:`Shor` facade lives here for the classical stage of the
-package; the quantum order-finding path replaces its
-``NotImplementedError`` branch in a later stage.
+The :class:`Shor` orchestration facade lives in
+:mod:`pyqpanda_alg.Shor.shor`, which consumes these helpers.
 """
 
 import math
@@ -36,7 +35,7 @@ import sympy
 
 from pyqpanda_alg.execution import AlgorithmInputError
 
-from .model import NEEDS_QUANTUM, RESOLVED, PreprocessOutcome, ShorConfig, ShorResult
+from .model import NEEDS_QUANTUM, RESOLVED, PreprocessOutcome
 
 
 def _require_int(value, name: str, minimum: int) -> int:
@@ -188,42 +187,3 @@ def _first_valid_multiple(denominator: int, base: int, modulus: int) -> int | No
             return multiple
         multiple += denominator
     return None
-
-
-class Shor:
-    """Small-scale Shor factorization facade.
-
-    ``modulus`` is validated at construction.  :meth:`run` resolves
-    the modulus classically when possible — even, prime, or perfect
-    power — and returns a :class:`ShorResult` that never claims a
-    quantum task (``used_quantum`` is False and ``task_ids`` empty).
-    Odd composites need quantum order finding, which the current stage
-    of the package does not provide yet, so :meth:`run` raises
-    NotImplementedError for them.
-    """
-
-    def __init__(self, modulus, *, config: ShorConfig | None = None) -> None:
-        self.modulus = _validate_modulus(modulus)
-        self.config = config if config is not None else ShorConfig()
-
-    def run(self) -> ShorResult:
-        """Factor ``modulus``, using only classical preprocessing for now."""
-        outcome = classical_preprocess(self.modulus)
-        if not outcome.resolved:
-            raise NotImplementedError(
-                f"modulus {self.modulus} requires quantum order finding, "
-                "which this stage of the package does not provide yet"
-            )
-        if outcome.is_prime:
-            preprocessing = "prime"
-        elif outcome.factors[0] == 2:
-            preprocessing = "even"
-        else:
-            preprocessing = "perfect_power"
-        return ShorResult(
-            factors=outcome.factors,
-            is_prime=outcome.is_prime,
-            used_quantum=False,
-            task_ids=(),
-            metadata={"preprocessing": preprocessing},
-        )

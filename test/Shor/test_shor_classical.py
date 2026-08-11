@@ -95,13 +95,6 @@ def test_recover_order_rejects_base_not_coprime_to_modulus():
         recover_order(sample=64, phase_bits=8, base=3, modulus=15)
 
 
-def test_quantum_needed_modulus_is_deferred_until_quantum_path():
-    # Odd composites need quantum order finding, which lands in a later
-    # task; the facade must not return a misleading classical result.
-    with pytest.raises(NotImplementedError, match="quantum"):
-        Shor(15).run()
-
-
 def test_shor_config_defaults_and_validation():
     config = ShorConfig()
     assert config.max_attempts == 6
