@@ -73,6 +73,31 @@ def test_contains_credentials_scans_lists():
     assert not contains_credentials({"results": [{"ok": 1}, {"task_id": "t"}]})
 
 
+def test_sanitizer_redacts_hyphenated_credential_keys():
+    payload = {
+        "api-key": "x",
+        "X-API-Key": "y",
+        "nested": {"Bearer-Token": "z"},
+    }
+    clean = sanitize_payload(payload)
+    assert not contains_credentials(clean)
+    assert "x" not in str(clean)
+    assert "y" not in str(clean)
+    assert "z" not in str(clean)
+    assert clean == {"nested": {}}
+
+
+def test_sanitizer_keeps_hyphenated_ordinary_keys():
+    payload = {"task-id": "task-1", "task_id": "task-2"}
+    assert sanitize_payload(payload) == payload
+
+
+def test_contains_credentials_detects_hyphenated_keys():
+    assert contains_credentials({"X-API-Key": "abc"})
+    assert contains_credentials({"nested": {"Bearer-Token": "z"}})
+    assert not contains_credentials({"task-id": "task-1"})
+
+
 def test_manifest_to_dict_redacts_credentials(valid_manifest):
     manifest = QualificationManifest(
         version=valid_manifest["version"],

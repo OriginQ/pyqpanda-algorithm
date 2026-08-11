@@ -177,5 +177,5 @@ class QualificationManifest:
 
 
 def _is_credential_key(key: Any) -> bool:
-    lowered = key.lower() if isinstance(key, str) else str(key)
-    return any(part in lowered for part in _CREDENTIAL_KEY_PARTS)
+    normalized = (key.lower() if isinstance(key, str) else str(key)).replace("-", "_")
+    return any(part in normalized for part in _CREDENTIAL_KEY_PARTS)
