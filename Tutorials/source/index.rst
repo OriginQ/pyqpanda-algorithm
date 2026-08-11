@@ -27,6 +27,12 @@ Overall, it provides a standardized set of tools for developers, allowing them t
 
 .. toctree::
     :maxdepth: 2
+    :caption: Algorithms
+
+    VQE
+
+.. toctree::
+    :maxdepth: 2
     :caption: Changelog
 
     Changelog
