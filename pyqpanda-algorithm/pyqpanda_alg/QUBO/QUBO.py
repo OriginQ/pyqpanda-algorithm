@@ -515,10 +515,14 @@ class QUBO_QAOA(QuadraticBinary):
     def submit(self, layer=None, optimizer='SLSQP', optimizer_option=None, *,
                backend=None, execution_options=None):
         """
-        Run the solver to find the minimum and return a resumable algorithm task.
+        Run the solver to find the minimum and return an execution-layer task.
 
-        The synchronous :meth:`run` drives this task to completion; the
-        backend and execution_options parameters are keyword-only.
+        The whole QAOA optimization runs inside a single advance step, so
+        the task completes on the first ``poll()``; checkpoint/resume
+        applies to the multi-round state machines (Grover, QAE, QARM),
+        not here.  The synchronous :meth:`run` drives this task to
+        completion; the backend and execution_options parameters are
+        keyword-only.
 
         Parameters
             layer : ``int``
@@ -551,7 +555,10 @@ class QUBO_QAOA(QuadraticBinary):
 
         Returns
             task : ``AlgorithmTask``
-                Resumable algorithm task holding the optimization run.
+                Execution-layer task holding the optimization run.  The
+                task is not checkpointable/resumable: QAOA runs its whole
+                optimization in one advance step (checkpoint/resume applies
+                to the multi-round state machines, Grover/QAE/QARM).
                 ``task.result()`` returns ``(qaoa_result, para_result, loss_result)``.
 
         Examples

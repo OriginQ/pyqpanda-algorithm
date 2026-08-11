@@ -103,7 +103,7 @@ jobs:
       - name: Build HTML documentation
         run: |
           cd Tutorials/source
-          python -m sphinx -b html . build/html
+          python -m sphinx -b html -W . build/html
 
       - name: Upload documentation
         uses: actions/upload-artifact@v4

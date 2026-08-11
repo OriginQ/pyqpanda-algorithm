@@ -20,6 +20,13 @@ Features
 * Remote runtime qualification and real-hardware support are planned in
   later releases; this baseline does not claim qualified support for
   real quantum hardware.
+* ``QPCA.qpca`` default sampling shots changed from 8192 to the
+  execution layer's 1000.  Results are normalized by the actual shot
+  count, so the output shape is preserved.
+* ``QuantumAssociationRulesMining`` (QARM) entry points: the legacy
+  ``machine_type='QCloud'`` mode is deprecated.  It warns and now
+  requires an explicit ``backend`` argument; ``machine_type='CPU'``
+  remains the default.
 
 2.0 - 2025-10-25
 ===================

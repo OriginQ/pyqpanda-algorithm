@@ -46,7 +46,7 @@ def test_qmrmr_objective_sign_pins_min_redundancy_minus_relevance():
 
     Bit strings are most-significant first and feature p maps to qubit
     (m - 1 - p), so the observable's basis-state expectations are
-    {00: 0, 01: -0.3, 10: -0.2, 11: -0.3}.
+    {00: 0, 01: -0.2, 10: -0.3, 11: -0.3}.
     """
     linear = [0.6, 0.4]
     quadratic = [[0.3, 0.1], [0.1, 0.2]]
@@ -63,26 +63,30 @@ def test_qmrmr_objective_sign_pins_min_redundancy_minus_relevance():
         relevance = sum(linear[p] * x[p] for p in range(2))
         return x_quad - relevance
 
+    # Each bit string is MSB-first (leftmost bit = feature 0), so "01"
+    # denotes feature set [0, 1] and "10" denotes [1, 0].
     expected = {
         "00": objective([0, 0]),
-        "01": objective([1, 0]),
-        "10": objective([0, 1]),
+        "01": objective([0, 1]),
+        "10": objective([1, 0]),
         "11": objective([1, 1]),
     }
-    hand_values = {"00": 0.0, "01": -0.3, "10": -0.2, "11": -0.3}
+    hand_values = {"00": 0.0, "01": -0.2, "10": -0.3, "11": -0.3}
     for bits, value in expected.items():
         assert value == pytest.approx(hand_values[bits], abs=1e-12)
 
     # The observable's diagonal must match those hand-computed values.
-    # pyqpanda3 orders matrix rows with qubit 0 least significant, while the
-    # pipeline's bit strings are most-significant first, so flip the index.
+    # The pipeline's bit string for basis state |i> is the MSB-first binary
+    # of the matrix row index (format(i, '0%db')), so the index is the
+    # bit string itself -- no flip.
     matrix = model._observable.matrix()
     for bits, value in expected.items():
-        index = int(bits[::-1], 2)
+        index = int(bits, 2)
         assert matrix[index, index].real == pytest.approx(value, abs=1e-12)
 
     # The estimator returns the hand-computed value for the basis state the
-    # zero-parameter circuit prepares (|10>, i.e. feature 1 selected).
-    backend = RecordingBackend(expectations=[expected["10"]])
+    # zero-parameter circuit prepares (qubit 0 in |1>, pipeline bit string
+    # "01", i.e. feature 1 selected).
+    backend = RecordingBackend(expectations=[expected["01"]])
     model._backend = backend
-    assert model.cal_loss([0.0]) == pytest.approx(expected["10"])
+    assert model.cal_loss([0.0]) == pytest.approx(expected["01"])

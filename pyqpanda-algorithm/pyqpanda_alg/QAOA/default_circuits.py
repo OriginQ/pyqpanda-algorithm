@@ -10,6 +10,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
+
 import numpy as np
 from itertools import combinations
 from pyqpanda3.core import QCircuit, RX, CNOT, RZ
@@ -299,7 +301,7 @@ def xy_mixer(domains, mixer_type='PXY'):
 
     """
 
-    if isinstance(mixer_type, (int, float)):
+    if isinstance(mixer_type, numbers.Real):
         # Direct builder form: a flat qubit list and a mixer angle
         # produce the parity-partition XY mixer circuit directly.
         qlist = domains

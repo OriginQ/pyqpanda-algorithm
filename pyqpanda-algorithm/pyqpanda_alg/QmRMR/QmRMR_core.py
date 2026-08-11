@@ -289,10 +289,14 @@ class Feature_Selection:
 
     def submit(self, ini_para, *, backend=None, execution_options=None):
         """
-        Run the feature selection optimization and return a resumable algorithm task.
+        Run the feature selection optimization and return an execution-layer task.
 
-        The synchronous :meth:`get_his_res` drives this task to completion;
-        the backend and execution_options parameters are keyword-only.
+        The whole SPSA optimization runs inside a single advance step, so
+        the task completes on the first ``poll()``; checkpoint/resume
+        applies to the multi-round state machines (Grover, QAE, QARM),
+        not here.  The synchronous :meth:`get_his_res` drives this task to
+        completion; the backend and execution_options parameters are
+        keyword-only.
 
         Parameters
             ini_para : ``array-like``
@@ -306,7 +310,10 @@ class Feature_Selection:
 
         Returns
             task : ``AlgorithmTask``
-                Resumable algorithm task holding the optimization run.
+                Execution-layer task holding the optimization run.  The
+                task is not checkpointable/resumable: the SPSA optimization
+                runs in one advance step (checkpoint/resume applies to the
+                multi-round state machines, Grover/QAE/QARM).
                 ``task.result()`` returns ``(his, choice, dic)``.
         """
         self._backend = resolve_backend(backend)

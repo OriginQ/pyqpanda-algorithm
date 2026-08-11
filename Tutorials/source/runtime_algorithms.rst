@@ -31,7 +31,12 @@ Algorithms with ``submit()``
 
 The following classes expose both a convenience ``run(...)`` method and a
 ``submit(...)`` method that returns the execution layer's
-``AlgorithmTask`` for checkpointing and recovery (see :doc:`execution`):
+``AlgorithmTask`` (see :doc:`execution`).  Checkpointing and recovery
+(``resume()``) apply to the multi-round state machines --
+``GroverAdaptiveSearch``, ``QAE``/``IQAE``, and ``QARM`` -- which run one
+round per ``poll()``; ``QAOA``, ``QUBO``, and ``QmRMR`` complete their
+whole optimization in a single step, so their tasks are execution handles
+rather than resumable state machines:
 
 * ``QAOA`` -- ``QAOA(problem).run(layer=1, ...)`` / ``.submit(...)``
 * ``QUBO`` -- ``QUBO_QAOA(problem).run(...)`` / ``QUBO_GAS_origin(problem).run(...)``

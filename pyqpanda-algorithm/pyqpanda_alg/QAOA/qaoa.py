@@ -813,8 +813,12 @@ class QAOA:
     def submit(self, layer=1, initial_para=None, shots=-1, loss_type=None, optimize_type=None, optimizer=None,
                optimizer_option=None, *, backend=None, execution_options=None, **loss_option):
         """
-        Optimize the function by QAOA algorithm and return a resumable algorithm task.
+        Optimize the function by QAOA algorithm and return an
+        execution-layer task.
 
+        The whole optimization runs inside a single advance step, so the
+        task completes on the first ``poll()``; checkpoint/resume applies
+        to the multi-round state machines (Grover, QAE, QARM), not here.
         The synchronous :meth:`run` drives this task to completion; the
         backend parameter selects the execution backend and is
         keyword-only.
@@ -895,7 +899,10 @@ class QAOA:
 
         Return
             task : ``AlgorithmTask``
-                Resumable algorithm task holding the optimization run.
+                Execution-layer task holding the optimization run.  The
+                task is not checkpointable/resumable: QAOA runs its whole
+                optimization in one advance step (checkpoint/resume applies
+                to the multi-round state machines, Grover/QAE/QARM).
                 ``task.result()`` returns the completed run as
 
                 - qaoa_result : ``dict``

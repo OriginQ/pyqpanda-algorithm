@@ -205,7 +205,9 @@ def qpca(sample_A, k, *, backend=None, execution_options=None):
             Defaults to the local simulator.
         execution_options: ``ExecutionOptions``, keyword-only
             Sampling options (shots, timeout, ...) applied to the
-            phase-estimation submission.
+            phase-estimation submission.  The default samples 1000 shots
+            (previously 8192); the result is normalized by the actual
+            shot count, so its shape is unchanged.
 
     Returns:
         out: ``ndarray``
