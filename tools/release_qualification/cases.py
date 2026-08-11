@@ -113,6 +113,10 @@ _QUBO_FUNCTION = (
 )
 #: The four-point data set shared by the QKmeans/QPCA cases.
 _SAMPLE_POINTS = np.array([[0.0, 0.0], [0.1, 0.1], [1.0, 1.0], [1.1, 1.1]])
+#: Committed RNG seed for the QKmeans case; ``QuantumKmeans.fit`` draws
+#: its initial (and any recalculated) centroids from the global numpy
+#: RNG without seeding itself, so the builder pins the draw around fit.
+_QKMEANS_SEED = 6
 #: Two-point training set shared by the QSVM/QSVR cases.
 _SAMPLE_X = np.array([[0.0, 0.0], [1.0, 1.0]])
 _SAMPLE_Y = np.array([0.0, 1.0])
@@ -194,11 +198,16 @@ def _qarm_invoke(backend):
 
 def _qkmeans_invoke(backend):
     """k=2 quantum k-means over four well-separated 2-D points."""
-    return QuantumKmeans(k=2).fit(
-        _SAMPLE_POINTS,
-        backend=backend,
-        execution_options=ExecutionOptions(shots=_SHOTS, timeout=_LONG_TIMEOUT),
-    )
+    state = np.random.get_state()
+    try:
+        np.random.seed(_QKMEANS_SEED)
+        return QuantumKmeans(k=2).fit(
+            _SAMPLE_POINTS,
+            backend=backend,
+            execution_options=ExecutionOptions(shots=_SHOTS, timeout=_LONG_TIMEOUT),
+        )
+    finally:
+        np.random.set_state(state)
 
 
 def _qpca_invoke(backend):
@@ -244,6 +253,9 @@ def _qubo_gas_invoke(backend):
     solver = QUBO.QUBO_GAS_origin(_QUBO_FUNCTION)
     return solver.run(
         continue_times=2,
+        # the 'increase' rotation policy is fully deterministic; the
+        # searcher's 'random' default draws from the unseeded numpy RNG.
+        rotation_change="increase",
         backend=backend,
         execution_options=ExecutionOptions(shots=_SHOTS, timeout=_TIMEOUT),
     )
@@ -253,7 +265,9 @@ def _qae_invoke(backend):
     """QAE on a single-qubit amplitude sin(pi/3): p = 0.75."""
     def operator(qlist):
         cir = QCircuit()
-        cir << RY(qlist[0], np.pi / 3)
+        # RY(theta) encodes p(|1>) = sin^2(theta/2); theta = 2*pi/3 gives
+        # the committed reference p = sin^2(pi/3) = 0.75.
+        cir << RY(qlist[0], 2 * np.pi / 3)
         return cir
 
     qae = QAE(
@@ -425,7 +439,7 @@ QUALIFICATION_CASES: tuple[QualificationCase, ...] = (
         required_capabilities=("sampling",),
         shots=_SHOTS,
         threshold=0.9,
-        seed=6,
+        seed=_QKMEANS_SEED,
         max_attempts=1,
         timeout=_LONG_TIMEOUT,
     ),
@@ -628,7 +642,11 @@ QUALIFICATION_CASES: tuple[QualificationCase, ...] = (
             and parsed.success_probability >= 0.05
             and bool(parsed.metadata)
             and "observables" in parsed.metadata
-            and math.isfinite(float(parsed.metadata["observables"][0]))
+            # the sampled path reports observables as a dict keyed by
+            # Pauli string (never a list), and this case commits "Z0".
+            and isinstance(parsed.metadata["observables"], dict)
+            and "Z0" in parsed.metadata["observables"]
+            and math.isfinite(float(parsed.metadata["observables"]["Z0"]))
         ),
         mode="sample",
         required_capabilities=("sampling",),

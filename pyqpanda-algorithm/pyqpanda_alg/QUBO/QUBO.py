@@ -400,7 +400,7 @@ class QUBO_GAS_origin(QuadraticBinary):
         return value
 
     def run(self, continue_times: int = 5, init_value=None, process_show=False, *,
-            backend=None, execution_options=None):
+            rotation_change=None, backend=None, execution_options=None):
         """
         Run the solver to find the minimum.
 
@@ -411,6 +411,11 @@ class QUBO_GAS_origin(QuadraticBinary):
                 The given initial value of the optimization function. Default the constant item of the problem.
             process_show : ``bool``
                 Set to True to print the detail during search.
+            rotation_change : ``str{'random', 'increase'}``, optional
+                The Grover iteration policy forwarded to
+                :meth:`GroverAdaptiveSearch.submit`.  ``'increase'`` is
+                deterministic; the default ``None`` keeps the searcher's
+                own default (``'random'``).
             backend : execution backend, keyword-only
                 The sampling backend driving the search.  Defaults to the
                 local simulator.
@@ -428,11 +433,12 @@ class QUBO_GAS_origin(QuadraticBinary):
 
         """
         task = self.submit(continue_times=continue_times, init_value=init_value,
+                           rotation_change=rotation_change,
                            backend=backend, execution_options=execution_options)
         return task.result()
 
     def submit(self, continue_times: int = 5, init_value=None, *,
-               backend=None, execution_options=None):
+               rotation_change=None, backend=None, execution_options=None):
         """
         Run the solver to find the minimum and return a resumable algorithm task.
 
@@ -446,6 +452,11 @@ class QUBO_GAS_origin(QuadraticBinary):
                 The maximum number of repeated searches at the current optimal point in GAS algorithm.
             init_value : ``float``
                 The given initial value of the optimization function. Default the constant item of the problem.
+            rotation_change : ``str{'random', 'increase'}``, optional
+                The Grover iteration policy forwarded to
+                :meth:`GroverAdaptiveSearch.submit`.  ``'increase'`` is
+                deterministic; the default ``None`` keeps the searcher's
+                own default (``'random'``).
             backend : execution backend, keyword-only
                 The sampling backend driving the search.  Defaults to the
                 local simulator.
@@ -463,10 +474,17 @@ class QUBO_GAS_origin(QuadraticBinary):
                                          n_index=n_index,
                                          oracle_circuit=self._flip_oracle_function)
 
+        # Only forward an explicit policy: the searcher rejects None
+        # (NameError), so an unspecified rotation_change keeps its own
+        # 'random' default.
+        searcher_kwargs = {}
+        if rotation_change is not None:
+            searcher_kwargs["rotation_change"] = rotation_change
         return gas_model.submit(continue_times=continue_times,
                                 n_value_function=self._n_value_function,
                                 value_function=self._value_function,
-                                backend=backend, execution_options=execution_options)
+                                backend=backend, execution_options=execution_options,
+                                **searcher_kwargs)
 
 
 class QUBO_QAOA(QuadraticBinary):

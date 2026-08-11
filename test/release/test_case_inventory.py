@@ -12,6 +12,7 @@ import math
 import pytest
 from pyqpanda3.core import QCircuit, QProg
 
+from pyqpanda_alg.execution import LocalBackend
 from tools.release_qualification.cases import (
     QUALIFICATION_CASES,
     SMOKE_CASES,
@@ -92,6 +93,42 @@ def test_hhl_case_is_sampling_mode_without_tomography():
     case = case_by_name("HHL")
     assert case.mode == "sample"
     assert "tomography" not in case.required_capabilities
+
+
+def test_qae_case_reference_probability_is_0_75():
+    """The committed QAE operator (RY(2*pi/3)) must estimate p ~= 0.75."""
+    case = case_by_name("QAE")
+    invoke = case.builder()
+    p_estimated = invoke(LocalBackend())
+    assert 0.0 <= p_estimated <= 1.0
+    assert abs(p_estimated - 0.75) <= case.threshold
+
+
+def test_hhl_domain_predicate_accepts_sampled_observables_dict():
+    """The sampled HHL path reports observables as a dict keyed by Pauli
+    string; the domain predicate must gate that shape, never a list."""
+    case = case_by_name("HHL")
+
+    class _Parsed:
+        success_probability = 0.8
+        metadata = {"observables": {"Z0": 0.25}}
+
+    class _ListShaped:
+        success_probability = 0.8
+        metadata = {"observables": [0.25]}
+
+    class _NonFinite:
+        success_probability = 0.8
+        metadata = {"observables": {"Z0": math.inf}}
+
+    class _WrongKey:
+        success_probability = 0.8
+        metadata = {"observables": {"X0": 0.25}}
+
+    assert case.domain(_Parsed())
+    assert not case.domain(_ListShaped())
+    assert not case.domain(_NonFinite())
+    assert not case.domain(_WrongKey())
 
 
 def test_case_by_name_resolves_all_inventories():
