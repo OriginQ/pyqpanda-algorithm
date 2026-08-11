@@ -30,9 +30,14 @@ one basis batch per step of a resumable
 after every completed batch.  The density matrix is reconstructed from
 the post-selected counts, its dominant eigenvector is truncated to the
 original dimension, and the reconstruction fidelity and uncertainty
-are reported in the result metadata.  The runtime default is success
-probability and requested observables, never full-vector
-reconstruction.
+are reported in the result metadata.  The reported uncertainty is a
+self-consistency measure (``1 - lambda_max``) of the reconstructed
+density matrix, not a statistical error bar; because the
+linear-inversion reconstruction carries no positivity constraint, shot
+noise can push the raw dominant eigenvalue outside the physical range,
+and the reported fidelity and uncertainty are clamped into ``[0, 1]``.
+The runtime default is success probability and requested observables,
+never full-vector reconstruction.
 
 Precision semantics
 -------------------
@@ -158,8 +163,12 @@ class HHL:
         written after every completed batch when ``checkpoint_path`` is
         given, and the density matrix reconstructed from the counts
         yields the classical solution vector and the reconstruction
-        fidelity and uncertainty.  The sampling path requires a backend
-        advertising sampling capability.
+        fidelity and uncertainty — a self-consistency measure
+        (``1 - lambda_max``) of the reconstructed density matrix, not a
+        statistical error bar, clamped into ``[0, 1]`` because shot
+        noise can make the linear-inversion estimate non-physical.
+        The sampling path requires a backend advertising sampling
+        capability.
 
         Args:
             backend: The execution backend to submit the work to.
@@ -175,7 +184,9 @@ class HHL:
                 expectation value is reported in
                 ``metadata["observables"]``.  Keyword-only.  Defaults
                 to None (no observable expectations).  Rejected on the
-                local state-vector path.
+                local state-vector path and cannot be combined with
+                ``reconstruct=True``, which measures the full Pauli
+                basis instead.
             checkpoint_path: Where to checkpoint the tomography state
                 machine after each completed basis batch, so a failed
                 run can be resumed with
@@ -199,8 +210,10 @@ class HHL:
             DeviceCapabilityError: If a sampling backend does not
                 advertise sampling capability, before any submission.
             AlgorithmInputError: If an observable is not a valid Pauli
-                string over the data register, or observables are
-                requested on the local state-vector path.
+                string over the data register, observables are
+                requested on the local state-vector path, or
+                observables are combined with ``reconstruct=True`` on
+                the sampling path.
         """
         execution_backend = resolve_backend(backend)
         options = (
@@ -265,6 +278,11 @@ class HHL:
         plan delegates to :meth:`_run_tomography`.
         """
         _require_sampling(execution_backend)
+        if reconstruct and observables:
+            raise AlgorithmInputError(
+                "observables cannot be combined with reconstruct=True; "
+                "tomography measures the full Pauli basis instead"
+            )
         if reconstruct:
             return self._run_tomography(
                 execution_backend, options, checkpoint_path
@@ -274,13 +292,16 @@ class HHL:
         success_probability = None
         expectations = {}
         task_ids = []
-        for index, (program, pauli) in enumerate(plans):
+        # Pair each plan with the observable it was built for so
+        # expectations can never be mislabeled; without observables the
+        # single plan is paired with None.
+        for observable, (program, pauli) in zip(observables or [None], plans):
             task = execution_backend.submit_sample(program, options=options)
             counts = task.result().single_counts()
-            if index == 0:
+            if success_probability is None:
                 success_probability = _success_probability(counts)
             if pauli is not None:
-                expectations[observables[index]] = pauli_expectation(
+                expectations[observable] = pauli_expectation(
                     pauli, _postselect_counts(counts)
                 )
             task_ids.append(task.id)
@@ -310,7 +331,12 @@ class HHL:
         matrix of the success branch, whose dominant eigenvector is
         truncated to the original dimension and normalized to the
         classical solution vector; its eigenvalue is reported as the
-        reconstruction fidelity.
+        reconstruction fidelity.  The uncertainty is the
+        self-consistency measure ``1 - lambda_max`` of the reconstructed
+        density matrix, not a statistical error bar; linear inversion
+        has no positivity constraint, so shot noise can push the raw
+        eigenvalue above 1, and the reported fidelity and uncertainty
+        are clamped into ``[0, 1]`` at the metadata construction site.
         """
         build = self.build_circuit()
         estimate = estimate_hhl_resources(self._matrix, self._vector, self._config)
@@ -359,6 +385,12 @@ class HHL:
         metadata = _runtime_metadata(
             execution_backend, task.backend_task_ids, self._precision, build
         )
+        # The uncertainty is a self-consistency measure (1 - lambda_max)
+        # of the reconstructed density matrix, not a statistical error
+        # bar.  Linear inversion has no positivity constraint, so shot
+        # noise can push the raw eigenvalue outside [0, 1]; the reported
+        # fidelity and uncertainty are clamped into the physical range.
+        fidelity = min(1.0, max(0.0, fidelity))
         metadata["tomography"] = {
             "circuits": estimate.tomography_circuits,
             "shots": options.shots,
@@ -376,7 +408,12 @@ class HHL:
 def _require_sampling(execution_backend) -> None:
     """Reject backends without sampling capability before submission."""
     capabilities = getattr(execution_backend, "capabilities", None)
-    if capabilities is not None and not capabilities.sampling:
+    if capabilities is None:
+        raise DeviceCapabilityError(
+            "HHL runtime execution requires a backend advertising "
+            "sampling capability"
+        )
+    if not capabilities.sampling:
         raise DeviceCapabilityError(
             "HHL runtime execution requires a backend with sampling "
             "capability"

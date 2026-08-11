@@ -27,7 +27,14 @@ Reconstruction
 forms ``rho = (1/2**d) * sum_P <P> P``.  The dominant eigenvector of
 ``rho`` is the reconstructed solution state; its eigenvalue is the
 state fidelity of ``rho`` against that state, so ``1 - fidelity`` is
-the reported reconstruction uncertainty.
+the reconstruction uncertainty — a self-consistency measure of the
+reconstructed density matrix, not a statistical error bar.  Because
+the linear inversion imposes no positivity constraint, shot noise can
+push the estimated Pauli norm above 1 and the dominant eigenvalue
+outside ``[0, 1]`` (e.g. ``<X> = <Y> = <Z> = -0.8`` gives
+``lambda_max = (1 + 0.8 * sqrt(3)) / 2 ~ 1.19``); the HHL solver
+clamps the reported fidelity and uncertainty into ``[0, 1]`` at the
+metadata construction site.
 """
 
 import itertools
@@ -134,7 +141,12 @@ def dominant_eigenvector(rho: np.ndarray) -> tuple[float, np.ndarray]:
     its largest eigenvalue and eigenvector come from a Hermitian
     eigensolve.  The eigenvalue is the state fidelity of ``rho``
     against the dominant eigenvector; ``1 - fidelity`` is the
-    reconstruction uncertainty.
+    reconstruction uncertainty — a self-consistency measure, not a
+    statistical error bar.  Linear inversion has no positivity
+    constraint, so shot noise can push the raw eigenvalue outside
+    ``[0, 1]``; callers that report it as a fidelity should clamp it
+    (the HHL solver clamps the reported value at the metadata
+    construction site).
     """
     rho = np.asarray(rho)
     if rho.ndim != 2 or rho.shape[0] != rho.shape[1]:

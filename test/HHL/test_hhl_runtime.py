@@ -61,12 +61,52 @@ def test_runtime_reconstruct_submits_exact_tomography_circuits():
 
 
 @pytest.mark.runtime_contract
+def test_runtime_tomography_metadata_clamps_nonphysical_fidelity():
+    # Heavy noise in every basis: each X/Y/Z circuit reads the data
+    # qubit 0 in 100 shots and 1 in 900, so every Pauli expectation is
+    # -0.8 and the linear-inversion density matrix has
+    # lambda_max = (1 + 0.8*sqrt(3)) / 2 ~ 1.19 > 1.  The reported
+    # fidelity must be clamped into [0, 1] and the uncertainty stay
+    # non-negative.
+    backend = RecordingBackend(
+        sample_counts=[
+            {"10": 100, "11": 900},  # X basis
+            {"10": 100, "11": 900},  # Y basis
+            {"10": 100, "11": 900},  # Z basis
+        ]
+    )
+    result = HHL(np.eye(2), np.array([1.0, 0.0]), precision=1e-2).run(
+        backend=backend, reconstruct=True
+    )
+    tomography = result.metadata["tomography"]
+    assert 0.0 <= tomography["fidelity"] <= 1.0
+    assert tomography["uncertainty"] >= 0.0
+    assert tomography["uncertainty"] == pytest.approx(
+        1.0 - tomography["fidelity"]
+    )
+    assert tomography["fidelity"] == 1.0
+    assert tomography["uncertainty"] == 0.0
+
+
+@pytest.mark.runtime_contract
 def test_runtime_backend_without_sampling_capability_fails_before_submission():
     backend = RecordingBackend()
     backend.capabilities = BackendCapabilities(sampling=False)
     with pytest.raises(DeviceCapabilityError, match="sampling"):
         HHL(np.eye(2), np.array([1.0, 0.0]), precision=1e-2).run(backend=backend)
     assert backend.sample_call_count == 0
+
+
+@pytest.mark.runtime_contract
+def test_runtime_backend_without_capabilities_fails_before_submission():
+    class _CapabilitylessBackend:
+        def submit_sample(self, circuit, *, options):
+            raise AssertionError("sampling must not be submitted")
+
+    with pytest.raises(DeviceCapabilityError, match="sampling"):
+        HHL(np.eye(2), np.array([1.0, 0.0]), precision=1e-2).run(
+            backend=_CapabilitylessBackend()
+        )
 
 
 @pytest.mark.runtime_contract
@@ -79,6 +119,16 @@ def test_runtime_reports_requested_data_observables():
     assert result.statevector is None
     assert result.metadata["observables"]["Z0"] == pytest.approx(0.4)
     assert result.success_probability == pytest.approx(1.0)
+
+
+@pytest.mark.runtime_contract
+def test_runtime_rejects_observables_combined_with_reconstruction():
+    backend = RecordingBackend()
+    with pytest.raises(AlgorithmInputError, match="reconstruct"):
+        HHL(np.eye(2), np.array([1.0, 0.0]), precision=1e-2).run(
+            backend=backend, reconstruct=True, observables=["Z0"]
+        )
+    assert backend.sample_call_count == 0
 
 
 @pytest.mark.runtime_contract
