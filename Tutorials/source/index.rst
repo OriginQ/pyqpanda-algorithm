@@ -30,6 +30,7 @@ Overall, it provides a standardized set of tools for developers, allowing them t
     :caption: Algorithms
 
     VQE
+    HHL
 
 .. toctree::
     :maxdepth: 2

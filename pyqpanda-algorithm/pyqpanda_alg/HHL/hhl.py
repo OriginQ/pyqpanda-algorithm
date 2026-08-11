@@ -101,7 +101,9 @@ class HHL:
             positive.
 
     Raises:
-        ValueError: If ``precision`` is not positive.
+        ValueError: If ``precision`` is not positive.  The phase
+            register size is derived from ``1 / precision``, which
+            requires a positive target.
         AlgorithmInputError: If the linear system fails validation
             (non-Hermitian, singular, ill-conditioned, or mismatched
             shapes).
