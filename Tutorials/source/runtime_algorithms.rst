@@ -34,9 +34,10 @@ The following classes expose both a convenience ``run(...)`` method and a
 ``AlgorithmTask`` (see :doc:`execution`).  Checkpointing and recovery
 (``resume()``) apply to the multi-round state machines --
 ``GroverAdaptiveSearch``, ``QAE``/``IQAE``, and ``QARM`` -- which run one
-round per ``poll()``; ``QAOA``, ``QUBO``, and ``QmRMR`` complete their
-whole optimization in a single step, so their tasks are execution handles
-rather than resumable state machines:
+round per ``poll()``; ``QAOA``, ``QUBO_QAOA``, and ``QmRMR`` complete
+their whole optimization in a single step, so their tasks are execution
+handles rather than resumable state machines (``QUBO_GAS_origin``
+follows the ``GroverAdaptiveSearch`` semantics, so it is resumable):
 
 * ``QAOA`` -- ``QAOA(problem).run(layer=1, ...)`` / ``.submit(...)``
 * ``QUBO`` -- ``QUBO_QAOA(problem).run(...)`` / ``QUBO_GAS_origin(problem).run(...)``
