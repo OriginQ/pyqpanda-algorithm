@@ -328,6 +328,11 @@ class QuantumAssociationRulesMining:
             index_value = int(key, 2) & ((1 << self.index_qubit_number) - 1)
             projected[index_value] = projected.get(index_value, 0) + count / total
         max_val = max(projected.values())
+        # The ``>= max_val - 1/total`` tolerance is a deliberate robustness
+        # choice: empirical probabilities within one shot of the maximum
+        # still count as ties, where the legacy readout compared exact
+        # 4-decimal probabilities.  For the equal-count fixtures the two
+        # select identical tie sets.
         epsilon = 1.0 / total
         index_list = [idx for idx, val in projected.items() if val >= max_val - epsilon]
         return self._get_index(index_list)
@@ -348,6 +353,11 @@ class QuantumAssociationRulesMining:
         for key, val in ck_dict.items():
             support = len(val) / self.transaction_number
             if support >= self.min_support:
+                # ``ck_dict`` keys are JSON-safe strings (the locating
+                # number); convert back to an int and re-wrap each into a
+                # 1-tuple so the apriori joins below keep their frozenset
+                # semantics unchanged.
+                key = (int(key),)
                 f1_dict[key] = [val, support]
                 f1.append(key)
         return f1, f1_dict
@@ -482,7 +492,6 @@ class QuantumAssociationRulesMining:
         options = execution_options if execution_options is not None else ExecutionOptions()
         prog = QProg(self.number_qubits)
         qlist = prog.qubits()
-        clist = prog.cbits()
         c1 = self._create_c1(self.transaction_matrix)
         state = {"round": 0, "c1": c1, "ck_dict": {}}
 
@@ -493,7 +502,10 @@ class QuantumAssociationRulesMining:
                 sample_task = exec_backend.submit_sample(search_prog, options=options)
                 counts = sample_task.result().single_counts()
                 rows = self._rows_from_counts(counts)
-                state["ck_dict"][(locating_number,)] = [row[0] for row in rows]
+                # JSON checkpoint keys are always strings, so ``ck_dict``
+                # keys are stored as strings end-to-end (fresh and resumed)
+                # to survive the checkpoint round-trip losslessly.
+                state["ck_dict"][str(locating_number)] = [row[0] for row in rows]
                 state["round"] += 1
                 if state["round"] < len(state["c1"]):
                     return CompletedBackendTask(None, task_id=sample_task.id), False

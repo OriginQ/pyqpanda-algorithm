@@ -58,7 +58,7 @@ class QAE:
     >>>     return cir
     >>> W = QAE.QAE(operator_in=create_cir, qnumber=2, epsilon=0.01, res_index=[0, 1], target_state='11').run()
     >>> print(W)
-    0.24294862790338914
+    ≈0.24 (statistical; the exact value depends on the sampling shots)
 
     """
     def __init__(self, operator_in=None,
@@ -162,7 +162,7 @@ class QAE:
         >>>     return cir
         >>> W = QAE.QAE(operator_in=create_cir, qnumber=2, epsilon=0.01, res_index=[0, 1], target_state='11').run()
         >>> print(W)
-        0.24294862790338914
+        ≈0.24 (statistical; the exact value depends on the sampling shots)
 
         """
         task = self.submit(backend=backend, execution_options=execution_options)
@@ -270,7 +270,7 @@ class IQAE:
     >>>     return cir
     >>> W = QAE.IQAE(operator_in=create_cir, qnumber=2, epsilon=0.01, res_index=-1).run()
     >>> print(W)
-    0.25735228001322236
+    ≈0.25 (statistical; the exact value depends on the sampling shots)
 
     """
     def __init__(self, operator_in=None,
@@ -333,7 +333,7 @@ class IQAE:
         >>>     return cir
         >>> W = QAE.IQAE(operator_in=create_cir, qnumber=2, epsilon=0.01, res_index=-1).run()
         >>> print(W)
-        0.25735228001322236
+        ≈0.25 (statistical; the exact value depends on the sampling shots)
 
         """
         task = self.submit(backend=backend, execution_options=execution_options)
@@ -403,6 +403,10 @@ class IQAE:
                 round_options = dataclasses.replace(options, shots=int(n_round))
                 sample_task = exec_backend.submit_sample(self._measure_prog(k_next), options=round_options)
                 counts = sample_task.result().single_counts()
+                # ``_measure_prog`` measures exactly one qubit, so the
+                # counted keys are 1-bit ("0"/"1"); a backend returning
+                # full-width keys would silently give m=0 here, so this
+                # key-width assumption is load-bearing.
                 m = counts.get("1", 0)
                 self.draw = False
 
