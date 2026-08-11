@@ -31,6 +31,7 @@ Overall, it provides a standardized set of tools for developers, allowing them t
 
     VQE
     HHL
+    Shor
 
 .. toctree::
     :maxdepth: 2

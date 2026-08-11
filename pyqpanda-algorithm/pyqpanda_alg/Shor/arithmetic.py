@@ -17,7 +17,7 @@ power ``base*2**k mod modulus`` into a scratch register, the registers
 are exchanged, and the scratch register is uncomputed with the inverse
 powers ``base**-1*2**k mod modulus``.  Every gate is controlled on the
 control qubit, so a clear control leaves the state untouched and every
-ancilla qubit returns to |0>.
+ancilla qubit returns to ``|0>``.
 
 :func:`controlled_modular_exponentiation` composes one controlled
 multiply per exponent bit, using the classically precomputed powers
@@ -46,7 +46,7 @@ class ModularArithmeticCircuit(QCircuit):
     ``value_qubits`` and ``ancilla_qubits`` name the value and work
     qubits; a controlled multiply additionally declares its single
     ``control_qubit`` and an exponentiation its ``exponent_qubits``
-    register.  Every circuit returns all ``ancilla_qubits`` to |0...0>.
+    register.  Every circuit returns all ``ancilla_qubits`` to ``|0...0>``.
     """
 
     def __init__(
@@ -192,7 +192,7 @@ def _controlled_multiply_circuit(
     """Map ``|x>|0> -> |base*x mod modulus>|0>`` gated on ``control``.
 
     ``ancilla`` is a pair ``(scratch, cmp_qubit)``: an ``n``-qubit
-    scratch register and one comparison qubit, all returned to |0>.
+    scratch register and one comparison qubit, all returned to ``|0>``.
     The right rotation sweeps the value bits past ``value_qubits[0]``
     least-significant bit first, so the same scratch register can
     accumulate the precomputed powers ``base*2**k mod modulus`` and
@@ -230,7 +230,7 @@ def controlled_modular_multiply(base, modulus, value_qubits, control) -> Modular
     list of distinct qubit indices wide enough to represent the modulus.
     ``control`` names the qubit gating the whole circuit: a clear
     control leaves every register untouched, a set control applies the
-    modular multiplication, and all ancilla qubits return to |0>.
+    modular multiplication, and all ancilla qubits return to ``|0>``.
     """
     modulus = _validate_modulus(modulus)
     base = _validate_base(base, modulus)
@@ -265,7 +265,7 @@ def controlled_modular_exponentiation(
     the odd modulus.  The exponent register gates one controlled
     multiply per bit, applying the classically precomputed powers
     ``base**(2**k) mod modulus``, and the shared ancilla qubits return
-    to |0> between blocks.
+    to ``|0>`` between blocks.
     """
     modulus = _validate_modulus(modulus)
     base = _validate_base(base, modulus)
