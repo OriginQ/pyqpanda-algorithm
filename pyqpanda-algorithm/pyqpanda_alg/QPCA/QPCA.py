@@ -253,7 +253,7 @@ def qpca(sample_A, k, *, backend=None, execution_options=None):
     sample_task = exec_backend.submit_sample(prog, options=options)
     counts = sample_task.result().single_counts()
     shots = sum(counts.values())
-    result = {key: value / shots for key, value in counts.items()}
+    result = {key: value / shots if shots else 0 for key, value in counts.items()}
     a = []
     data = 0
     if A.shape[0] == 2:

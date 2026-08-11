@@ -70,6 +70,12 @@ def test_public_sampling_entry_points_use_supplied_backend(recording_backend):
     x = np.array([[0.0, 0.0], [1.0, 1.0]])
     y = np.array([0.0, 1.0])
 
+    # Alignment dependency: one QKMeans.fit iteration submits k=2 distance
+    # circuits per point (8 rounds for these 4 points = 2 full periods of the
+    # 4-entry scripted pattern), so iteration 2 replays iteration 1's scripted
+    # counts: identical distances, error -> 0 -> break.  Editing the pattern
+    # could turn a test failure into a hang (fit loops while |error| > tol;
+    # the iteration cap bounds it now) rather than an assertion failure.
     assert_sampled(lambda: QuantumKmeans(k=2).fit(points, backend=recording_backend), recording_backend)
     assert_sampled(lambda: qpca(points, 1, backend=recording_backend), recording_backend)
     assert_sampled(

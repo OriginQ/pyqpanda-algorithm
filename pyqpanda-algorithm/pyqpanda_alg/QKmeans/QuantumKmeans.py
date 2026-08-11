@@ -15,7 +15,13 @@ from copy import deepcopy
 from numpy import pi
 from pyqpanda3.core import QCircuit, QProg, SWAP, U3, H, measure, draw_qprog
 
-from ..execution import ExecutionOptions, resolve_backend
+from ..execution import AlgorithmExecutionError, ExecutionOptions, resolve_backend
+
+# Iteration cap for ``QuantumKmeans.fit``.  Distance estimates come from
+# sampled P(|1>) counts, which fluctuate around the shot-noise floor and may
+# never settle below ``tol`` on a sampled backend; the cap guarantees the fit
+# loop terminates instead of submitting unboundedly on a paid device.
+MAX_ITER = 1000
 
 
 
@@ -166,6 +172,11 @@ class QuantumKmeans:
                 Sampling options (shots, timeout, ...) applied to every
                 distance circuit.
 
+        Raises:
+            AlgorithmExecutionError: if the centroids do not converge within
+                ``MAX_ITER`` iterations (sampled distance estimates can keep
+                the error above ``tol`` indefinitely).
+
 
         """
         exec_backend = resolve_backend(backend)
@@ -184,9 +195,16 @@ class QuantumKmeans:
         error = np.linalg.norm(centers_new - centers_old)
         upper_error = error + 1
 
-        iter_counter = 1
+        iter_counter = 0
         clusters = None
         while abs(error - upper_error) > self.tol:
+            iter_counter += 1
+            if iter_counter > MAX_ITER:
+                raise AlgorithmExecutionError(
+                    "QuantumKmeans.fit failed to converge within "
+                    f"{MAX_ITER} iterations; sampled distance noise may keep "
+                    "the error above the tolerance."
+                )
             centers = centers_new
 
             distances = np.array(list(map(lambda x: _point_centroid_distances(x, centers, self.K, exec_backend, options), data)))
@@ -206,7 +224,6 @@ class QuantumKmeans:
             upper_error = deepcopy(error)
             error = np.linalg.norm(centers_new - centers_old)
 
-            iter_counter += 1
             if error < self.tol:
                 break
         return centers_new, clusters

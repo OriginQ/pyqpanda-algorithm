@@ -109,30 +109,32 @@ class Quantum_SVR:
             Qcir << RX(qb[i], cs[n - 1 - i])
         return Qcir
 
-    def dist(self, x, y, *, backend=None, options=None):
+    def dist(self, x, y, *, backend=None, execution_options=None):
         exec_backend = resolve_backend(backend)
-        options = options if options is not None else ExecutionOptions()
+        execution_options = execution_options if execution_options is not None else ExecutionOptions()
         prog = QProg(2)
         qv = prog.qubits()
         prog << self.cir_real(qv, x) << self.cir_real(qv, y).dagger()
         prog << measure(qv, qv)
-        sample_task = exec_backend.submit_sample(prog, options=options)
+        sample_task = exec_backend.submit_sample(prog, options=execution_options)
         counts = sample_task.result().single_counts()
         shots = sum(counts.values())
         return counts.get('0' * 2, 0) / shots if shots else 0
 
-    def k_kernel(self, X, Y, *, backend=None, options=None):
+    def k_kernel(self, X, Y, *, backend=None, execution_options=None):
         matrix = np.zeros((len(X), len(Y)))
         for i in range(len(X)):
             for j in range(len(Y)):
-                matrix[i][j] = self.dist(X[i], Y[j], backend=backend, options=options)
+                matrix[i][j] = self.dist(
+                    X[i], Y[j], backend=backend, execution_options=execution_options
+                )
         return matrix
 
     def get_res(self, *, backend=None, execution_options=None):
         exec_backend = resolve_backend(backend)
         options = execution_options if execution_options is not None else ExecutionOptions()
         svr = SVR(
-            kernel=lambda X, Y: self.k_kernel(X, Y, backend=exec_backend, options=options),
+            kernel=lambda X, Y: self.k_kernel(X, Y, backend=exec_backend, execution_options=options),
             gamma=0.1,
         )
         svr.fit(self.x, self.y)
@@ -143,7 +145,7 @@ class Quantum_SVR:
         exec_backend = resolve_backend(backend)
         options = execution_options if execution_options is not None else ExecutionOptions()
         svr = SVR(
-            kernel=lambda X, Y: self.k_kernel(X, Y, backend=exec_backend, options=options),
+            kernel=lambda X, Y: self.k_kernel(X, Y, backend=exec_backend, execution_options=options),
             gamma=0.1,
         )
         svr.fit(self.x, self.y)

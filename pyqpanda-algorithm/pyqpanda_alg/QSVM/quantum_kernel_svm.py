@@ -387,7 +387,7 @@ class QuantumKernel_vqnet:
                     counts = result[measurement_basis]
                     states = np.sum(list(result.values()))
                     probability = counts / states
-                except:
+                except KeyError:
                     probability = 0.0001
                 matrix_elements.append(probability)
 
