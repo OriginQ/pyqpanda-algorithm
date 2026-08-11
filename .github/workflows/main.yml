@@ -176,3 +176,4 @@ jobs:
           files: |
             release_package/wheels/*.whl
             release_package/docs/index.html
+            release_package/qualification/manifest.json

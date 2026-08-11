@@ -67,7 +67,6 @@ from .manifest import (
     validate_manifest,
 )
 from .run_preflight import (
-    _DEFAULT_WHEEL,
     _UNKNOWN_DIGEST,
     _device_record,
     _digest,
@@ -75,6 +74,7 @@ from .run_preflight import (
     _package_version,
     _sha256_file,
     _utc_now,
+    _wheel_basename,
 )
 from .verdicts import verdict_for_case
 
@@ -430,7 +430,7 @@ def run_qpu(
         version=SCHEMA_VERSION,
         timestamp=_utc_now(),
         git_commit=_git_commit(),
-        wheel=wheel or _DEFAULT_WHEEL,
+        wheel=_wheel_basename(wheel),
         wheel_sha256=wheel_sha256 or _UNKNOWN_DIGEST,
         python_version=platform.python_version(),
         pyqpanda3_version=_package_version("pyqpanda3"),

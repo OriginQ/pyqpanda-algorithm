@@ -67,7 +67,7 @@ since committing it would change the commit the manifest attests to.
 ```bash
 # 1. The manifest is valid for the exact candidate commit and wheel.
 python tools/release_qualification/check_release.py \
-  --manifest .artifacts/2.1.0/runtime-qualification.json \
+  --manifest .artifacts/2.1.0/manifest.json \
   --commit "$(git rev-parse HEAD)" \
   --wheel pyqpanda-algorithm/dist/pyqpanda_alg-2.1.0-py3-none-any.whl
 # Expected: release policy: PASS
@@ -77,7 +77,7 @@ rg -n -i "api[_-]?key|access[_-]?token|authorization|bearer|password" .artifacts
 # Expected: no matches
 
 # 3. The downloaded artifact matches the release asset.
-sha256sum .artifacts/2.1.0/runtime-qualification.json
+sha256sum .artifacts/2.1.0/manifest.json
 ```
 
 ## What the manifest attests

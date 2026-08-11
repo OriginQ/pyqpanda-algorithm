@@ -59,6 +59,20 @@ _DEFAULT_WHEEL = "pyqpanda_alg-2.1.0-py3-none-any.whl"
 #: Placeholder digest used when the wheel file is not available yet.
 _UNKNOWN_DIGEST = "0" * 64
 
+
+def _wheel_basename(wheel: str | None) -> str:
+    """Normalize a candidate wheel argument to its basename.
+
+    The manifest's ``wheel`` field is a filename (``schema.json``:
+    "Wheel filename"), never a directory-prefixed path, so a path a
+    workflow passes (e.g. ``.artifacts/2.1.0/wheel/...``) is reduced to
+    its basename here.  ``None``/``""``/``"-"`` keep the committed
+    default; an already-bare name is returned unchanged.
+    """
+    if not wheel or wheel == "-":
+        return _DEFAULT_WHEEL
+    return Path(wheel).name
+
 #: The committed Shor case's modulus and RNG seed (see ``cases.py``).
 _SHOR_MODULUS = 15
 _SHOR_SEED = 42
@@ -156,7 +170,7 @@ def run_preflight(
         version=SCHEMA_VERSION,
         timestamp=_utc_now(),
         git_commit=_git_commit(),
-        wheel=wheel or _DEFAULT_WHEEL,
+        wheel=_wheel_basename(wheel),
         wheel_sha256=wheel_sha256 or _UNKNOWN_DIGEST,
         python_version=platform.python_version(),
         pyqpanda3_version=_package_version("pyqpanda3"),
