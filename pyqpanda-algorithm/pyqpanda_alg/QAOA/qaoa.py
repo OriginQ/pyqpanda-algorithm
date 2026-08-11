@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pyqpanda3.core import CPUQVM, QCircuit, QProg, I, H, RZ, RX, CNOT, measure
+from pyqpanda3.core import QCircuit, QProg, I, H, RZ, RX, CNOT, measure
 from pyqpanda3.hamiltonian import PauliOperator, Hamiltonian
 import numpy as np
 from scipy.optimize import minimize
@@ -20,6 +20,7 @@ from . import spsa
 from .default_circuits import *
 
 from .. plugin import *
+from ..execution import AlgorithmTask, CompletedBackendTask, ExecutionOptions, resolve_backend
 
 
 
@@ -345,6 +346,9 @@ class QAOA:
 
         self.energy_dict = {}
 
+        self._backend = None
+        self._execution_options = None
+
     def calculate_energy(self, x):
         """
         Calculate the function value for one solution.
@@ -509,22 +513,22 @@ class QAOA:
             '110': 0.122, '111': 0.14}
 
         """
-        qvm = CPUQVM()
+        backend = self._backend if self._backend is not None else resolve_backend(None)
         qaoa_prog = QProg(self.problem_dimension)
         qlist = qaoa_prog.qubits()
         qaoa_prog << self._qaoa_circuit(qlist, gammas, betas)
 
         if shots == -1:
-            qvm.run(qaoa_prog, shots=1)
-            prob_result = qvm.result().get_prob_dict()
+            options = self._execution_options if self._execution_options is not None else ExecutionOptions()
+            statevector = backend.submit_statevector(qaoa_prog, options=options).result().single_statevector()
+            prob_result = {format(i, '0%db' % self.problem_dimension): abs(statevector[i]) ** 2
+                           for i in range(len(statevector))}
             prob_result = parse_quantum_result_dict(prob_result, qlist, select_max=-1)
         elif shots > 0:
+            options = self._execution_options if self._execution_options is not None else ExecutionOptions(shots=shots)
             qaoa_prog << measure_all(qlist, qlist)
-            # prob_result = qvm.run_with_configuration(qaoa_prog, clist, shots)
-            qvm.run(qaoa_prog, shots=shots)
-            prob_result = qvm.result().get_prob_dict(qlist)
-            # for key in prob_result.keys():
-            #     prob_result[key] = prob_result[key] / shots
+            counts = backend.submit_sample(qaoa_prog, options=options).result().single_counts()
+            prob_result = {key: count / shots for key, count in counts.items()}
         else:
             raise ValueError(f'Invalid shots number: {shots}')
 
@@ -614,9 +618,30 @@ class QAOA:
             lost += hits * np.exp(-self.energy_dict[solution] / self.temperature)
         return - np.log(lost)
 
+    def _estimate_pair(self, gammas, betas):
+        """
+        Build the measurement-free circuit and Hamiltonian pair for
+        expectation estimation of the QAOA state.
+
+        Parameter
+            gammas : ``array-like``
+                parameter gamma for QAOA phase circuit\n
+
+            betas : ``array-like``
+                parameter beta for QAOA mixer circuit\n
+
+        Return
+            (prog, hamiltonian) : ``tuple[QProg, Hamiltonian]``
+                The pair submitted to ``submit_estimate``.
+        """
+        prog = QProg(self.problem_dimension)
+        qlist = prog.qubits()
+        prog << self._qaoa_circuit(qlist, gammas, betas)
+        return prog, Hamiltonian(self.operator)
+
     def _loss_function(self, paras):
         """
-        Given parameters, run the QAOA circuit and calculate the loss function.
+        Given parameters, calculate the loss function.
 
         Parameter
             paras : ``array-like``
@@ -629,15 +654,21 @@ class QAOA:
         gammas = paras[:self.layer]
         betas = paras[self.layer:]
 
-        result = self.run_qaoa_circuit(gammas, betas, self.shots)
-
         loss_dict = {'default': self._loss_function_default,
                      'CVaR': self._loss_function_cvar,
                      'Gibbs': self._loss_function_Gibbs}
         if self.loss_type not in loss_dict.keys():
             support_type = ', '.join(loss_dict.keys())
             raise ValueError('wrong loss types, only support ' + support_type)
-        loss_f = loss_dict[self.loss_type](result)
+
+        if self.loss_type == 'default':
+            backend = self._backend if self._backend is not None else resolve_backend(None)
+            options = self._execution_options if self._execution_options is not None else ExecutionOptions()
+            loss_f = backend.submit_estimate(self._estimate_pair(gammas, betas),
+                                             options=options).result().single_value()
+        else:
+            result = self.run_qaoa_circuit(gammas, betas, self.shots)
+            loss_f = loss_dict[self.loss_type](result)
         self.iter += 1
         return loss_f
 
@@ -779,10 +810,14 @@ class QAOA:
                     start_layer = para_layer
                     return initial_para, start_layer
 
-    def run(self, layer=1, initial_para=None, shots=-1, loss_type=None, optimize_type=None, optimizer=None,
-            optimizer_option=None, **loss_option):
+    def submit(self, layer=1, initial_para=None, shots=-1, loss_type=None, optimize_type=None, optimizer=None,
+               optimizer_option=None, *, backend=None, execution_options=None, **loss_option):
         """
-        Optimize the function by QAOA algorithm.
+        Optimize the function by QAOA algorithm and return a resumable algorithm task.
+
+        The synchronous :meth:`run` drives this task to completion; the
+        backend parameter selects the execution backend and is
+        keyword-only.
 
         Parameters
             layer : ``integer``, ``optional``
@@ -849,16 +884,27 @@ class QAOA:
                 alpha : ``float``, ``optional``
                     parameter calculated in _loss_function_cvar. Default is 1. See Note ``Gibbs energy``.
 
+            backend : ``ExecutionBackend``, ``optional``
+                The execution backend to run on. Keyword-only. If not given, the CPU
+                LocalBackend is used.
+
+            execution_options : ``ExecutionOptions``, ``optional``
+                Options controlling the backend submissions. Keyword-only. If not
+                given, defaults are derived from ``shots`` (a sampled run uses
+                ``ExecutionOptions(shots=shots)``).
+
         Return
-            qaoa_result : ``dict``
-                dict of all possible solutions with corresponding probabilities.
-                The elements are arranged in descending order of probability.
+            task : ``AlgorithmTask``
+                Resumable algorithm task holding the optimization run.
+                ``task.result()`` returns the completed run as
 
-            para_result : ``array-like``
-                Array of the optimized QAOA parameters.
-
-            loss_result : ``float``
-                Loss function value of the optimized QAOA parameters.
+                - qaoa_result : ``dict``
+                  dict of all possible solutions with corresponding probabilities.
+                  The elements are arranged in descending order of probability.
+                - para_result : ``array-like``
+                  Array of the optimized QAOA parameters.
+                - loss_result : ``float``
+                  Loss function value of the optimized QAOA parameters.
 
         Example
             Run a two-layer QAOA algorithm circuit of problem :math:`f(\\vec{x})=2x_0 + x_1 + 3x_2 - 1` with parameters
@@ -969,6 +1015,13 @@ class QAOA:
         self.temperature = loss_option.get('temperature', 1)
         self.shots = shots
 
+        self._backend = resolve_backend(backend)
+        self._execution_options = (
+            execution_options
+            if execution_options is not None
+            else (ExecutionOptions(shots=shots) if shots > 0 else ExecutionOptions())
+        )
+
         initial_para, start_layer = self._check_layer_and_generate_initial_para(layer, initial_para)
 
         if optimizer_option is None:
@@ -977,21 +1030,38 @@ class QAOA:
         gamma_bounds = loss_option.get('gamma_bounds', None)
         beta_bounds = loss_option.get('beta_bounds', None)
 
-        if self.optimize_type == 'default':
-            para_result = self._optimize_qaoa_parameter_default(initial_para, gamma_bounds, beta_bounds,
-                                                                **optimizer_option)
-        elif self.optimize_type == 'interp':
+        def advance(state):
+            if self.optimize_type == 'default':
+                para_result = self._optimize_qaoa_parameter_default(initial_para, gamma_bounds, beta_bounds,
+                                                                    **optimizer_option)
+            elif self.optimize_type == 'interp':
+                para_result = self._optimize_qaoa_parameter_interp(initial_para, start_layer, gamma_bounds,
+                                                                   beta_bounds, **optimizer_option)
+            else:
+                raise ValueError('wrong optimize type, only support default, interp')
 
-            para_result = self._optimize_qaoa_parameter_interp(initial_para, start_layer, gamma_bounds, beta_bounds,
-                                                               **optimizer_option)
-        else:
-            raise ValueError('wrong optimize type, only support default, interp')
+            qaoa_result = self.run_qaoa_circuit(para_result[:self.layer], para_result[self.layer:], self.shots)
+            loss_result = self._loss_function(para_result)
+            qaoa_result_list = sorted(qaoa_result.items(), key=lambda k: k[1], reverse=True)
+            keys = [i[0] for i in qaoa_result_list]
+            items = [i[1] for i in qaoa_result_list]
+            qaoa_result = dict(zip(keys, items))
+            return CompletedBackendTask((qaoa_result, para_result, loss_result),
+                                        task_id='qaoa-result'), True
 
-        qaoa_result = self.run_qaoa_circuit(para_result[:self.layer], para_result[self.layer:], self.shots)
-        loss_result = self._loss_function(para_result)
-        qaoa_result_list = sorted(qaoa_result.items(), key=lambda k: k[1], reverse=True)
-        keys = [i[0] for i in qaoa_result_list]
-        items = [i[1] for i in qaoa_result_list]
-        qaoa_result = dict(zip(keys, items))
+        return AlgorithmTask(algorithm='qaoa', initial_state={}, advance=advance, backend=self._backend)
 
-        return qaoa_result, para_result, loss_result
+    def run(self, layer=1, initial_para=None, shots=-1, loss_type=None, optimize_type=None, optimizer=None,
+            optimizer_option=None, *, backend=None, execution_options=None, **loss_option):
+        """
+        Optimize the function by QAOA algorithm.
+
+        This is the synchronous counterpart of :meth:`submit`: the whole
+        optimization is executed immediately and the completed
+        ``(qaoa_result, para_result, loss_result)`` tuple is returned.
+        See :meth:`submit` for the parameter documentation.
+        """
+        task = self.submit(layer=layer, initial_para=initial_para, shots=shots, loss_type=loss_type,
+                           optimize_type=optimize_type, optimizer=optimizer, optimizer_option=optimizer_option,
+                           backend=backend, execution_options=execution_options, **loss_option)
+        return task.result()

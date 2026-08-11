@@ -12,9 +12,12 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-from pyqpanda3.core import CPUQVM, QCircuit, QProg, CNOT, X, RY
+from pyqpanda3.core import QCircuit, QProg, CNOT, X, RY
+from pyqpanda3.hamiltonian import Hamiltonian, PauliOperator
 
 from .. plugin import *
+from ..execution import AlgorithmTask, CompletedBackendTask, ExecutionOptions, resolve_backend
+from ..QAOA.qaoa import p_1
 
 def plot_bar(dic):
     """
@@ -202,6 +205,24 @@ class Feature_Selection:
         self.select_num = select_num
         self.l1 = []
         self.l2 = []
+        self._backend = None
+        self._execution_options = None
+        linear_arr = np.asarray(linear, dtype=float)
+        quadratic_arr = np.asarray(quadratic, dtype=float) if quadratic is not None else None
+        # Bit strings are most-significant first, so feature p maps to
+        # qubit (m - 1 - p) in the observable.
+        observable = 0 * PauliOperator({"": 1})
+        for index in range(self.qb_num):
+            coefficient = -linear_arr[index]
+            if quadratic_arr is not None:
+                coefficient += quadratic_arr[index][index]
+            observable += coefficient * p_1(self.qb_num - 1 - index)
+        if quadratic_arr is not None:
+            for row in range(self.qb_num):
+                for col in range(row + 1, self.qb_num):
+                    coefficient = quadratic_arr[row][col] + quadratic_arr[col][row]
+                    observable += coefficient * p_1(self.qb_num - 1 - row) * p_1(self.qb_num - 1 - col)
+        self._observable = Hamiltonian(observable)
 
     def Circuit(self, qbs, para):
         cir = QCircuit()
@@ -234,45 +255,77 @@ class Feature_Selection:
         return next(iter(top_10_items)), top_10_items
 
     def get_theory(self, para):
-        machine_the = CPUQVM()
+        backend = self._backend if self._backend is not None else resolve_backend(None)
+        options = self._execution_options if self._execution_options is not None else ExecutionOptions()
         prog = QProg(self.qb_num)
         qv = prog.qubits()
         prog << self.Circuit(qbs=qv, para=para)
-        machine_the.run(prog, 1000)
-        res = machine_the.result().get_prob_dict(qv)
+        statevector = backend.submit_statevector(prog, options=options).result().single_statevector()
+        res = {format(i, '0%db' % self.qb_num): abs(statevector[i]) ** 2 for i in range(len(statevector))}
         res = parse_quantum_result_dict(res, qv, select_max=-1)
         return res
 
 
     def cal_loss(self, para):
-        machine_the = CPUQVM()
+        backend = self._backend if self._backend is not None else resolve_backend(None)
+        options = self._execution_options if self._execution_options is not None else ExecutionOptions()
         prog = QProg(self.qb_num)
         qv = prog.qubits()
         prog << self.Circuit(qbs=qv, para=para)
-        machine_the.run(prog, 1000)
-        dict = machine_the.result().get_prob_dict(qv)
-        dict = parse_quantum_result_dict(dict, qv, select_max=-1)
-        res = 0
-        loss1 = 0
-        loss2 = 0
-        for i in dict:
-            ans_list = np.array([int(c) for c in i])
-            loss1 = -ans_list @ self.linear * dict[i] + loss1
-            loss2 = (ans_list @ self.quadratic @ ans_list) * dict[i] + loss2
-            res = loss2 - loss1
+        res = backend.submit_estimate((prog, self._observable),
+                                      options=options).result().single_value()
 
-        self.l1.append(loss1)
-        self.l2.append(loss2)
-
+        self.l1.append(res)
+        self.l2.append(res)
 
         return res
 
 
-    def get_his_res(self, ini_para):
-        np.random.seed(1234)
-        optimizer = SPSAOptimizer(self.cal_loss, max_iters=200)
-        optimal_params, his = optimizer.optimize(ini_para)
-        x = self.get_theory(optimal_params)
-        key, dic = self.select_key(x)
-        choice = [int(t) for t in key]
-        return his, choice, dic
+    def submit(self, ini_para, *, backend=None, execution_options=None):
+        """
+        Run the feature selection optimization and return a resumable algorithm task.
+
+        The synchronous :meth:`get_his_res` drives this task to completion;
+        the backend and execution_options parameters are keyword-only.
+
+        Parameters
+            ini_para : ``array-like``
+                Initial parameters of the variational circuit.
+            backend : ``ExecutionBackend``, ``optional``
+                The execution backend to run on. Keyword-only. If not given, the CPU
+                LocalBackend is used.
+            execution_options : ``ExecutionOptions``, ``optional``
+                Options controlling the backend submissions. Keyword-only. If not
+                given, defaults are used.
+
+        Returns
+            task : ``AlgorithmTask``
+                Resumable algorithm task holding the optimization run.
+                ``task.result()`` returns ``(his, choice, dic)``.
+        """
+        self._backend = resolve_backend(backend)
+        self._execution_options = execution_options
+
+        def advance(state):
+            np.random.seed(1234)
+            optimizer = SPSAOptimizer(self.cal_loss, max_iters=200)
+            optimal_params, his = optimizer.optimize(ini_para)
+            x = self.get_theory(optimal_params)
+            key, dic = self.select_key(x)
+            choice = [int(t) for t in key]
+            return CompletedBackendTask((his, choice, dic), task_id='qmrmr-result'), True
+
+        return AlgorithmTask(algorithm='qmrmr', initial_state={}, advance=advance, backend=self._backend)
+
+
+    def get_his_res(self, ini_para, *, backend=None, execution_options=None):
+        """
+        Run the feature selection optimization.
+
+        This is the synchronous counterpart of :meth:`submit`: the whole
+        optimization is executed immediately and the completed
+        ``(his, choice, dic)`` tuple is returned. See :meth:`submit` for
+        the parameter documentation.
+        """
+        task = self.submit(ini_para, backend=backend, execution_options=execution_options)
+        return task.result()

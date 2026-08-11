@@ -477,7 +477,74 @@ class QUBO_QAOA(QuadraticBinary):
     def __init__(self, problem):
         super(QUBO_QAOA, self).__init__(problem)
 
-    def run(self, layer=None, optimizer='SLSQP', optimizer_option=None):
+    def submit(self, layer=None, optimizer='SLSQP', optimizer_option=None, *,
+               backend=None, execution_options=None):
+        """
+        Run the solver to find the minimum and return a resumable algorithm task.
+
+        The synchronous :meth:`run` drives this task to completion; the
+        backend and execution_options parameters are keyword-only.
+
+        Parameters
+            layer : ``int``
+                Layers number of QAOA circuit.
+                If optimize type is interp, then it represents the final layer of the optimization progress.
+            optimizer : ``str``, ``optional``
+                Type of solver. Should be one of
+
+                    - ``SPSA`` : See ``spsa_minimize`` in the module ``pyqpanda_alg.QAOA.spsa``
+                    - one of  ``['Nelder-Mead', 'Powell', 'CG', 'BFGS', 'Newton-CG', 'TNC', 'COBYLA', 'SLSQP', 'trust-constr','dogleg', 'trust-ncg', 'trust-exact', 'trust-krylov']``. See ``scipy.optimize.minimize``.
+
+                If not given, default by ``SLSQP``.
+            optimizer_option : ``dict``, ``optional``
+                A dictionary of solver options. Accept the following generic options:
+                    - bounds : ``List[tuple]``, ``optional``
+                        Bounds for the variables. Sequence of ``(min, max)`` pairs for each element in ``x``.
+                        If specified, variables are clipped to fit inside the bounds after each iteration.
+                        None is used to specify no bound.
+                    - options : ``int``
+                        Maximum number of iterations to perform. Depending on the
+                        method each iteration may use several function evaluations.
+
+                        For ``TNC`` use ``maxfun`` instead of ``maxiter``.
+            backend : ``ExecutionBackend``, ``optional``
+                The execution backend to run on. Keyword-only. If not given, the CPU
+                LocalBackend is used.
+            execution_options : ``ExecutionOptions``, ``optional``
+                Options controlling the backend submissions. Keyword-only. If not
+                given, defaults are derived from the delegated QAOA run.
+
+        Returns
+            task : ``AlgorithmTask``
+                Resumable algorithm task holding the optimization run.
+                ``task.result()`` returns ``(qaoa_result, para_result, loss_result)``.
+
+        Examples
+            An example for minimization of quadratic binary function = -0.5 * x0 * x1 - 0.7 * x0 * x1 + 0.9 * x1 * x2 + 1.3 * x0 - x1 - 0.5 * x2
+
+        """
+        H_linear = 0 * PauliOperator({"" : 1})
+        n_key = len(self.quadratic)
+        for i in range(n_key):
+            linear_i = self.linear[i] if self.linear is not None else 0
+            linear_i += self.quadratic[i][i] if self.quadratic is not None else 0
+            H_linear += linear_i * qaoa.p_1(n_key - 1 - i)
+        H_quadratic = 0 * PauliOperator({"" : 1})
+        if self.quadratic is not None:
+            for j in range(n_key):
+                for k in range(j + 1, n_key):
+                    quadratic_jk = self.quadratic[j][k] + self.quadratic[k][j]
+                    H_quadratic += quadratic_jk * qaoa.p_1(n_key - 1 - j) * qaoa.p_1(n_key - 1 - k)
+        H_constant = PauliOperator({"" : self.constant})
+        H = H_linear + H_quadratic + H_constant
+
+        qaoa_model = qaoa.QAOA(problem=H)
+        return qaoa_model.submit(layer=layer, loss_type='default', optimize_type='default',
+                                 optimizer=optimizer, optimizer_option=optimizer_option,
+                                 backend=backend, execution_options=execution_options)
+
+    def run(self, layer=None, optimizer='SLSQP', optimizer_option=None, *,
+            backend=None, execution_options=None):
         """
         Run the solver to find the minimum.
 
@@ -513,22 +580,6 @@ class QUBO_QAOA(QuadraticBinary):
             An example for minimization of quadratic binary function = -0.5 * x0 * x1 - 0.7 * x0 * x1 + 0.9 * x1 * x2 + 1.3 * x0 - x1 - 0.5 * x2
 
         """
-        H_linear = 0 * PauliOperator({"" : 1})
-        n_key = len(self.quadratic)
-        for i in range(n_key):
-            linear_i = self.linear[i] if self.linear is not None else 0
-            linear_i += self.quadratic[i][i] if self.quadratic is not None else 0
-            H_linear += linear_i * qaoa.p_1(n_key - 1 - i)
-        H_quadratic = 0 * PauliOperator({"" : 1})
-        if self.quadratic is not None:
-            for j in range(n_key):
-                for k in range(j + 1, n_key):
-                    quadratic_jk = self.quadratic[j][k] + self.quadratic[k][j]
-                    H_quadratic += quadratic_jk * qaoa.p_1(n_key - 1 - j) * qaoa.p_1(n_key - 1 - k)
-        H_constant = PauliOperator({"" : self.constant})
-        H = H_linear + H_quadratic + H_constant
-
-        qaoa_model = qaoa.QAOA(problem=H)
-        qaoa_result = qaoa_model.run(layer=layer, loss_type='default', optimize_type='default',
-                                     optimizer=optimizer, optimizer_option=optimizer_option)[0]
-        return qaoa_result
+        task = self.submit(layer=layer, optimizer=optimizer, optimizer_option=optimizer_option,
+                           backend=backend, execution_options=execution_options)
+        return task.result()[0]

@@ -35,38 +35,64 @@ from pyqpanda_alg.execution import (
 
 
 class RecordingBackend:
-    """Backend that records every submission and returns fixed results."""
+    """Backend that records every submission and returns fixed results.
+
+    ``expectations`` and ``statevector`` optionally pin canned results
+    that are replayed in submission order (the last value repeats for
+    overflow), so optimization loops can be driven deterministically.
+    Per-family call counts expose the submission mix an algorithm
+    actually produces.
+    """
 
     capabilities = BackendCapabilities()
 
-    def __init__(self) -> None:
+    def __init__(self, expectations=None, statevector=None) -> None:
         self.sample_calls: list = []
         self.estimate_calls: list = []
         self.statevector_calls: list = []
+        self.sample_call_count = 0
+        self.estimate_call_count = 0
+        self.statevector_call_count = 0
+        self.expectations = list(expectations) if expectations is not None else None
+        self.statevector_values = (
+            [list(sv) for sv in statevector] if statevector is not None else None
+        )
         self.sample_result = SampleBatchResult(counts=({"00": 1000},), shots=1000)
         self.estimate_result = EstimateBatchResult(values=(0.5,))
         self.statevector_result = StatevectorBatchResult(statevectors=([1.0, 0.0],))
 
     def submit_sample(self, circuit, *, options):
         """Record the sampling call and return the fixed sample task."""
+        self.sample_call_count += 1
         self.sample_calls.append((circuit, options))
         return CompletedBackendTask(
-            self.sample_result, task_id=f"recorded-sample-{len(self.sample_calls)}"
+            self.sample_result, task_id=f"recorded-sample-{self.sample_call_count}"
         )
 
     def submit_estimate(self, circuit_and_observable, *, options):
         """Record the estimation call and return the fixed estimate task."""
+        self.estimate_call_count += 1
         self.estimate_calls.append((circuit_and_observable, options))
+        if self.expectations is None:
+            result = self.estimate_result
+        else:
+            index = min(self.estimate_call_count - 1, len(self.expectations) - 1)
+            result = EstimateBatchResult(values=(self.expectations[index],))
         return CompletedBackendTask(
-            self.estimate_result, task_id=f"recorded-estimate-{len(self.estimate_calls)}"
+            result, task_id=f"recorded-estimate-{self.estimate_call_count}"
         )
 
     def submit_statevector(self, circuit, *, options):
         """Record the state-vector call and return the fixed state task."""
+        self.statevector_call_count += 1
         self.statevector_calls.append((circuit, options))
+        if self.statevector_values is None:
+            result = self.statevector_result
+        else:
+            index = min(self.statevector_call_count - 1, len(self.statevector_values) - 1)
+            result = StatevectorBatchResult(statevectors=(self.statevector_values[index],))
         return CompletedBackendTask(
-            self.statevector_result,
-            task_id=f"recorded-statevector-{len(self.statevector_calls)}",
+            result, task_id=f"recorded-statevector-{self.statevector_call_count}"
         )
 
     def create_variational_session(self, ansatz, observable, *, options):
