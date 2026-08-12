@@ -214,7 +214,9 @@ def _qualify(case: Any, fake: Any) -> AlgorithmQualification:
     captured circuit is transpiled through the fake backend and the raw
     results are recorded as a SHA-256 digest; the verdict is ``passed``
     exactly when the run completed and every captured circuit
-    transpiled.
+    transpiled.  A circuit the device's gate set cannot transpile is
+    recorded per-case as ``transpiled=False`` with the transpile error
+    in the outcome instead of aborting the run.
     """
     request = case.builder()
     error = None
@@ -245,13 +247,30 @@ def _qualify(case: Any, fake: Any) -> AlgorithmQualification:
             )
             circuits = [_shor_order_finding_program()]
 
-    transpiled_list, failed_list = fake.transpile(circuits) if circuits else ([], [])
-    transpiled = bool(transpiled_list) and not failed_list
+    try:
+        transpiled_list, failed_list = fake.transpile(circuits) if circuits else ([], [])
+        transpile_error = None
+    except Exception as exc:
+        # A case whose circuit cannot transpile on this device's gate
+        # set (e.g. Shor's 17-qubit multi-controlled X on RPhi+CZ) must
+        # not abort the run: record it failed and keep qualifying the
+        # remaining cases.
+        transpiled_list, failed_list = [], []
+        transpile_error = exc
+    transpiled = bool(transpiled_list) and not failed_list and transpile_error is None
     passed = error is None and transpiled
     parsed_result = {
         "submissions": submitted,
         "transpiled_circuits": len(transpiled_list),
-        "outcome": "ok" if error is None else f"{type(error).__name__}: {error}",
+        "outcome": (
+            "ok"
+            if error is None and transpile_error is None
+            else "; ".join(
+                f"{type(exc).__name__}: {exc}"
+                for exc in (error, transpile_error)
+                if exc is not None
+            )
+        ),
     }
     if note:
         parsed_result["note"] = note
