@@ -361,7 +361,11 @@ def _vqe_invoke(backend):
     solver = VQE(Hamiltonian({"Z0": 1.0}))
     return solver.run(
         initial_parameters=np.array([0.2, 0.0]),
-        config=VQEConfig(max_iterations=80, tolerance=1e-6),
+        # Real-device execution budget: every VQE iteration is one serial
+        # remote task submission, so 10 iterations bound the QPU load;
+        # convergence is judged by the committed threshold, not by
+        # max_iterations.
+        config=VQEConfig(max_iterations=10, tolerance=1e-6),
         backend=backend,
         execution_options=ExecutionOptions(shots=_SHOTS, timeout=_TIMEOUT),
     )

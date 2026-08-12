@@ -54,6 +54,7 @@ import os
 import platform
 import random
 import sys
+import time
 from pathlib import Path
 from typing import Any, Callable
 
@@ -469,7 +470,22 @@ def run_qpu(
     anything is written, so no credential can reach the artifact.
     """
     runner = QPURunner(service, chip_id=chip_id, device=device, checkpoint_dir=checkpoint_dir)
-    cases = tuple(runner.run_case(case) for case in (*QUALIFICATION_CASES, *SMOKE_CASES))
+    all_cases = (*QUALIFICATION_CASES, *SMOKE_CASES)
+    total = len(all_cases)
+    print(f"qpu: {total} cases on {chip_id} starting", flush=True)
+    qualified: list[AlgorithmQualification] = []
+    for index, case in enumerate(all_cases, start=1):
+        started = time.perf_counter()
+        qualified_case = runner.run_case(case)
+        elapsed = time.perf_counter() - started
+        print(
+            f"qpu[{index}/{total}] {case.algorithm}: "
+            f"verdict={qualified_case.verdict} "
+            f"tasks={len(qualified_case.task_ids)} ({elapsed:.1f}s)",
+            flush=True,
+        )
+        qualified.append(qualified_case)
+    cases = tuple(qualified)
     manifest = QualificationManifest(
         version=SCHEMA_VERSION,
         timestamp=_utc_now(),
