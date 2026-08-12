@@ -128,6 +128,10 @@ class QPURunner:
         self.chip_id = chip_id
         self.device = device if device is not None else service.device(chip_id)
         self.checkpoint_dir = Path(checkpoint_dir) if checkpoint_dir is not None else None
+        if self.checkpoint_dir is not None:
+            # Created up front so ``task.checkpoint()`` never fails with
+            # ``FileNotFoundError`` mid-run.
+            self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         #: Remote tasks actually submitted; recovered tasks never count.
         self.submission_count = 0
         self._backend = QPandaRuntimeBackend(service, self.device)

@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from test.execution.fakes import FakeQTaskManager, FakeRuntimeService
+from test.execution.fakes import FakeDevice, FakeQTaskManager, FakeRuntimeService
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -21,6 +21,30 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _BELL_PASS_COUNTS = {"00": 490, "11": 480, "01": 15, "10": 15}
 #: Deterministic counts that fail the fixed bell threshold (uniform).
 _BELL_FAIL_COUNTS = {"00": 250, "11": 250, "01": 250, "10": 250}
+
+#: Gate set and topology the fake device must advertise so the fixed
+#: cases pass the QPandaRuntimeBackend preflight validation (a real
+#: device reports its own capabilities through the same surface).
+_QPU_GATES = [
+    "H", "X", "Y", "Z", "RX", "RY", "RZ", "S", "T", "SDG", "TDG", "SX",
+    "CNOT", "CX", "CZ", "SWAP", "CP", "CSWAP", "CCX", "CCU1", "CCCP",
+    "CCCU1", "CCH", "CCSWAP", "U1", "CU1", "P", "U2", "U3",
+    "CORACLE", "ORACLE",
+]
+
+
+def qpu_fake_device() -> FakeDevice:
+    """Fake device advertising the gates/topology the fixed cases use.
+
+    Plain helper (not a fixture) so both the QPU runner tests and the
+    per-case end-to-end tests construct it directly.
+    """
+    device = FakeDevice()
+    device.basic_gates.return_value = list(_QPU_GATES)
+    device.chip_topo_edges.return_value = [
+        [i, j] for i in range(20) for j in range(i + 1, 20)
+    ]
+    return device
 
 
 @pytest.fixture

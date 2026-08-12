@@ -14,30 +14,17 @@ pytest.importorskip("qpanda3_runtime")  # QPandaRuntimeBackend needs the package
 from pyqpanda3.core import H
 from pyqpanda3.hamiltonian import Hamiltonian
 
-from test.execution.fakes import FakeDevice, FakeRuntimeService
-from test.release.conftest import fake_service_with_bad_result
+from test.execution.fakes import FakeRuntimeService
+from test.release.conftest import fake_service_with_bad_result, qpu_fake_device
+from tools.release_qualification import cases as cases_module
 from tools.release_qualification.cases import QualificationCase, case_by_name
-from tools.release_qualification.run_qpu import QPURunner
-
-#: Gate set and topology the fake device must advertise so the fixed
-#: cases pass the QPandaRuntimeBackend preflight validation (a real
-#: device reports its own capabilities through the same surface).
-_QPU_GATES = [
-    "H", "X", "Y", "Z", "RX", "RY", "RZ", "S", "T", "SDG", "TDG", "SX",
-    "CNOT", "CX", "CZ", "SWAP", "CP", "CSWAP", "CCX", "CCU1", "CCCP",
-    "CCCU1", "CCH", "CCSWAP", "U1", "CU1", "P", "U2", "U3",
-    "CORACLE", "ORACLE",
-]
+from tools.release_qualification.manifest import contains_credentials
+from tools.release_qualification.run_qpu import QPURunner, run_qpu
 
 
 def _qpu_device():
-    """Fake device advertising the gates/topology the fixed cases use."""
-    device = FakeDevice()
-    device.basic_gates.return_value = list(_QPU_GATES)
-    device.chip_topo_edges.return_value = [
-        [i, j] for i in range(20) for j in range(i + 1, 20)
-    ]
-    return device
+    """Shared fake device advertising the fixed cases' gates/topology."""
+    return qpu_fake_device()
 
 
 def test_verdict_does_not_retry_after_threshold_failure():
@@ -143,3 +130,69 @@ def test_resumed_invoke_case_reuses_checkpointed_tasks(tmp_path):
     assert resumed.submission_count == 0  # existing task queried, not resubmitted
     assert second.parsed_result["used_quantum"] is True
     assert second.task_ids == first.task_ids
+
+
+def test_run_qpu_creates_missing_checkpoint_dir(tmp_path, monkeypatch):
+    """``run_qpu`` must create a missing checkpoint directory before the
+    case loop, so ``task.checkpoint()`` never fails with
+    ``FileNotFoundError``.  The full fixed case set is not needed to
+    prove the directory creation: one real submission (bell) exercises
+    the checkpoint write end to end."""
+    from tools.release_qualification import run_qpu as run_qpu_module
+
+    monkeypatch.setattr(run_qpu_module, "QUALIFICATION_CASES", ())
+    monkeypatch.setattr(run_qpu_module, "SMOKE_CASES", (case_by_name("bell"),))
+    checkpoint_dir = tmp_path / "nested" / "checkpoints"
+    assert not checkpoint_dir.exists()
+    run_qpu(
+        FakeRuntimeService(),
+        device=_qpu_device(),
+        checkpoint_dir=checkpoint_dir,
+    )
+    assert checkpoint_dir.is_dir()
+    assert (checkpoint_dir / "bell-0.json").is_file()
+
+
+def test_run_qpu_full_case_set_manifests_every_case(tmp_path):
+    """``run_qpu`` runs the complete fixed case set end to end: every
+    qualification and smoke case is executed against the service, each
+    resolves to a verdict record (pass or fail, never a hang or a
+    swallowed error), every record is direct QPU execution, and each
+    submitted task is checkpointed next to the runner.  The checkpoint
+    directory already exists with a stale file, so the run also proves
+    the directory bootstrap is idempotent."""
+    service = FakeRuntimeService()
+    service.sample_results = [{"00": 490, "11": 480, "01": 15, "10": 15}]
+    checkpoint_dir = tmp_path / "nested" / "checkpoints"
+    checkpoint_dir.mkdir(parents=True)
+    (checkpoint_dir / "bell-0.json").write_text("{}", encoding="utf-8")
+
+    manifest = run_qpu(service, device=_qpu_device(), checkpoint_dir=checkpoint_dir)
+
+    expected_cases = (*cases_module.QUALIFICATION_CASES, *cases_module.SMOKE_CASES)
+    assert len(manifest.cases) == len(expected_cases)
+    assert {case.algorithm for case in manifest.cases} == {
+        case.algorithm for case in expected_cases
+    }
+    # direct execution evidence, never a transpile-only record
+    assert all(case.execution_mode == "qpu" for case in manifest.cases)
+    # every case resolves to a verdict, whether the fake results pass it or not
+    assert all(case.verdict in ("passed", "failed") for case in manifest.cases)
+    # submitted tasks landed in the checkpoint directory (ordinal per case)
+    assert (checkpoint_dir / "bell-0.json").is_file()
+    assert (checkpoint_dir / "QAOA-0.json").is_file()
+    # no credential-shaped value survives into the artifact
+    assert not contains_credentials(manifest.to_dict())
+
+
+def test_run_qpu_without_checkpoint_dir_writes_nothing(tmp_path, monkeypatch):
+    """With ``checkpoint_dir=None`` the runner stays checkpoint-free:
+    the run qualifies normally and no task file is written anywhere."""
+    from tools.release_qualification import run_qpu as run_qpu_module
+
+    monkeypatch.setattr(run_qpu_module, "QUALIFICATION_CASES", ())
+    monkeypatch.setattr(run_qpu_module, "SMOKE_CASES", (case_by_name("bell"),))
+    manifest = run_qpu(FakeRuntimeService(), device=_qpu_device())
+    assert len(manifest.cases) == 1
+    assert manifest.cases[0].algorithm == "bell"
+    assert not list(tmp_path.rglob("*.json"))

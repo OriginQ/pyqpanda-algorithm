@@ -182,8 +182,19 @@ class FakeFakeBackend:
         self.sample_error = None
         self.estimate_error = None
         self.transpile_result = (["TRANSPILED-ORIGINIR"], [])
+        #: The single configured sample/estimate outcome, returned by
+        #: every call unless an ordered ``sample_results``/``estimate_results``
+        #: sequence is set instead.
         self.sample_result = {"00": 0.5, "11": 0.5}
         self.estimate_result = 0.5
+        #: Optional ordered outcome sequences.  When set, each call
+        #: consumes the next entry and a call beyond the sequence keeps
+        #: the last one, so an algorithm whose submissions must vary
+        #: (e.g. QKmeans' per-point distance probes) can converge.
+        self.sample_results = None
+        self.estimate_results = None
+        self._sample_index = 0
+        self._estimate_index = 0
 
     def transpile(self, progs, specified_block=None, is_optimization=True):
         """Record the transpile call and return the configured outcome."""
@@ -203,7 +214,7 @@ class FakeFakeBackend:
         self.sample_calls.append({"prog": prog, "shots": shots})
         if self.sample_error is not None:
             raise self.sample_error
-        return self.sample_result
+        return self._next_outcome(self.sample_results, self.sample_result, "_sample_index")
 
     def estimate(self, prog, observable, shots=1):
         """Record the estimation call and return the configured value."""
@@ -212,7 +223,21 @@ class FakeFakeBackend:
         )
         if self.estimate_error is not None:
             raise self.estimate_error
-        return self.estimate_result
+        return self._next_outcome(
+            self.estimate_results, self.estimate_result, "_estimate_index"
+        )
+
+    def _next_outcome(self, sequence, single, index_attr: str):
+        """Consume the ordered ``sequence`` entry, or the ``single`` default.
+
+        The sequence is optional; a call beyond the sequence keeps its
+        last entry, mirroring the ``RecordingBackend`` index clamp.
+        """
+        if not sequence:
+            return single
+        index = min(getattr(self, index_attr), len(sequence) - 1)
+        setattr(self, index_attr, getattr(self, index_attr) + 1)
+        return sequence[index]
 
 
 class FakeQTaskManager:
@@ -394,6 +419,11 @@ class FakeRuntimeService:
         self.estimate_results = [0.5]
         self.finished = True
         self.recovered_task = None
+        #: Per-submission cursors: each call consumes the next sequence
+        #: entry; a call beyond the sequence keeps the last one.
+        self._sample_index = 0
+        self._estimate_index = 0
+        self._vqsession_index = 0
 
     def device(self, chip_id, channel: str = "qcloud"):
         """Return the fake QDevice stand-in for the requested chip.
@@ -411,7 +441,7 @@ class FakeRuntimeService:
             raise self.submit_error
         self.sample_calls.append({"circuits": circuits, "device": device, **kwargs})
         return FakeQTaskManager(
-            self.sample_results,
+            self._next_result(self.sample_results, "_sample_index"),
             kind="sample",
             finished=self.finished,
             error=self.query_error,
@@ -425,7 +455,7 @@ class FakeRuntimeService:
             {"circuit_with_observable": circuit_with_observable, "device": device, **kwargs}
         )
         return FakeQTaskManager(
-            self.estimate_results,
+            self._next_result(self.estimate_results, "_estimate_index"),
             kind="estimate",
             finished=self.finished,
             error=self.query_error,
@@ -445,8 +475,26 @@ class FakeRuntimeService:
             }
         )
         return FakeVQSession(
-            results=self.estimate_results, finished=self.finished, error=self.query_error
+            results=self._next_result(self.estimate_results, "_vqsession_index"),
+            finished=self.finished,
+            error=self.query_error,
         )
+
+    def _next_result(self, results: list, index_attr: str) -> list:
+        """Consume the next ordered result as a single-element list.
+
+        The whole list is never handed to a task: ``single_counts()``/
+        ``single_value()`` require exactly one entry, so each submission
+        carries the next sequence entry (the last one once the sequence
+        is exhausted).  A single-element list therefore behaves exactly
+        as before, and an ordered sequence drives algorithms whose
+        submissions must vary (e.g. QKmeans' distance probes).
+        """
+        if not results:
+            return []
+        index = min(getattr(self, index_attr), len(results) - 1)
+        setattr(self, index_attr, getattr(self, index_attr) + 1)
+        return [results[index]]
 
     def recover_qtask_manager(self, checkpoint_file, recover_completely=True):
         """Rebuild a fake task from a checkpoint path."""
