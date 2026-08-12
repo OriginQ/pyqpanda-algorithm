@@ -14,6 +14,11 @@ from pathlib import Path
 import pytest
 
 from test.execution.fakes import FakeDevice, FakeQTaskManager, FakeRuntimeService
+from tools.release_qualification.cases import (
+    QUALIFICATION_CASES,
+    SMOKE_CASES,
+    TRANSPILATION_CASES,
+)
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -79,29 +84,45 @@ def valid_manifest(repo_commit):
         },
         "cases": [
             {
-                "algorithm": "bell",
+                "algorithm": case.algorithm,
                 "execution_mode": "qpu",
-                "task_ids": ["task-bell-001"],
-                "shots": 1000,
-                "threshold": 0.9,
-                "raw_result_digest": "1" * 64,
-                "parsed_result": dict(_BELL_PASS_COUNTS),
+                "task_ids": [f"task-{case.algorithm}-001"],
+                "shots": case.shots,
+                "threshold": case.threshold,
+                "raw_result_digest": f"{index % 10}" * 64,
+                "parsed_result": {"qualified": True},
                 "verdict": "passed",
-                "transpiled": True,
-            },
-            {
-                "algorithm": "grover",
-                "execution_mode": "qpu",
-                "task_ids": ["task-grover-001"],
-                "shots": 2000,
-                "threshold": 0.9,
-                "raw_result_digest": "2" * 64,
-                "parsed_result": {"success_probability": 0.95},
-                "verdict": "passed",
-                "transpiled": True,
-            },
+                "transpiled": False,
+            }
+            for index, case in enumerate((*QUALIFICATION_CASES, *SMOKE_CASES), start=1)
         ],
     }
+
+
+@pytest.fixture
+def valid_preflight_manifest(valid_manifest):
+    payload = {
+        key: value for key, value in valid_manifest.items() if key != "cases"
+    }
+    payload["cases"] = [
+        {
+            "algorithm": case.algorithm,
+            "execution_mode": (
+                "transpile" if case.mode == "transpile" else "preflight"
+            ),
+            "task_ids": [],
+            "shots": case.shots,
+            "threshold": case.threshold,
+            "raw_result_digest": f"{index % 10}" * 64,
+            "parsed_result": {"qualified": True},
+            "verdict": "passed",
+            "transpiled": True,
+        }
+        for index, case in enumerate(
+            (*QUALIFICATION_CASES, *TRANSPILATION_CASES), start=1
+        )
+    ]
+    return payload
 
 
 @pytest.fixture

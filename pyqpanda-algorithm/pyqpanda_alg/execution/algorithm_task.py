@@ -11,6 +11,7 @@ factory registered under the algorithm name — arbitrary Python objects
 are never deserialized.
 """
 
+import asyncio
 import time
 import uuid
 from pathlib import Path
@@ -168,6 +169,10 @@ class AlgorithmTask(Generic[T]):
                     f"algorithm task {self.id} did not finish within {timeout} seconds"
                 )
             self.poll()
+
+    async def result_async(self, timeout: Optional[float] = None) -> T:
+        """Resolve the algorithm without blocking the caller's event loop."""
+        return await asyncio.to_thread(self.result, timeout)
 
     def checkpoint(self, path: Optional[Union[str, Path]] = None) -> Path:
         """Persist the algorithm state to ``path`` as JSON and return it.

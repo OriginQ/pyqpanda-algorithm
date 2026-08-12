@@ -29,16 +29,46 @@ from tools.release_qualification.run_preflight import (
 _WHEEL_NAME = "pyqpanda_alg-2.1.0-py3-none-any.whl"
 
 
-def test_release_rejects_manifest_for_other_commit(valid_manifest, repo_commit):
+def test_release_rejects_manifest_for_other_commit(
+    valid_manifest, valid_preflight_manifest, repo_commit
+):
     valid_manifest["git_commit"] = "0" * 40
     with pytest.raises(ReleasePolicyError, match="commit"):
-        check_release(valid_manifest, expected_commit=repo_commit)
+        check_release(
+            valid_manifest,
+            expected_commit=repo_commit,
+            preflight_dict=valid_preflight_manifest,
+        )
 
 
-def test_release_requires_every_case_to_pass(valid_manifest):
+def test_release_requires_every_case_to_pass(valid_manifest, valid_preflight_manifest):
     valid_manifest["cases"][0]["verdict"] = "failed"
     with pytest.raises(ReleasePolicyError, match="failed"):
-        check_release(valid_manifest, expected_commit=valid_manifest["git_commit"])
+        check_release(valid_manifest, expected_commit=valid_manifest["git_commit"], preflight_dict=valid_preflight_manifest)
+
+
+def test_release_rejects_missing_fixed_case(valid_manifest, valid_preflight_manifest):
+    valid_manifest["cases"].pop()
+    with pytest.raises(ReleasePolicyError, match="inventory"):
+        check_release(valid_manifest, expected_commit=valid_manifest["git_commit"], preflight_dict=valid_preflight_manifest)
+
+
+def test_release_rejects_duplicate_fixed_case(valid_manifest, valid_preflight_manifest):
+    valid_manifest["cases"][-1] = dict(valid_manifest["cases"][0])
+    with pytest.raises(ReleasePolicyError, match="inventory"):
+        check_release(valid_manifest, expected_commit=valid_manifest["git_commit"], preflight_dict=valid_preflight_manifest)
+
+
+def test_release_rejects_non_qpu_case(valid_manifest, valid_preflight_manifest):
+    valid_manifest["cases"][0]["execution_mode"] = "preflight"
+    with pytest.raises(ReleasePolicyError, match="execution_mode"):
+        check_release(valid_manifest, expected_commit=valid_manifest["git_commit"], preflight_dict=valid_preflight_manifest)
+
+
+def test_release_rejects_qpu_case_without_task_id(valid_manifest, valid_preflight_manifest):
+    valid_manifest["cases"][0]["task_ids"] = []
+    with pytest.raises(ReleasePolicyError, match="task_ids"):
+        check_release(valid_manifest, expected_commit=valid_manifest["git_commit"], preflight_dict=valid_preflight_manifest)
 
 
 def test_wheel_basename_keeps_default_for_none_or_dash():
@@ -73,7 +103,7 @@ def test_qualification_runner_records_directory_prefixed_wheel_as_basename(
 
 
 def test_release_gate_accepts_manifest_assembled_from_directory_prefixed_wheel(
-    fake_runtime_service, tmp_path
+    valid_manifest, valid_preflight_manifest, tmp_path
 ):
     """Smoke: the runtime-rc.yml validate step now passes.
 
@@ -89,16 +119,16 @@ def test_release_gate_accepts_manifest_assembled_from_directory_prefixed_wheel(
     wheel_path.write_bytes(b"candidate wheel payload")
     digest = hashlib.sha256(wheel_path.read_bytes()).hexdigest()
 
-    manifest = run_preflight(
-        fake_runtime_service,
-        "WK_C180",
-        wheel=str(wheel_path),  # the workflow passes a path, not a basename
-        wheel_sha256=digest,
-    )
-    payload = manifest.to_dict()
-    for case in payload["cases"]:
-        case["verdict"] = "passed"
+    payload = valid_manifest
+    payload["wheel_sha256"] = digest
+    preflight = valid_preflight_manifest
+    preflight["wheel_sha256"] = digest
     assert (
-        check_release(payload, expected_commit=manifest.git_commit, wheel_path=wheel_path)
+        check_release(
+            payload,
+            expected_commit=payload["git_commit"],
+            wheel_path=wheel_path,
+            preflight_dict=preflight,
+        )
         is payload
     )

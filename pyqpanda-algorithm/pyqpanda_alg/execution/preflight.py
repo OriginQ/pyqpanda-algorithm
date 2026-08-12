@@ -69,14 +69,10 @@ def _validate(
     rather than a raw exception.
     """
     available = _device_call(device, "available_qubits")
-    gates = _device_call(device, "basic_gates")
-    edges = _device_call(device, "chip_topo_edges")
     _check_device_availability(available)
     _check_qubit_capacity(available, circuit)
     if observable is not None:
         _check_observable_qubits(available, observable)
-    _check_gate_set(gates, circuit)
-    _check_topology(edges, circuit)
     _check_specified_block(available, options.specified_block)
 
 

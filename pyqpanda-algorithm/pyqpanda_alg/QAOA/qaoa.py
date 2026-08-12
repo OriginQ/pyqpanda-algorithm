@@ -1028,6 +1028,8 @@ class QAOA:
             if execution_options is not None
             else (ExecutionOptions(shots=shots) if shots > 0 else ExecutionOptions())
         )
+        if self.shots == -1 and not self._backend.capabilities.statevector:
+            self.shots = self._execution_options.shots
 
         initial_para, start_layer = self._check_layer_and_generate_initial_para(layer, initial_para)
 

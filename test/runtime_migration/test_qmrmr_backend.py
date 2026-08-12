@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 
 from pyqpanda_alg.QmRMR.QmRMR_core import Feature_Selection
+from pyqpanda_alg.execution import BackendCapabilities
 from test.execution.fakes import RecordingBackend
 
 
@@ -19,12 +20,14 @@ def test_qmrmr_runtime_uses_estimator_without_sampling():
     quadratic = [[0.3, 0.1], [0.1, 0.2]]
     backend = RecordingBackend(
         expectations=[0.5, -0.25, -0.5],
-        statevector=[[0.5, 0.5, 0.5, 0.5]],
+        sample_counts=[{"00": 250, "01": 250, "10": 250, "11": 250}],
     )
+    backend.capabilities = BackendCapabilities(statevector=False)
     model = Feature_Selection(quadratic, linear, 1)
     his, choice, dic = model.get_his_res([0.5, 0.5], backend=backend)
     assert backend.estimate_call_count > 0
-    assert backend.sample_call_count == 0
+    assert backend.sample_call_count == 1
+    assert backend.statevector_call_count == 0
     assert len(choice) == 2
     assert sum(choice) == 1
     assert his

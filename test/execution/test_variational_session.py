@@ -160,7 +160,7 @@ def test_backends_advertise_variational_sessions(fake_runtime_service, fake_devi
         QPandaRuntimeBackend(
             fake_runtime_service, fake_device
         ).capabilities.variational_session
-        is True
+        is False
     )
 
 

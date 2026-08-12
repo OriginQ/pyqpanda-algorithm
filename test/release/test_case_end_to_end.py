@@ -8,11 +8,8 @@ domain predicate: bit widths match the measured qubits, and the QKmeans
 sequence mirrors the swap-test distances of the seeded centroids (seed
 6, the four fixed points), so the fit converges in two rounds.
 
-The two statevector-gap cases (``QUBO_QAOA``, ``QmRMR``) honestly
-declare the ``statevector`` capability runtime backends do not
-advertise (see the known Plan 3 gaps in
-:mod:`tools.release_qualification.cases`); their end-to-end test
-asserts the honest failure, never a fabricated pass.
+QUBO_QAOA and QmRMR obtain their final distributions through sampling,
+so every fixed case is expected to pass both execution paths.
 """
 
 import pytest
@@ -22,12 +19,6 @@ from test.release.conftest import qpu_fake_device
 from tools.release_qualification.cases import QUALIFICATION_CASES, SMOKE_CASES
 from tools.release_qualification.run_preflight import _qualify
 from tools.release_qualification.run_qpu import QPURunner
-
-#: Cases that cannot pass on runtime backends until Plan 3 provides a
-#: sampling-based final distribution; they declare ``statevector`` in
-#: their committed capabilities, so the honest record is a failed
-#: verdict with the capability error.
-_STATEVECTOR_GAPS = {"QUBO_QAOA", "QmRMR"}
 
 _CASES = (*QUALIFICATION_CASES, *SMOKE_CASES)
 
@@ -68,7 +59,8 @@ _QPU_SAMPLE_RESULTS = {
     "QSEncode": [{"0": 500, "1": 500}],  # |+>|+>: [0.5, 0.5]
     "QUBO_GAS": [{"010": 1000}],  # the fixed QUBO's unique minimum -1.0
     "Shor": [{"01000000": 600, "11000000": 400}],  # order of 2 mod 15
-    "HHL": [{"10": 600, "11": 300, "00": 50, "01": 50}],  # p_success = 0.9
+    "HHL": [{"01": 600, "11": 300, "00": 50, "10": 50}],  # p_success = 0.9
+    "QmRMR": [{"00": 250, "01": 250, "10": 250, "11": 250}],
     "QARM": [
         {
             "00000000000000001": 100,
@@ -98,14 +90,14 @@ _PREFLIGHT_SAMPLE_RESULTS = {
         }
     ],
     "QKmeans": _qkmeans_distance_probes(probabilities=True),
+    "QmRMR": [{"00": 0.25, "01": 0.25, "10": 0.25, "11": 0.25}],
 }
 
 
 @pytest.mark.parametrize("case", _CASES, ids=lambda c: c.algorithm)
 def test_every_case_runs_end_to_end_on_qpu_runner(case, tmp_path):
     """Every fixed case submits, executes, and resolves to its committed
-    verdict on the QPU runner path.  The statevector-gap cases record the
-    honest failure instead of a fabricated pass."""
+    verdict on the QPU runner path."""
     service = FakeRuntimeService()
     if case.algorithm in _QPU_SAMPLE_RESULTS:
         service.sample_results = list(_QPU_SAMPLE_RESULTS[case.algorithm])
@@ -114,23 +106,14 @@ def test_every_case_runs_end_to_end_on_qpu_runner(case, tmp_path):
     record = QPURunner(
         service=service, device=qpu_fake_device(), checkpoint_dir=tmp_path / "ckpt"
     ).run_case(case)
-    if case.algorithm in _STATEVECTOR_GAPS:
-        assert record.verdict == "failed"
-        assert "state" in record.parsed_result["error"]
-    else:
-        assert record.verdict == "passed", record.parsed_result
+    assert record.verdict == "passed", record.parsed_result
 
 
 @pytest.mark.parametrize("case", _CASES, ids=lambda c: c.algorithm)
 def test_every_case_runs_end_to_end_on_preflight_fake(case):
-    """Every fixed case executes on the device's fake backend.  The
-    statevector-gap cases record the honest failure."""
+    """Every fixed case executes on the device's fake backend."""
     fake = FakeFakeBackend()
     if case.algorithm in _PREFLIGHT_SAMPLE_RESULTS:
         fake.sample_results = list(_PREFLIGHT_SAMPLE_RESULTS[case.algorithm])
     record = _qualify(case, fake)
-    if case.algorithm in _STATEVECTOR_GAPS:
-        assert record.verdict == "failed"
-        assert "state" in record.parsed_result["outcome"]
-    else:
-        assert record.verdict == "passed", record.parsed_result
+    assert record.verdict == "passed", record.parsed_result

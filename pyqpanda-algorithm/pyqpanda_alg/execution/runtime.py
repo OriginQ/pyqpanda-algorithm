@@ -50,7 +50,9 @@ class QPandaRuntimeBackend:
     and never replaces a failed runtime path with a local one.
     """
 
-    capabilities = BackendCapabilities(statevector=False, variational_session=True)
+    # qpanda3-runtime 1.0.1 does not bind the observable to VQSession
+    # runs, so estimator submission is the only sound VQE path.
+    capabilities = BackendCapabilities(statevector=False, variational_session=False)
 
     def __init__(self, service: Any, device: Any) -> None:
         _require_runtime_dependency()

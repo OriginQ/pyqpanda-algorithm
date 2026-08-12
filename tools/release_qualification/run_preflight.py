@@ -422,6 +422,8 @@ def main() -> None:
         f"{', failed: ' + ', '.join(failed) if failed else ''}"
     )
     print(f"manifest written to {Path(args.output_dir) / 'manifest.json'}")
+    if failed:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

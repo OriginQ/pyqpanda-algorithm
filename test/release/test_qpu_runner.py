@@ -84,7 +84,7 @@ def test_shor_qpu_record_has_quantum_provenance():
 def test_hhl_qpu_record_reports_success_probability_and_observable():
     """The HHL record keeps success probability + requested observable."""
     service = FakeRuntimeService()
-    service.sample_results = [{"10": 600, "11": 300, "00": 50, "01": 50}]
+    service.sample_results = [{"01": 600, "11": 300, "00": 50, "10": 50}]
     runner = QPURunner(service=service, device=_qpu_device())
     record = runner.run_case(case_by_name("HHL"))
     assert record.parsed_result["success_probability"] == pytest.approx(0.9)

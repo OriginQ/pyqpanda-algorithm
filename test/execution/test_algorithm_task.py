@@ -6,6 +6,7 @@ into the algorithm result.  The recovery tests cover checkpointing and
 ``resume()`` through a registered algorithm factory.
 """
 
+import asyncio
 import json
 
 import pytest
@@ -249,6 +250,16 @@ def test_try_result_returns_result_after_success():
     task.poll()
     assert task.try_result() == 2
     assert task.result() == 2
+
+
+def test_algorithm_task_supports_async_result():
+    task = AlgorithmTask(
+        algorithm="test-async",
+        initial_state={},
+        advance=lambda state: (CompletedBackendTask(7, task_id="async-1"), True),
+    )
+
+    assert asyncio.run(task.result_async(timeout=1)) == 7
 
 
 def test_result_after_timeout_raises_timeout_again():

@@ -266,10 +266,19 @@ class Feature_Selection:
         prog = QProg(self.qb_num)
         qv = prog.qubits()
         prog << self.Circuit(qbs=qv, para=para)
-        statevector = backend.submit_statevector(prog, options=options).result().single_statevector()
-        res = {format(i, '0%db' % self.qb_num): abs(statevector[i]) ** 2 for i in range(len(statevector))}
-        res = parse_quantum_result_dict(res, qv, select_max=-1)
-        return res
+        if backend.capabilities.statevector:
+            statevector = backend.submit_statevector(
+                prog, options=options
+            ).result().single_statevector()
+            res = {
+                format(i, '0%db' % self.qb_num): abs(statevector[i]) ** 2
+                for i in range(len(statevector))
+            }
+            return parse_quantum_result_dict(res, qv, select_max=-1)
+        prog << measure_all(qv, qv)
+        counts = backend.submit_sample(prog, options=options).result().single_counts()
+        total = sum(counts.values())
+        return {key: count / total for key, count in counts.items()}
 
 
     def cal_loss(self, para):

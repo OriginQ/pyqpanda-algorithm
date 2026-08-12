@@ -42,14 +42,10 @@ the counts dict for pure-circuit cases, the algorithm's returned tuple
 or object for algorithm cases, and a fixed dict (``{"factors": ...}``)
 for Shor.  The verdict layer must satisfy it for the case to pass.
 
-Known Plan 3 gaps (flagged, not patched here)
----------------------------------------------
-``QUBO_QAOA`` and ``QmRMR`` require the ``statevector`` capability for
-their final-distribution paths; runtime backends advertise
-``statevector=False``, so those two cases honestly declare
-``"statevector"`` in ``required_capabilities`` and cannot pass on a
-runtime backend until Plan 3 provides a sampling-based final
-distribution (see docs/superpowers/plans/2026-08-10-release-qualification.md).
+Runtime final distributions
+---------------------------
+``QUBO_QAOA`` and ``QmRMR`` obtain their final distributions through
+sampling when a backend does not expose statevector capability.
 """
 
 import math
@@ -504,9 +500,8 @@ QUALIFICATION_CASES: tuple[QualificationCase, ...] = (
         builder=lambda: _qubo_qaoa_invoke,
         domain=_binary_distribution,
         mode="estimate",
-        # Plan 3 gap: the final-distribution path needs statevector, which
-        # runtime backends do not advertise.  Declared honestly here.
-        required_capabilities=("estimation", "statevector"),
+        # Runtime final probabilities are obtained through sampling.
+        required_capabilities=("estimation", "sampling"),
         shots=_SHOTS,
         threshold=0.9,
         seed=13,
@@ -625,9 +620,8 @@ QUALIFICATION_CASES: tuple[QualificationCase, ...] = (
             and sum(parsed[1]) == 1
         ),
         mode="estimate",
-        # Plan 3 gap: get_his_res unconditionally needs statevector for the
-        # theory final distribution; runtime backends do not advertise it.
-        required_capabilities=("estimation", "statevector"),
+        # Runtime final feature probabilities are obtained through sampling.
+        required_capabilities=("estimation", "sampling"),
         shots=_SHOTS,
         threshold=0.9,
         seed=1234,

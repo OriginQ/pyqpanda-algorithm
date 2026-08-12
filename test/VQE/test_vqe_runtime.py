@@ -14,14 +14,15 @@ from pyqpanda_alg.execution import TaskSubmissionError
 
 
 @pytest.mark.runtime_contract
-def test_vqe_prefers_variational_session(runtime_backend, hamiltonian):
+def test_vqe_uses_estimator_for_qpanda_runtime(runtime_backend, hamiltonian):
     solver = VQE(hamiltonian)
     solver.run(
         initial_parameters=[0.1, 0.2],
         backend=runtime_backend,
         config=VQEConfig(max_iterations=1, tolerance=1e-12),
     )
-    assert runtime_backend.variational_session_calls == 1
+    assert runtime_backend.service.vqsession_calls == []
+    assert runtime_backend.service.estimate_calls
 
 
 @pytest.mark.runtime_contract

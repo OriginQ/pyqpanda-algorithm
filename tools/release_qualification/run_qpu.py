@@ -234,7 +234,9 @@ class QPURunner:
             raw_result_digest=_digest([parsed_record]),
             parsed_result=parsed_record,
             verdict="passed" if verdict.passed else "failed",
-            transpiled=True,
+            # Transpilation is attested by the separately validated
+            # preflight manifest, never inferred from direct QPU success.
+            transpiled=False,
         )
 
     def _failure_record(self, case: Any, executor: "_CaseExecutor", exc: Exception) -> AlgorithmQualification:

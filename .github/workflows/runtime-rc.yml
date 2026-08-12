@@ -58,14 +58,23 @@ jobs:
 
       - name: Verify wheel SHA-256
         shell: bash
+        env:
+          EXPECTED_WHEEL_SHA256: ${{ inputs.expected_wheel_sha256 }}
         run: |
           WHEEL="$(ls .artifacts/2.1.0/wheel/*.whl | head -n 1)"
           echo "candidate wheel: ${WHEEL##*/}"
           DIGEST="$(sha256sum "$WHEEL" | cut -d' ' -f1)"
           echo "wheel sha256: $DIGEST"
-          if [ -n "${{ inputs.expected_wheel_sha256 }}" ]; then
-            if [ "$DIGEST" != "${{ inputs.expected_wheel_sha256 }}" ]; then
-              echo "expected: ${{ inputs.expected_wheel_sha256 }}" >&2
+          if [ -n "$EXPECTED_WHEEL_SHA256" ]; then
+            case "$EXPECTED_WHEEL_SHA256" in
+              (*[!0-9a-fA-F]*|'') echo "invalid expected SHA-256" >&2; exit 1 ;;
+            esac
+            test "${#EXPECTED_WHEEL_SHA256}" -eq 64 || {
+              echo "invalid expected SHA-256 length" >&2
+              exit 1
+            }
+            if [ "$DIGEST" != "${EXPECTED_WHEEL_SHA256,,}" ]; then
+              echo "wheel digest does not match expected value" >&2
               exit 1
             fi
             echo "wheel digest matches the expected value"
@@ -82,10 +91,11 @@ jobs:
         shell: bash
         env:
           QPANDA3_API_KEY: ${{ secrets.QPANDA3_API_KEY }}
+          CHIP_ID: ${{ inputs.chip_id }}
         run: |
           WHEEL="$(ls .artifacts/2.1.0/wheel/*.whl | head -n 1)"
           python -m tools.release_qualification.run_preflight \
-            --chip-id "${{ inputs.chip_id }}" \
+            --chip-id "$CHIP_ID" \
             --wheel "$WHEEL" \
             --output-dir .artifacts/2.1.0/preflight
 
@@ -93,12 +103,14 @@ jobs:
         shell: bash
         env:
           QPANDA3_API_KEY: ${{ secrets.QPANDA3_API_KEY }}
+          CHIP_ID: ${{ inputs.chip_id }}
         run: |
           WHEEL="$(ls .artifacts/2.1.0/wheel/*.whl | head -n 1)"
           python -m tools.release_qualification.run_qpu \
-            --chip-id "${{ inputs.chip_id }}" \
+            --chip-id "$CHIP_ID" \
             --wheel "$WHEEL" \
-            --output-dir .artifacts/2.1.0
+            --output-dir .artifacts/2.1.0 \
+            --checkpoint-dir .artifacts/2.1.0/checkpoints
 
       - name: Validate qualification manifest
         shell: bash
@@ -106,6 +118,7 @@ jobs:
           WHEEL="$(ls .artifacts/2.1.0/wheel/*.whl | head -n 1)"
           python tools/release_qualification/check_release.py \
             --manifest .artifacts/2.1.0/manifest.json \
+            --preflight .artifacts/2.1.0/preflight/manifest.json \
             --commit "$(git rev-parse HEAD)" \
             --wheel "$WHEEL"
           python -c "import json; from tools.release_qualification.manifest import contains_credentials; m = json.load(open('.artifacts/2.1.0/manifest.json', encoding='utf-8')); assert not contains_credentials(m), 'manifest contains credential-shaped keys'"
@@ -114,5 +127,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: runtime-qualification-2.1.0
-          path: .artifacts/2.1.0/manifest.json
+          path: |
+            .artifacts/2.1.0/manifest.json
+            .artifacts/2.1.0/preflight/manifest.json
           retention-days: 30

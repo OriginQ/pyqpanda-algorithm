@@ -283,6 +283,16 @@ def test_runtime_undecodable_result_raises_public_error():
 
 
 @pytest.mark.runtime_contract
+def test_runtime_sample_decodes_qtask_manager_subtask_nesting():
+    qtask = FakeQTaskManager(
+        [[{"00": 500, "11": 500}]], kind="sample", finished=True
+    )
+    task = RuntimeBackendTask(qtask, kind="sample", shots=1000)
+
+    assert task.result().single_counts() == {"00": 500, "11": 500}
+
+
+@pytest.mark.runtime_contract
 def test_runtime_undecodable_estimate_result_raises_public_error():
     qtask = FakeQTaskManager(None, kind="estimate", finished=True)
     task = RuntimeBackendTask(qtask, kind="estimate", shots=100)

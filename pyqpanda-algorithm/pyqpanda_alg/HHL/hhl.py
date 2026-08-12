@@ -510,7 +510,8 @@ def _basis_measurement_circuit(build: HHLCircuitBuild, basis: str):
 
 def _measure_success_and_data(build: HHLCircuitBuild):
     """A measure node over the success ancilla followed by the data
-    register, so outcome ``key[0]`` is the success bit."""
+    register.  The success bit is cbit 0 and therefore the rightmost
+    character in pyqpanda3 count keys."""
     return measure(
         [build.success_qubit] + list(build.data_qubits),
         list(range(len(build.data_qubits) + 1)),
@@ -518,12 +519,12 @@ def _measure_success_and_data(build: HHLCircuitBuild):
 
 
 def _success_probability(counts: dict[str, int]) -> float:
-    """Weight of the success-ancilla outcomes (first bit of each key)."""
+    """Weight of the success-ancilla outcomes (rightmost count bit)."""
     total = sum(counts.values())
     if total == 0:
         return 0.0
     successes = sum(
-        count for key, count in counts.items() if key and key[0] == "1"
+        count for key, count in counts.items() if key and key[-1] == "1"
     )
     return min(1.0, successes / total)
 
@@ -531,11 +532,13 @@ def _success_probability(counts: dict[str, int]) -> float:
 def _postselect_counts(counts: dict[str, int]) -> dict[str, int]:
     """Drop the outcomes where the success ancilla read 0.
 
-    The returned counts keep only the data bits of the success branch,
-    so ``key[j]`` is the outcome of data qubit ``j``.
+    The returned keys are reordered so ``key[j]`` is the outcome of
+    data qubit ``j``.
     """
     return {
-        key[1:]: count for key, count in counts.items() if key and key[0] == "1"
+        key[:-1][::-1]: count
+        for key, count in counts.items()
+        if key and key[-1] == "1"
     }
 
 

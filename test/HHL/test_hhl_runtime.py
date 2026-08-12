@@ -37,13 +37,13 @@ def test_runtime_hhl_does_not_reconstruct_by_default(recording_backend):
 @pytest.mark.runtime_contract
 def test_runtime_reconstruct_submits_exact_tomography_circuits():
     # Scripted counts of the |0> state: the X and Y bases split evenly
-    # and the Z basis returns 0 with certainty; every key postselects on
-    # success (first measured bit).
+    # and the Z basis returns 0 with certainty.  The success ancilla is
+    # measured into cbit 0, which is the rightmost bit in pyqpanda3 keys.
     backend = RecordingBackend(
         sample_counts=[
-            {"10": 500, "11": 500},  # X basis
-            {"10": 500, "11": 500},  # Y basis
-            {"10": 1000, "11": 0},   # Z basis
+            {"01": 500, "11": 500},  # X basis
+            {"01": 500, "11": 500},  # Y basis
+            {"01": 1000, "11": 0},   # Z basis
         ]
     )
     matrix = np.eye(2)
@@ -111,7 +111,7 @@ def test_runtime_backend_without_capabilities_fails_before_submission():
 
 @pytest.mark.runtime_contract
 def test_runtime_reports_requested_data_observables():
-    backend = RecordingBackend(sample_counts=[{"10": 700, "11": 300}])
+    backend = RecordingBackend(sample_counts=[{"01": 700, "11": 300}])
     result = HHL(np.eye(2), np.array([1.0, 0.0]), precision=1e-2).run(
         backend=backend, observables=["Z0"]
     )

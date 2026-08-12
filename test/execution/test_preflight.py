@@ -48,6 +48,17 @@ def test_transpile_only_runs_fake_transpile_before_submission(
     assert not hasattr(task, "fake_execution")
 
 
+def test_transpile_only_allows_high_level_gates_that_fake_backend_can_lower(
+    runtime_backend, bell_program
+):
+    runtime_backend.device.basic_gates.return_value = ["RZ", "CZ"]
+
+    task = runtime_backend.submit_sample(bell_program, options=ExecutionOptions())
+
+    assert runtime_backend.device.fake_backend.return_value.transpile_calls
+    assert task.result().single_counts() == {"00": 160, "11": 161}
+
+
 def test_transpile_only_forwards_specified_block_to_fake_backend(
     runtime_backend, bell_program
 ):

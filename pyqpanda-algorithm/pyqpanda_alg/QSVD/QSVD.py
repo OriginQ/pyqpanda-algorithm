@@ -199,10 +199,10 @@ class SVD:
         """
         backend = self._backend if self._backend is not None else resolve_backend(None)
         options = self._execution_options if self._execution_options is not None else ExecutionOptions()
-        if not (backend.capabilities.statevector or backend.capabilities.tomography):
+        if not backend.capabilities.statevector:
             raise DeviceCapabilityError(
                 "exact singular vectors require a backend with state-vector "
-                "or tomography capability"
+                "capability"
             )
         statevector_task = backend.submit_statevector(prog, options=options)
         statevector = np.asarray(statevector_task.result().single_statevector()).real
@@ -258,10 +258,10 @@ class SVD:
     def max_eig(self, return_mat='0', par=None, max_index=0):
         backend = self._backend if self._backend is not None else resolve_backend(None)
         options = self._execution_options if self._execution_options is not None else ExecutionOptions()
-        if not (backend.capabilities.statevector or backend.capabilities.tomography):
+        if not backend.capabilities.statevector:
             raise DeviceCapabilityError(
                 "exact singular vectors require a backend with state-vector "
-                "or tomography capability"
+                "capability"
             )
         cir = QCircuit()
         ss = max_index % 2**self.q0

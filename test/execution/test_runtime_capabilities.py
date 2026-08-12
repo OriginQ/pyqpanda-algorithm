@@ -38,16 +38,16 @@ def test_preflight_rejects_observable_qubits_outside_device(
     assert runtime_backend.service.estimate_calls == []
 
 
-def test_preflight_rejects_unsupported_gate(runtime_backend, bell_program):
+def test_preflight_delegates_high_level_gate_lowering(runtime_backend, bell_program):
     runtime_backend.device.basic_gates.return_value = ["H", "X"]
-    with pytest.raises(DeviceCapabilityError, match="CNOT"):
-        runtime_backend.submit_sample(bell_program, options=ExecutionOptions())
+    runtime_backend.submit_sample(bell_program, options=ExecutionOptions())
+    assert runtime_backend.device.fake_backend.return_value.transpile_calls
 
 
-def test_preflight_rejects_gate_pair_not_in_topology(runtime_backend, bell_program):
+def test_preflight_delegates_topology_mapping(runtime_backend, bell_program):
     runtime_backend.device.chip_topo_edges.return_value = [[1, 2], [2, 3]]
-    with pytest.raises(DeviceCapabilityError, match="topolog"):
-        runtime_backend.submit_sample(bell_program, options=ExecutionOptions())
+    runtime_backend.submit_sample(bell_program, options=ExecutionOptions())
+    assert runtime_backend.device.fake_backend.return_value.transpile_calls
 
 
 def test_preflight_rejects_specified_block_outside_device(runtime_backend, bell_program):

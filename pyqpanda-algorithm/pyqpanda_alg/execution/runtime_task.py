@@ -205,7 +205,7 @@ class RuntimeBackendTask:
 
     def _decode_sample(self, raw: Any) -> SampleBatchResult:
         try:
-            counts = tuple(dict(item) for item in raw)
+            counts = tuple(dict(item) for item in _flatten_sample(raw))
         except (TypeError, ValueError) as exc:
             raise ResultDecodingError(
                 f"could not decode runtime sample result {raw!r}"
@@ -231,6 +231,17 @@ def _flatten_estimate(raw: Any) -> Any:
             yield from _flatten_estimate(item)
     else:
         raise TypeError(f"unexpected estimate result element {type(raw).__name__}")
+
+
+def _flatten_sample(raw: Any) -> Any:
+    """Yield count dictionaries from runtime subtask/program nesting."""
+    if isinstance(raw, dict):
+        yield raw
+    elif isinstance(raw, (list, tuple)):
+        for item in raw:
+            yield from _flatten_sample(item)
+    else:
+        raise TypeError(f"unexpected sample result element {type(raw).__name__}")
 
 
 def _checkpoint_timeout(path: str) -> float:

@@ -24,9 +24,9 @@ matrix.  Every eigenvalue phase ``lambda t`` then lies in ``[-pi, pi]``,
 so the QPE phase fraction ``phi = (lambda t mod 2pi)/(2pi)`` recovers
 the signed eigenvalue ``lambda = (2pi/t) * signed(phi)`` with
 ``signed(phi) = phi`` for ``phi <= 1/2`` and ``phi - 1`` otherwise.
-An eigenvalue exactly equal to ``-lambda_max`` is phase-degenerate with
-``+lambda_max`` at the boundary fraction ``1/2``; validated systems
-whose spectrum touches that exact value misread that component's sign.
+At the boundary fraction ``1/2``, the synthesis uses the signed
+eigenvalue of largest magnitude from the validated spectrum, avoiding
+the otherwise ambiguous ``+/- lambda_max`` interpretation.
 The reciprocal rotation applies angle ``theta_j = 2 arcsin(C/lambda_j)``
 for phase-register value ``j``, with the scale ``C = min(|lambda|)``
 recorded as ``reciprocal_scale``; the success amplitude is then exactly
@@ -118,11 +118,23 @@ def build_hhl_circuit(
     eigenvalue_bounds = (float(eigenvalues[0]), float(eigenvalues[-1]))
     evolution_time = np.pi / max(abs(eigenvalues))
     reciprocal_scale = float(min(abs(eigenvalues)))
+    boundary_eigenvalue = (
+        float(eigenvalues[0])
+        if abs(eigenvalues[0]) > abs(eigenvalues[-1])
+        else float(eigenvalues[-1])
+    )
 
     program = QProg(data_qubits + phase_qubits + 1)
     _prepare_state(program, data, system.vector)
     _phase_estimation(program, data, phase, matrix, evolution_time)
-    _reciprocal_rotation(program, phase, success_qubit, evolution_time, reciprocal_scale)
+    _reciprocal_rotation(
+        program,
+        phase,
+        success_qubit,
+        evolution_time,
+        reciprocal_scale,
+        boundary_eigenvalue,
+    )
     _inverse_phase_estimation(program, data, phase, matrix, evolution_time)
 
     return HHLCircuitBuild(
@@ -179,7 +191,12 @@ def _evolution_gate(data_qubits, control, matrix, evolution_time, power):
 
 
 def _reciprocal_rotation(
-    program, phase_qubits, success_qubit, evolution_time, reciprocal_scale
+    program,
+    phase_qubits,
+    success_qubit,
+    evolution_time,
+    reciprocal_scale,
+    boundary_eigenvalue,
 ) -> None:
     """Rotate the success qubit by ``2 arcsin(C / lambda_j)`` per phase state.
 
@@ -191,7 +208,12 @@ def _reciprocal_rotation(
     dimension = 1 << len(phase_qubits)
     rotation = np.zeros((2 * dimension, 2 * dimension), dtype=np.complex128)
     for j in range(dimension):
-        theta = _rotation_angle(j / dimension, evolution_time, reciprocal_scale)
+        theta = _rotation_angle(
+            j / dimension,
+            evolution_time,
+            reciprocal_scale,
+            boundary_eigenvalue,
+        )
         cosine, sine = np.cos(theta / 2), np.sin(theta / 2)
         rotation[j, j] = cosine
         rotation[j + dimension, j] = sine
@@ -200,7 +222,9 @@ def _reciprocal_rotation(
     program << Oracle(list(phase_qubits) + [success_qubit], rotation)
 
 
-def _rotation_angle(phase_fraction, evolution_time, reciprocal_scale) -> float:
+def _rotation_angle(
+    phase_fraction, evolution_time, reciprocal_scale, boundary_eigenvalue
+) -> float:
     """Inversion angle for the eigenvalue estimated from a phase fraction.
 
     The fraction is mapped back to the signed eigenvalue with the
@@ -209,8 +233,11 @@ def _rotation_angle(phase_fraction, evolution_time, reciprocal_scale) -> float:
     range.  A fraction estimating a zero eigenvalue returns no
     rotation.
     """
-    signed = phase_fraction if phase_fraction <= 0.5 else phase_fraction - 1.0
-    eigenvalue = (2 * np.pi / evolution_time) * signed
+    if phase_fraction == 0.5:
+        eigenvalue = boundary_eigenvalue
+    else:
+        signed = phase_fraction if phase_fraction < 0.5 else phase_fraction - 1.0
+        eigenvalue = (2 * np.pi / evolution_time) * signed
     if abs(eigenvalue) < _ZERO_EIGENVALUE_TOLERANCE:
         return 0.0
     ratio = np.clip(reciprocal_scale / eigenvalue, -1.0, 1.0)

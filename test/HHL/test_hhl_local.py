@@ -57,6 +57,16 @@ def test_hhl_local_signed_eigenvalues_match_solution_direction():
     assert result.residual < 0.05
 
 
+def test_hhl_local_preserves_negative_maximum_magnitude_eigenvalue():
+    matrix = np.diag([-1.0, 0.5])
+    vector = np.array([1.0, 1.0])
+    result = HHL(matrix, vector, precision=6.25e-2).run(reconstruct=True)
+    expected = normalized(np.linalg.solve(matrix, vector))
+
+    assert abs(np.vdot(expected, normalized(result.classical_vector))) > 0.99
+    assert result.residual < 0.05
+
+
 def test_hhl_local_padded_three_by_three_ignores_padding():
     matrix = np.diag([1.0, 2.0, 3.0])
     vector = np.array([1.0, 2.0, 3.0])

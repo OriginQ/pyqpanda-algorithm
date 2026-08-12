@@ -47,6 +47,20 @@ def test_qae_runtime_uses_sampling_without_legacy_result_api():
     assert "get_prob_dict" not in backend.accessed_result_attributes
 
 
+def test_qae_runtime_program_contains_measurements_for_every_qubit():
+    qae = QAE(
+        operator_in=_create_cir,
+        qnumber=2,
+        epsilon=0.01,
+        res_index=[0, 1],
+        target_state="11",
+    )
+
+    program = qae._search_prog()
+
+    assert len(program.get_measure_nodes()) == 2 + qae.n_anc
+
+
 def test_qae_submit_is_a_single_round_task():
     backend = RecordingBackend(sample_counts=[{"001000000": 700, "010000000": 300}])
     qae = QAE(

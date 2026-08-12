@@ -120,6 +120,7 @@ def test_vqe_checkpoint_resume_continues_at_iteration_two(
     runtime_backend, hamiltonian, tmp_path
 ):
     """A session-path run resumes at iteration two with a fresh session."""
+    runtime_backend.capabilities = BackendCapabilities(variational_session=True)
     script = _scripted_energies(60)
     run_index = 0
     sessions = []

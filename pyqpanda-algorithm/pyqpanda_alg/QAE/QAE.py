@@ -12,7 +12,7 @@
 
 import dataclasses
 
-from pyqpanda3.core import QCircuit, QProg, X, H, Z, RX
+from pyqpanda3.core import QCircuit, QProg, X, H, Z, RX, measure
 import numpy as np
 from numpy import pi
 
@@ -194,6 +194,7 @@ class QAE:
                 prog << self._Q_cir(q_operator[:self.qnumber]).control([q_operator[self.qnumber:][i]])
 
         prog << QFT(q_operator[self.qnumber:]).dagger()
+        prog << measure(q_operator, list(range(len(q_operator))))
         return prog
 
     @staticmethod

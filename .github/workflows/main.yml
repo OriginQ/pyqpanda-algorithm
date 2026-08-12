@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Build the pure-Python wheel once and share it with every gate.
+  # Build the pure-Python wheel and source distribution once.
   build:
     name: Build wheel
     runs-on: ubuntu-latest
@@ -21,16 +21,18 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Build wheel
+      - name: Build distributions
         run: |
           python -m pip install build
-          python -m build --wheel pyqpanda-algorithm
+          python -m build pyqpanda-algorithm
 
       - name: Upload wheel
         uses: actions/upload-artifact@v4
         with:
           name: pyqpanda_alg-wheel
-          path: pyqpanda-algorithm/dist/*.whl
+          path: |
+            pyqpanda-algorithm/dist/*.whl
+            pyqpanda-algorithm/dist/*.tar.gz
           retention-days: 7
 
   # Install the built wheel into a clean virtual environment on the
@@ -83,6 +85,37 @@ jobs:
           fi
           "$PYTHON" -m pytest test -q
 
+      - name: Verify runtime extra import
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          PYTHON=".venv/bin/python"
+          WHEEL="$(ls pyqpanda-algorithm/dist/*.whl | head -n 1)"
+          "$PYTHON" -m pip install "$WHEEL[runtime]"
+          "$PYTHON" -c "import pyqpanda_alg.execution; import qpanda3_runtime"
+
+  coverage:
+    name: Coverage regression gate
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/download-artifact@v4
+        with:
+          name: pyqpanda_alg-wheel
+          path: pyqpanda-algorithm/dist/
+      - name: Run coverage and baseline gate
+        run: |
+          WHEEL="$(ls pyqpanda-algorithm/dist/*.whl | head -n 1)"
+          python -m pip install "$WHEEL[test]"
+          python -m pytest test --cov=pyqpanda_alg --cov-branch \
+            --cov-report=json:test/coverage-current.json -q
+          python tools/check_coverage_baseline.py \
+            test/coverage-baseline.json test/coverage-current.json
+
   # Build the Sphinx documentation with the theme declared in conf.py.
   docs:
     name: Build documentation
@@ -120,7 +153,7 @@ jobs:
   # or the job fails before any GitHub Release is created.
   release:
     name: Assemble release artifacts
-    needs: [build, test, docs]
+    needs: [build, test, coverage, docs]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -159,6 +192,7 @@ jobs:
           WHEEL="$(ls release_package/wheels/*.whl | head -n 1)"
           python tools/release_qualification/check_release.py \
             --manifest release_package/qualification/manifest.json \
+            --preflight release_package/qualification/preflight/manifest.json \
             --commit "$(git rev-parse HEAD)" \
             --wheel "$WHEEL"
 
