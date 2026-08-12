@@ -34,6 +34,9 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
 
+if __package__ in (None, ""):  # run as a plain script: make the repo importable
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 from pyqpanda3.core import QCircuit, QProg
 
 from pyqpanda_alg.execution import (
@@ -46,8 +49,13 @@ from pyqpanda_alg.execution import (
 )
 from pyqpanda_alg.Shor.circuit import build_order_finding_circuit
 
-from .cases import _SHOR_MODULUS, _SHOR_SEED, QUALIFICATION_CASES, TRANSPILATION_CASES
-from .manifest import (
+from tools.release_qualification.cases import (  # noqa: E402
+    _SHOR_MODULUS,
+    _SHOR_SEED,
+    QUALIFICATION_CASES,
+    TRANSPILATION_CASES,
+)
+from tools.release_qualification.manifest import (  # noqa: E402
     SCHEMA_VERSION,
     AlgorithmQualification,
     QualificationManifest,

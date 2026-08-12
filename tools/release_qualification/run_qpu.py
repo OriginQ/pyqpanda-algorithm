@@ -53,20 +53,27 @@ from typing import Any, Callable
 import numpy as np
 from pyqpanda3.core import QCircuit, QProg
 
-from pyqpanda_alg.execution import (
+if __package__ in (None, ""):  # run as a plain script: make the repo importable
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from pyqpanda_alg.execution import (  # noqa: E402
     ExecutionOptions,
     QPandaRuntimeBackend,
     RuntimeBackendTask,
 )
 
-from .cases import QUALIFICATION_CASES, SMOKE_CASES, _SHOR_MODULUS
-from .manifest import (
+from tools.release_qualification.cases import (  # noqa: E402
+    QUALIFICATION_CASES,
+    SMOKE_CASES,
+    _SHOR_MODULUS,
+)
+from tools.release_qualification.manifest import (  # noqa: E402
     SCHEMA_VERSION,
     AlgorithmQualification,
     QualificationManifest,
     validate_manifest,
 )
-from .run_preflight import (
+from tools.release_qualification.run_preflight import (  # noqa: E402
     _UNKNOWN_DIGEST,
     _device_record,
     _digest,
@@ -76,7 +83,7 @@ from .run_preflight import (
     _utc_now,
     _wheel_basename,
 )
-from .verdicts import verdict_for_case
+from tools.release_qualification.verdicts import verdict_for_case  # noqa: E402
 
 #: Shor modulus fixed at release time (imported from ``cases.py`` as the
 #: single source); the committed RNG policy is applied by the runner
@@ -502,3 +509,7 @@ def main() -> None:
     passed = sum(1 for case in manifest.cases if case.verdict == "passed")
     total = len(manifest.cases)
     print(f"qpu qualification: {passed}/{total} cases passed; manifest written")
+
+
+if __name__ == "__main__":
+    main()
