@@ -285,11 +285,26 @@ class _CaseExecutor:
     # Backend surface (the committed invocations call exactly these).
 
     def submit_sample(self, circuit: Any, *, options: ExecutionOptions) -> RuntimeBackendTask:
-        return self._submit(lambda: self._backend.submit_sample(circuit, options=options))
+        # Force direct execution: algorithm cases build their own
+        # ExecutionOptions with the default TRANSPILE_ONLY preflight, and
+        # the QPU (e.g. WK_C180, gateset RPhi+CZ) would reject the
+        # gateset/qubit preflight check.  The QPU qualification runner
+        # executes directly; transpile records are the preflight
+        # runner's to provide.  Shots/timeout and the other fields are
+        # preserved.
+        return self._submit(
+            lambda: self._backend.submit_sample(
+                circuit, options=dataclasses.replace(options, preflight=PreflightMode.NONE)
+            )
+        )
 
     def submit_estimate(self, circuit_and_observable: tuple, *, options: ExecutionOptions) -> RuntimeBackendTask:
+        # Direct execution, as in submit_sample (see there).
         return self._submit(
-            lambda: self._backend.submit_estimate(circuit_and_observable, options=options)
+            lambda: self._backend.submit_estimate(
+                circuit_and_observable,
+                options=dataclasses.replace(options, preflight=PreflightMode.NONE),
+            )
         )
 
     def submit_statevector(self, circuit: Any, *, options: ExecutionOptions) -> Any:
