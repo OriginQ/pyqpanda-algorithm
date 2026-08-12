@@ -107,6 +107,16 @@ class _PreflightBackend:
     advertised as unavailable and requesting them raises
     :class:`~pyqpanda_alg.execution.DeviceCapabilityError`, which is
     the honest signal algorithms must respect.
+
+    The fake backend's ``sample``/``estimate`` are multi-process
+    simulations whose cost scales with ``shots``, so every fake call is
+    pinned to ``shots=1``: the preflight fake execution is only
+    feasibility evidence -- it proves the case's circuits can be
+    executed by the device's simulator -- while the statistical
+    verification with the submitted shot budget is the QPU runner's
+    job.  The manifest's ``shots`` field still records ``case.shots``
+    (the submitted statistical setting); the single-shot substitution
+    affects only the feasibility probe.
     """
 
     capabilities = BackendCapabilities(
@@ -125,7 +135,7 @@ class _PreflightBackend:
         self.raw_results: list = []
 
     def submit_sample(self, circuit: Any, *, options: ExecutionOptions):
-        counts = self._fake.sample(circuit, shots=options.shots)
+        counts = self._fake.sample(circuit, shots=1)  # feasibility only; statistical evidence is the QPU runner's
         self.submissions.append((circuit, None))
         self.raw_results.append(counts)
         return CompletedBackendTask(
@@ -137,7 +147,7 @@ class _PreflightBackend:
         self, circuit_and_observable: Any, *, options: ExecutionOptions
     ):
         circuit, observable = circuit_and_observable
-        value = self._fake.estimate(circuit, observable, shots=options.shots)
+        value = self._fake.estimate(circuit, observable, shots=1)  # feasibility only; statistical evidence is the QPU runner's
         self.submissions.append((circuit, observable))
         self.raw_results.append(value)
         return CompletedBackendTask(
