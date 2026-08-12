@@ -19,6 +19,13 @@ credential-shaped value can reach an artifact.
 
 Design notes
 ------------
+* Real QPU evidence, not transpile evidence: every submission carries
+  ``preflight=PreflightMode.NONE`` so the task submitted to the
+  service is executed directly.  Transpile records are the preflight
+  runner's job (:mod:`tools.release_qualification.run_preflight`);
+  the QPU runner never depends on the transpile service, so an outage
+  there (e.g. a blanket ``"Failed to transpile."``) cannot block or
+  falsify the real execution.
 * Circuit-shaped cases (bell, Grover) submit exactly one sampling task
   with the committed shots; algorithm cases run their committed
   invocation against a checkpointing backend proxy, so the solver's own
@@ -58,6 +65,7 @@ if __package__ in (None, ""):  # run as a plain script: make the repo importable
 
 from pyqpanda_alg.execution import (  # noqa: E402
     ExecutionOptions,
+    PreflightMode,
     QPandaRuntimeBackend,
     RuntimeBackendTask,
 )
@@ -102,6 +110,9 @@ class QPURunner:
     submitted remote task is checkpointed right after the submission and
     a resumed run recovers checkpointed tasks through the service,
     querying their existing task IDs instead of resubmitting them.
+    All submissions are direct executions
+    (``preflight=PreflightMode.NONE``): the transpile record is the
+    preflight runner's to provide, never this runner's to wait on.
     """
 
     def __init__(
@@ -163,7 +174,12 @@ class QPURunner:
         observable: Any,
     ) -> AlgorithmQualification:
         """Submit a pure sampling (or estimation) request and record it."""
-        options = ExecutionOptions(shots=case.shots, timeout=case.timeout)
+        # Direct QPU submission: the transpile record is provided by the
+        # preflight runner separately, so a transpile-service failure
+        # never blocks the real execution.
+        options = ExecutionOptions(
+            shots=case.shots, timeout=case.timeout, preflight=PreflightMode.NONE
+        )
         try:
             if observable is not None:
                 task = executor.submit_estimate((circuit, observable), options=options)
@@ -363,7 +379,12 @@ def _run_shor_case(case: Any, executor: "_CaseExecutor") -> Any:
     )
     return solver.run(
         backend=executor,
-        execution_options=ExecutionOptions(shots=case.shots, timeout=case.timeout),
+        # Direct QPU submission (see module docstring): the transpile
+        # record is the preflight runner's job, so a transpile-service
+        # outage must not block the real execution.
+        execution_options=ExecutionOptions(
+            shots=case.shots, timeout=case.timeout, preflight=PreflightMode.NONE
+        ),
     )
 
 
