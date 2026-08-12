@@ -29,6 +29,7 @@ import platform
 import random
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
@@ -178,10 +179,22 @@ def run_preflight(
     """
     device = service.device(chip_id)
     fake = device.fake_backend()
-    cases = tuple(
-        _qualify(case, fake)
-        for case in (*QUALIFICATION_CASES, *TRANSPILATION_CASES)
-    )
+    all_cases = (*QUALIFICATION_CASES, *TRANSPILATION_CASES)
+    total = len(all_cases)
+    print(f"preflight: {total} cases on {chip_id} starting", flush=True)
+    qualified: list[AlgorithmQualification] = []
+    for index, case in enumerate(all_cases, start=1):
+        started = time.perf_counter()
+        qualified_case = _qualify(case, fake)
+        elapsed = time.perf_counter() - started
+        print(
+            f"preflight[{index}/{total}] {case.algorithm}: "
+            f"transpiled={qualified_case.transpiled} "
+            f"verdict={qualified_case.verdict} ({elapsed:.1f}s)",
+            flush=True,
+        )
+        qualified.append(qualified_case)
+    cases = tuple(qualified)
     manifest = QualificationManifest(
         version=SCHEMA_VERSION,
         timestamp=_utc_now(),
