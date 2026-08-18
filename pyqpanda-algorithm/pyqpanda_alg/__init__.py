@@ -51,4 +51,6 @@ from . import QSVR
 from . import Grover
 from . import QmRMR
 from . import QSEncode
+from . import QECNoise
+
 
