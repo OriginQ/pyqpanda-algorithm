@@ -12,7 +12,6 @@
 
 import os
 import math
-import numpy as np
 from pyqpanda3.core import QCircuit, QProg, CPUQVM, X, H, U1, SWAP, draw_qprog
 from pyqpanda3.intermediate_compiler import convert_qprog_to_originir
 from pyqpanda3.qcloud import QCloudService
@@ -304,26 +303,35 @@ class QuantumAssociationRulesMining:
         return result
 
     def _iter_number(self):
-        estimate_count = math.floor(math.pi * math.sqrt(2 ** self.index_qubit_number) / 2)
-        if estimate_count % 2:
-            count = estimate_count
-        else:
-            count = estimate_count + 1
-        if count >= 9:
-            count -= 4
-        return count
+        # QARM uses a two-register Grover construction where the measured
+        # register alternates after each SWAP.  Odd t correspond to effective
+        # Grover steps k = (t-1)//2.  After one effective step (k=1, t=3),
+        # the marked/unmarked per-state probability separation is strictly
+        # positive whenever M/N < 1/2.  For the 3+ item quantum domain
+        # (items_qubit_number >= 2), M/N <= 1/4 is guaranteed, so t=3 is
+        # sufficient to recover all marked rows from the full probability
+        # distribution returned by get_prob_dict.
+        return 3
 
     def _get_result(self, qlist, clist, position, locating_number, _iter_number, show, file_name, machine_type):
         result = self._iter_cir(qlist, clist, position, locating_number, _iter_number, show, file_name, machine_type)
-        val_list = []
-        for val in result.values():
-            val_list.append(round(val, 4))
-        np_val_list = np.array(val_list)
-        max_val = np.max(np_val_list)
-        index = np.argwhere(np_val_list == max_val)
-        index = index.flatten().tolist()
-        result = self._get_index(index)
-        return result
+        if not result:
+            return []
+        # Find the maximum probability using the actual dictionary values
+        max_prob = max(result.values())
+        # Select all basis states whose probability is within relative
+        # tolerance of the maximum.  This avoids depending on dict insertion
+        # order and does not merge distinct probability levels via rounding.
+        max_keys = [int(k, 2) for k, v in result.items()
+                    if math.isclose(v, max_prob, rel_tol=1e-10)]
+        # Decode the selected keys into (transaction_index, item_index) tuples
+        decoded = self._get_index(max_keys)
+        # Structural filtering: keep only states that correspond to real
+        # transactions and to the target item (locating_number).
+        target_item_idx = locating_number - 1
+        filtered = [(tx, it) for tx, it in decoded
+                    if tx < self.transaction_number and it == target_item_idx]
+        return filtered
 
     def _get_index(self, index):
         result = []
@@ -338,11 +346,22 @@ class QuantumAssociationRulesMining:
     def _find_f1(self, qlist, clist, position, c1, show, file_name, machine_type):
         _iter_number = self._iter_number()
         ck_dict = {}
-        for data in c1:
-            locating_number = data[0]
-            result = self._get_result(qlist, clist, position, locating_number, _iter_number, show, file_name, machine_type)
-            row_index = [index[0] for index in result]
-            ck_dict[data] = row_index
+        # Two-item domain: M/N can reach 1/2, where no Grover iteration can
+        # separate marked from unmarked states.  Use exact classical row
+        # recovery from the already-loaded transaction matrix instead.
+        if self.items_qubit_number == 1:
+            for data in c1:
+                locating_number = data[0]
+                target_col = locating_number - 1
+                row_index = [n for n in range(self.transaction_number)
+                             if self.transaction_matrix[n][target_col] == locating_number]
+                ck_dict[data] = row_index
+        else:
+            for data in c1:
+                locating_number = data[0]
+                result = self._get_result(qlist, clist, position, locating_number, _iter_number, show, file_name, machine_type)
+                row_index = [index[0] for index in result]
+                ck_dict[data] = row_index
         f1_dict = {}
         f1 = []
         for key, val in ck_dict.items():
