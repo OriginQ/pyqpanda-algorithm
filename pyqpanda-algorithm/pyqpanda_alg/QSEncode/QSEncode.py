@@ -65,7 +65,7 @@ class QSpare_Code:
         Simulates the quantum circuit and returns the output probability distribution.
 
     Examples
-    
+    --------
     >>> import numpy as np
     >>> import matplotlib.pyplot as plt
     >>> from pyqpanda_alg.QSEncode import QSpare_Code
@@ -75,7 +75,7 @@ class QSpare_Code:
     >>> pdf_normal = (1 / (sigma * np.sqrt(2 * np.pi))) * np.exp(-(x - mu) ** 2 / (2 * sigma ** 2))
     >>> # pdf_normal = (1 / (x * sigma * np.sqrt(2 * np.pi))) * np.exp(-(np.log(x) - mu) ** 2 / (2 * sigma ** 2))
     >>> ini = pdf_normal / np.linalg.norm(pdf_normal)
-    >>> # res = QSEncode.QSpare_Code(ini ** 2, mode='walsh', cut_length=80).Quantum_Res()
+    >>> # res = QSpare_Code(ini ** 2, mode='walsh', cut_length=80).Quantum_Res()
     >>> res = QSpare_Code(ini ** 2, mode='fourier', cut_length=20).Quantum_Res()
 
     >>> plt.plot(x, res)
@@ -102,10 +102,13 @@ class QSpare_Code:
         mode : str, optional
             Coefficient encoding method. Options are {'walsh', 'fourier'}.
 
-        Returns
-        -------
-        QSpare_Code
-            Instantiated object of the sparse quantum encoding class.
+        Notes
+        -----
+        ``__init__`` only stores and preprocesses the inputs (normalization and
+        zero-padding to a power-of-2 length). A ``Warning`` is raised when the
+        sum of ``prob_list`` deviates from 1 by more than 0.001; the legality of
+        ``mode`` is checked later in :meth:`Transform` / :meth:`quantum_cir`,
+        not at construction time.
         """
         if prob_list is None:
             raise ValueError('prob list should be supported')
