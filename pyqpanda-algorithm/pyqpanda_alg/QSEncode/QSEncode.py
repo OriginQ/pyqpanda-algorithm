@@ -14,9 +14,54 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pyqpanda3.core import CPUQVM, QCircuit, QProg, Encode, H
 from scipy.fft import fft
-from sympy import fwht
 
 from .. plugin import *
+
+
+def _fast_walsh_hadamard_transform(values):
+    """Return the unnormalized Walsh-Hadamard transform of a 1-D array.
+
+    The input is zero-padded to the next power-of-two length, matching the
+    behavior of :func:`sympy.fwht`.  The butterfly is evaluated with NumPy
+    ufuncs, so numeric values stay in a native numeric dtype instead of being
+    converted to symbolic Python objects.
+
+    The input is never modified.  Runtime is ``O(N log N)`` and auxiliary
+    memory is ``O(N)``.
+    """
+    array = np.asarray(values)
+    if array.ndim != 1:
+        raise ValueError('values must be a 1D array')
+    if not np.issubdtype(array.dtype, np.number):
+        raise TypeError('values must contain numeric data')
+
+    size = array.size
+    dtype = np.result_type(array.dtype, np.float64)
+    if size == 0:
+        return np.empty(0, dtype=dtype)
+
+    padded_size = 1 << (size - 1).bit_length()
+    output = np.zeros(padded_size, dtype=dtype)
+    output[:size] = array
+    if padded_size == 1:
+        return output
+
+    # One reusable half-size buffer avoids allocating a Python/SymPy object
+    # for every coefficient and avoids a fresh temporary at every stage.
+    scratch = np.empty(padded_size // 2, dtype=dtype)
+    step = 1
+    while step < padded_size:
+        blocks = output.reshape(-1, 2 * step)
+        left = blocks[:, :step]
+        right = blocks[:, step:]
+        saved_left = scratch.reshape(-1, step)
+        np.copyto(saved_left, left)
+        np.add(saved_left, right, out=left)
+        np.subtract(saved_left, right, out=right)
+        step *= 2
+
+    return output
+
 
 class QSpare_Code:
     
@@ -146,15 +191,50 @@ class QSpare_Code:
         -------
         np.ndarray
             A new array with only top-n magnitudes retained, rest set to zero.
+
+        Notes
+        -----
+        Selection uses ``numpy.argpartition`` and therefore takes average
+        ``O(N)`` time.  If equal magnitudes cross the selection boundary, the
+        larger original indices are retained to make the result deterministic.
         """
         
         if type(n) != int or n <= 0:
             raise ValueError('n must > 0 and with class int')
+        arr = np.asarray(arr)
+        if arr.ndim != 1:
+            raise ValueError('arr must be a 1D array')
+        if arr.size == 0:
+            return arr.copy()
+
         magnitudes = np.abs(arr)
-        top_n_indices = np.argsort(magnitudes)[-n:]
+        if not np.all(np.isfinite(magnitudes)):
+            raise ValueError('arr must contain only finite values')
+        if n >= arr.size:
+            return arr.copy()
+
+        # argpartition finds the top-n boundary in average O(N), whereas a
+        # complete argsort performs O(N log N) work.  Values tied at the
+        # boundary are resolved by index so results are deterministic.
+        partition_at = arr.size - n
+        partitioned = np.argpartition(magnitudes, partition_at)
+        threshold = magnitudes[partitioned[partition_at]]
+        top_n_indices = partitioned[partition_at:]
+
+        # The partition result is already complete for the overwhelmingly
+        # common unique-boundary case.  Only scan and rebuild the selection
+        # when equal magnitudes straddle the top-n boundary.
+        selected_ties = np.count_nonzero(magnitudes[top_n_indices] == threshold)
+        all_ties = np.count_nonzero(magnitudes == threshold)
+        if selected_ties != all_ties:
+            top_n_indices = np.flatnonzero(magnitudes > threshold)
+            slots_left = n - top_n_indices.size
+            tied_indices = np.flatnonzero(magnitudes == threshold)
+            top_n_indices = np.concatenate((top_n_indices, tied_indices[-slots_left:]))
+
         result = np.zeros_like(arr, dtype=arr.dtype)
         result[top_n_indices] = arr[top_n_indices]
-        return np.array(result)
+        return result
 
     def Transform(self, amp):
         """
@@ -169,9 +249,15 @@ class QSpare_Code:
         -------
         np.ndarray
             Transformed amplitude vector in the selected basis.
+
+        Notes
+        -----
+        Walsh mode uses a native NumPy fast Walsh-Hadamard butterfly with
+        ``O(N log N)`` time and ``O(N)`` memory.
         """
         if self.mode == 'walsh':
-            transform = np.array(fwht(amp)) / np.sqrt(2 ** self.qubits_num)
+            transform = _fast_walsh_hadamard_transform(amp)
+            transform /= np.sqrt(2 ** self.qubits_num)
         elif self.mode == 'fourier':
             transform = fft(amp)
         else:
