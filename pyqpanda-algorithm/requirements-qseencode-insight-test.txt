@@ -1,0 +1,2 @@
+-r requirements-qseencode-insight.txt
+pytest==9.0.3

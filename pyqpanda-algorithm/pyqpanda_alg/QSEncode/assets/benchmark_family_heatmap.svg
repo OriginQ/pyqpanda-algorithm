@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="430" viewBox="0 0 980 430" role="img" aria-labelledby="title desc">
+  <title id="title">Family-level selector-all resource reductions</title>
+  <desc id="desc">Heatmap of preregistered family medians for Walsh and Fourier compiled two-qubit gates and depth.</desc>
+  <rect width="980" height="430" rx="18" fill="#f8fafc"/>
+  <text x="40" y="42" font-family="Arial, sans-serif" font-size="23" font-weight="700" fill="#172033">Family-level selector-all reductions</text>
+  <text x="40" y="67" font-family="Arial, sans-serif" font-size="13" fill="#526079">Preregistered family medians; Dirichlet is retained as negative evidence</text>
+  <g font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#334155" text-anchor="middle">
+    <text x="340" y="106">Gaussian</text><text x="465" y="106">Bimodal</text><text x="590" y="106">Exponential</text><text x="715" y="106">Step</text><text x="840" y="106">Dirichlet</text>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="13" fill="#334155" text-anchor="end">
+    <text x="260" y="151">Walsh 2q</text><text x="260" y="211">Walsh depth</text><text x="260" y="271">Fourier 2q</text><text x="260" y="331">Fourier depth</text>
+  </g>
+  <g stroke="#ffffff" stroke-width="3">
+    <rect x="280" y="120" width="120" height="52" rx="7" fill="#2563eb" fill-opacity="0.48"/><rect x="405" y="120" width="120" height="52" rx="7" fill="#2563eb" fill-opacity="0.45"/><rect x="530" y="120" width="120" height="52" rx="7" fill="#2563eb" fill-opacity="0.93"/><rect x="655" y="120" width="120" height="52" rx="7" fill="#2563eb" fill-opacity="0.45"/><rect x="780" y="120" width="120" height="52" rx="7" fill="#2563eb" fill-opacity="0.05"/>
+    <rect x="280" y="180" width="120" height="52" rx="7" fill="#2563eb" fill-opacity="0.49"/><rect x="405" y="180" width="120" height="52" rx="7" fill="#2563eb" fill-opacity="0.49"/><rect x="530" y="180" width="120" height="52" rx="7" fill="#2563eb" fill-opacity="0.94"/><rect x="655" y="180" width="120" height="52" rx="7" fill="#2563eb" fill-opacity="0.46"/><rect x="780" y="180" width="120" height="52" rx="7" fill="#2563eb" fill-opacity="0.05"/>
+    <rect x="280" y="240" width="120" height="52" rx="7" fill="#7c3aed" fill-opacity="0.91"/><rect x="405" y="240" width="120" height="52" rx="7" fill="#7c3aed" fill-opacity="0.89"/><rect x="530" y="240" width="120" height="52" rx="7" fill="#7c3aed" fill-opacity="0.71"/><rect x="655" y="240" width="120" height="52" rx="7" fill="#7c3aed" fill-opacity="0.39"/><rect x="780" y="240" width="120" height="52" rx="7" fill="#7c3aed" fill-opacity="0.12"/>
+    <rect x="280" y="300" width="120" height="52" rx="7" fill="#7c3aed" fill-opacity="0.90"/><rect x="405" y="300" width="120" height="52" rx="7" fill="#7c3aed" fill-opacity="0.89"/><rect x="530" y="300" width="120" height="52" rx="7" fill="#7c3aed" fill-opacity="0.70"/><rect x="655" y="300" width="120" height="52" rx="7" fill="#7c3aed" fill-opacity="0.37"/><rect x="780" y="300" width="120" height="52" rx="7" fill="#7c3aed" fill-opacity="0.13"/>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#172033" text-anchor="middle">
+    <text x="340" y="152">47.85%</text><text x="465" y="152">45.27%</text><text x="590" y="152">93.12%</text><text x="715" y="152">44.56%</text><text x="840" y="152">0.01%</text>
+    <text x="340" y="212">48.78%</text><text x="465" y="212">49.31%</text><text x="590" y="212">94.46%</text><text x="715" y="212">45.80%</text><text x="840" y="212">0.61%</text>
+    <text x="340" y="272">90.64%</text><text x="465" y="272">89.24%</text><text x="590" y="272">71.11%</text><text x="715" y="272">39.27%</text><text x="840" y="272">12.28%</text>
+    <text x="340" y="332">90.42%</text><text x="465" y="332">88.98%</text><text x="590" y="332">69.82%</text><text x="715" y="332">37.09%</text><text x="840" y="332">12.76%</text>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="12" fill="#526079">
+    <text x="280" y="390">0%</text><rect x="315" y="377" width="80" height="15" rx="4" fill="#64748b" fill-opacity="0.15"/><rect x="395" y="377" width="80" height="15" rx="4" fill="#64748b" fill-opacity="0.35"/><rect x="475" y="377" width="80" height="15" rx="4" fill="#64748b" fill-opacity="0.55"/><rect x="555" y="377" width="80" height="15" rx="4" fill="#64748b" fill-opacity="0.75"/><rect x="635" y="377" width="80" height="15" rx="4" fill="#64748b" fill-opacity="0.95"/><text x="727" y="390">100%</text>
+  </g>
+</svg>

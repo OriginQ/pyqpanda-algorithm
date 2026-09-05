@@ -5,6 +5,14 @@ pyqpanda-algorithm is a quantum algorithm software package developed by Origin Q
 
 Official Website: [https://qcloud.originqc.com.cn/zh/programming/pyqpanda-algorithm]
 
+### QSEncode-Insight
+
+QSEncode-Insight uses a fidelity budget, preparation compatibility, and actual
+compiled resources to recommend compression or explicitly refuse an
+unprofitable compression. The existing `QSpare_Code` API remains unchanged.
+See the [QSEncode-Insight guide](pyqpanda-algorithm/pyqpanda_alg/QSEncode/README.md)
+for the CLI, notebook, evidence scope, and reproducible examples.
+
 ------
 
 ## Core Features
