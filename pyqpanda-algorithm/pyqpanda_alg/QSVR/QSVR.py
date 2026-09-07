@@ -119,10 +119,20 @@ class Quantum_SVR:
         return re
 
     def k_kernel(self, X, Y):
+        """Build a fidelity kernel, reusing symmetry for equal sample arrays.
+
+        For X == Y, K[i, j] = K[j, i] because fidelity is symmetric. Only
+        n * (n + 1) / 2 simulator calls are needed instead of n ** 2.
+        Distinct sample arrays retain the full pairwise evaluation, even
+        when their shapes match. Diagonal values are still simulated.
+        """
         matrix = np.zeros((len(X), len(Y)))
+        symmetric = np.array_equal(X, Y)
         for i in range(len(X)):
-            for j in range(len(Y)):
+            for j in range(i if symmetric else 0, len(Y)):
                 matrix[i][j] = self.dist(X[i], Y[j])
+                if symmetric:
+                    matrix[j][i] = matrix[i][j]
         return matrix
 
     def get_res(self):
