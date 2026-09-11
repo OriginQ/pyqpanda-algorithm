@@ -12,10 +12,8 @@
 
 from pyqpanda3.core import CPUQVM, QCircuit, QProg, RX, RY, CZ, H
 import numpy as np
-from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
-from sklearn.metrics import mean_squared_error, r2_score
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 
@@ -108,34 +106,72 @@ class Quantum_SVR:
             Qcir << RX(qb[i], cs[n - 1 - i])
         return Qcir
 
-    def dist(self, x, y):
-        machine = CPUQVM()
+    def dist(self, x, y, machine=None):
+        """Fidelity ``|<psi(x)|psi(y)>|^2`` between the two encoded states.
+
+        The circuit carries **no measurement instruction**, so the state-vector
+        simulator returns the exact probability instead of a shot-sampled
+        frequency. A ``machine`` may be supplied so that an entire kernel
+        matrix is built with a single simulator instead of one per entry.
+        """
+        if machine is None:
+            machine = CPUQVM()
         prog = QProg(2)
         qv = prog.qubits()
         prog << self.cir_real(qv, x) << self.cir_real(qv, y).dagger()
-        machine.run(prog, 1000)
+        machine.run(prog, 1)
         re = machine.result().get_prob_dict(qv)
         re = parse_quantum_result_dict(re, qv, select_max=-1)['0' * 2]
         return re
 
     def k_kernel(self, X, Y):
-        matrix = np.zeros((len(X), len(Y)))
-        for i in range(len(X)):
-            for j in range(len(Y)):
-                matrix[i][j] = self.dist(X[i], Y[j])
+        """Build the quantum kernel matrix between ``X`` and ``Y``.
+
+        When ``X`` and ``Y`` hold the same samples the matrix is symmetric, so
+        only the upper triangle is simulated and mirrored. This is the case
+        scikit-learn uses during ``fit``, so roughly half of the circuit
+        simulations are avoided there.
+        """
+        X = np.asarray(X)
+        Y = np.asarray(Y)
+        n, m = len(X), len(Y)
+        matrix = np.zeros((n, m))
+
+        # Single simulator shared by every entry of the matrix.
+        machine = CPUQVM()
+
+        if n == m and np.array_equal(X, Y):
+            for i in range(n):
+                matrix[i, i] = 1.0
+                for j in range(i + 1, m):
+                    value = self.dist(X[i], Y[j], machine)
+                    matrix[i, j] = value
+                    matrix[j, i] = value
+        else:
+            for i in range(n):
+                for j in range(m):
+                    matrix[i, j] = self.dist(X[i], Y[j], machine)
+
         return matrix
 
-    def get_res(self):
+    def _fit(self):
+        """Fit the SVR on the training data (shared by ``get_res``/``show_res``)."""
         svr = SVR(kernel=self.k_kernel, gamma=0.1)
         svr.fit(self.x, self.y)
+        return svr
+
+    def get_res(self):
+        svr = self._fit()
         y_ppp = svr.predict(self.x)
         return y_ppp, self.y
 
     def show_res(self):
-        svr = SVR(kernel=self.k_kernel, gamma=0.1)
-        svr.fit(self.x, self.y)
-        x0_test = np.linspace(min(self.x[:, 0]), max(self.x[:, 1]), 30)
-        x1_test = np.linspace(min(self.x[:, 0]), max(self.x[:, 1]), 30)
+        svr = self._fit()
+        # NOTE: each axis must be sampled over its own range. The original code
+        # used ``max(self.x[:, 1])`` for *both* axes, so the plotted surface was
+        # computed on the wrong grid.
+        x0_test = np.linspace(min(self.x[:, 0]), max(self.x[:, 0]), 30)
+        x1_test = np.linspace(min(self.x[:, 1]), max(self.x[:, 1]), 30)
         X0_test, X1_test = np.meshgrid(x0_test, x1_test)
         X_test = np.c_[X0_test.ravel(), X1_test.ravel()]
         y_pred = svr.predict(X_test).reshape(X0_test.shape)
