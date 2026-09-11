@@ -11,7 +11,7 @@
 # limitations under the License.
 
 import numpy as np
-from pyqpanda3.core import CPUQVM, QCircuit, QProg, CNOT, U1, U2, measure
+from pyqpanda3.core import CPUQVM, QCircuit, QProg, CNOT, U1, U2
 
 
 from ..plugin import *
@@ -21,6 +21,21 @@ from ..plugin import *
 
 
 def _build_circuit(qlist, n_qbits, weights_x, weights_y):
+    """Build the kernel circuit for the ``n_qbits``-qubit feature map.
+
+    .. note::
+
+        The entangling blocks below are hard-coded to a single ``CNOT`` between
+        ``qlist[0]`` and ``qlist[1]``, so only ``n_qbits == 2`` is meaningful.
+        Previously any other value silently produced a wrong kernel matrix;
+        now it fails loudly.
+    """
+    if n_qbits != 2:
+        raise ValueError(
+            f"_build_circuit only supports n_qbits=2, got {n_qbits!r}. "
+            "The entangling block is hard-coded to CNOT(qlist[0], qlist[1])."
+        )
+
     circuit = QCircuit()
     for i in range(n_qbits):
         circuit << U2(qlist[i], 0, np.pi)
@@ -50,17 +65,31 @@ def _build_circuit(qlist, n_qbits, weights_x, weights_y):
     return circuit
 
 
-def _run_circuit(n_qbits, weights_x, weights_y):
-    machine = CPUQVM()
+def _run_circuit(n_qbits, weights_x, weights_y, machine=None):
+    """Evaluate the kernel circuit and return the *exact* output probabilities.
+
+    Performance notes
+    -----------------
+    Two things used to make this helper the hot spot when building an
+    ``N x N`` kernel matrix:
+
+    1. A brand new ``CPUQVM`` was constructed on every call (``N*N`` times).
+    2. The program contained a ``measure`` instruction, so the probabilities
+       were **shot-sampled** (1024 shots -> ~3% relative noise) rather than
+       computed exactly. The kernel matrix therefore changed between runs.
+
+    The program is now simulated without any measurement instruction, so the
+    state-vector simulator returns the exact amplitudes/probabilities, and a
+    caller-supplied ``machine`` can be reused across the whole matrix.
+    """
     prog = QProg(n_qbits)
     qubits = prog.qubits()
-    circuit = QCircuit()
-    circuit << _build_circuit(qubits, n_qbits, weights_x, weights_y)
-    prog << circuit
-    prog << measure(qubits, qubits)
-    machine.run(prog, 1024)
-    result = machine.result().get_counts()
-    return result
+    prog << _build_circuit(qubits, n_qbits, weights_x, weights_y)
+
+    if machine is None:
+        machine = CPUQVM()
+    machine.run(prog, 1)
+    return machine.result().get_prob_dict(qubits)
 
 
 class QuantumKernel_vqnet:
@@ -306,6 +335,12 @@ class QuantumKernel_vqnet:
                     qsvm_classification()
 
         """
+        if self._n_qbits != 2:
+            raise ValueError(
+                f"QuantumKernel_vqnet only supports n_qbits=2, got {self._n_qbits!r}. "
+                "Pass n_qbits explicitly, e.g. QuantumKernel_vqnet(n_qbits=2)."
+            )
+
         if not isinstance(x_vec, np.ndarray):
             x_vec = np.asarray(x_vec)
         if y_vec is not None and not isinstance(y_vec, np.ndarray):
@@ -350,9 +385,10 @@ class QuantumKernel_vqnet:
             mus = np.asarray(mus.flat)
             nus = np.asarray(nus.flat)
 
-        is_statevector_sim = False
-        measurement = not is_statevector_sim
         measurement_basis = "0" * self._n_qbits
+
+        # One simulator reused for the whole matrix (was: one per matrix entry).
+        machine = CPUQVM()
 
         for idx in range(0, len(mus), self._batch_size):
             to_be_computed_data_pair = []
@@ -362,20 +398,22 @@ class QuantumKernel_vqnet:
                 j = nus[sub_idx]
                 x_i = x_vec[i]
                 y_j = y_vec[j]
-                if not np.all(x_i == y_j):
+                if np.all(x_i == y_j):
+                    # Identical feature vectors encode to the same state, so the
+                    # fidelity is exactly 1. The symmetric branch pre-fills the
+                    # diagonal, but the asymmetric branch used to leave these
+                    # entries at 0 -- record them explicitly for both cases.
+                    kernel[i, j] = 1.0
+                    if is_symmetric:
+                        kernel[j, i] = 1.0
+                else:
                     to_be_computed_data_pair.append((x_i, y_j))
                     to_be_computed_index.append((i, j))
 
             matrix_elements = []
             for x, y in to_be_computed_data_pair:
-                result = _run_circuit(self._n_qbits, x, y)
-                try:
-                    counts = result[measurement_basis]
-                    states = np.sum(list(result.values()))
-                    probability = counts / states
-                except:
-                    probability = 0.0001
-                matrix_elements.append(probability)
+                probabilities = _run_circuit(self._n_qbits, x, y, machine=machine)
+                matrix_elements.append(float(probabilities.get(measurement_basis, 0.0)))
 
             for (i, j), value in zip(to_be_computed_index, matrix_elements):
                 kernel[i, j] = value
@@ -383,7 +421,16 @@ class QuantumKernel_vqnet:
                     kernel[j, i] = kernel[i, j]
 
         if is_symmetric:
-            D, U = np.linalg.eig(kernel)
-            kernel = U @ np.diag(np.maximum(0, D)) @ U.transpose()
+            # ``kernel`` is real symmetric: use ``eigh`` (real spectrum, ascending)
+            # instead of ``eig``, which could return a complex dtype.
+            D, U = np.linalg.eigh(kernel)
+            kernel = U @ np.diag(np.maximum(0.0, D)) @ U.T
+            kernel = np.real_if_close(kernel)
+
+        # Exact fidelities live in [0, 1]; clip away floating-point overshoot and
+        # restore the unit diagonal that a quantum kernel must satisfy.
+        kernel = np.clip(kernel, 0.0, 1.0)
+        if is_symmetric:
+            np.fill_diagonal(kernel, 1.0)
 
         return kernel
