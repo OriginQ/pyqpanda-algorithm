@@ -13,13 +13,28 @@
 import numpy as np
 from copy import deepcopy
 from numpy import pi
-from pyqpanda3.core import CPUQVM, QCircuit, QProg, SWAP, U3, H, measure, draw_qprog
+from pyqpanda3.core import CPUQVM, QCircuit, QProg, SWAP, U3, H
 
 
 
 
-def _QuantumKmeansCircuit(theta0, phi0, theta, phi):
-    machine = CPUQVM()
+def _QuantumKmeansCircuit(theta0, phi0, theta, phi, machine=None):
+    """Swap-test circuit returning the ancilla probabilities ``{'0': .., '1': ..}``.
+
+    The probability of the ancilla being ``1`` is the normalised squared
+    distance between the two encoded states.
+
+    Two issues made this helper unnecessarily expensive, since ``fit`` calls it
+    once per (sample, centroid) pair on every iteration:
+
+    * a fresh ``CPUQVM`` was built on every call (now optional and shareable);
+    * ``draw_qprog(prog)`` was called unconditionally, which *builds a text
+      diagram of the circuit and throws it away* -- its return value was never
+      used. It has been removed from the hot path.
+
+    The program is also simulated without a measurement instruction, so the
+    ancilla probability is exact instead of a 1024-shot estimate.
+    """
     prog = QProg(3)
     qlist = prog.qubits()
     cir = QCircuit()
@@ -29,22 +44,21 @@ def _QuantumKmeansCircuit(theta0, phi0, theta, phi):
     cir << SWAP(qlist[0], qlist[1]).control(qlist[2])
     cir << H(qlist[2])
     prog << cir
-    prog << measure(qlist[2], qlist[2])
 
-    draw_qprog(prog)
-
-    machine.run(prog, 1024)
+    if machine is None:
+        machine = CPUQVM()
+    machine.run(prog, 1)
     result = machine.result().get_prob_dict([qlist[2]])
     return result
 
 
-def _point_centroid_distances(point, centroids, k):
+def _point_centroid_distances(point, centroids, k, machine=None):
     xval = [point[0]]
     for i in range(k):
-      xval.append(centroids[i][0])
+        xval.append(centroids[i][0])
     yval = [point[1]]
     for i in range(k):
-      yval.append(centroids[i][1])
+        yval.append(centroids[i][1])
 
     theta_t = [((x + 1) * pi / 2) for x in xval]
     theta_c = [((x + 1) * pi / 2) for x in yval]
@@ -52,7 +66,7 @@ def _point_centroid_distances(point, centroids, k):
     results_list = []
 
     for i in range(1, k + 1):
-        result = _QuantumKmeansCircuit(theta_c[0], theta_t[0], theta_c[i], theta_t[i])
+        result = _QuantumKmeansCircuit(theta_c[0], theta_t[0], theta_c[i], theta_t[i], machine)
         results_list.append(result['1'] if '1' in result else 0)
     return results_list
 
@@ -175,10 +189,13 @@ class QuantumKmeans:
 
         iter_counter = 1
         clusters = None
+        # One simulator reused across every distance evaluation in every
+        # iteration (was: a fresh CPUQVM per sample/centroid pair).
+        machine = CPUQVM()
         while abs(error - upper_error) > self.tol:
             centers = centers_new
 
-            distances = np.array(list(map(lambda x: _point_centroid_distances(x, centers, self.K), data)))
+            distances = np.array(list(map(lambda x: _point_centroid_distances(x, centers, self.K, machine), data)))
 
             clusters = np.argmin(distances, axis=1)
 
