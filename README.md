@@ -46,6 +46,7 @@ pyqpanda-algorithm 是由本源量子（Origin Quantum）开发的量子算法�
 
 - **QAOA（量子近似优化算法）**  
   混合量子-经典变分算法，通过优化参数化量子线路（Ansatz）来近似求解 QUBO 问题，适用于最大割、最大满足等问题。
+  可选的 [QAOALightCone 局部期望抽样](docs/qaoa_lightcone.md) 面向低深度 Z/ZZ 均值目标，通过外部 counts runner 执行，不改变原 QAOA API。
 
 - **Grover 搜索算法**  
   在无结构数据库中实现目标项的二次加速搜索。通过振幅放大技术，将搜索复杂度从 $O(N)$ 降低至 $O(\sqrt{N})$。

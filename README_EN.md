@@ -28,6 +28,7 @@ Suitable for combinatorial optimization and large-scale search problems (e.g., p
   Converts combinatorial optimization problems into quadratic unconstrained binary optimization problems (a universal modeling form for quantum annealing and variational quantum algorithms).
 - **QAOA (Quantum Approximate Optimization Algorithm)**  
   A hybrid quantum-classical variational algorithm that approximates QUBO solutions by optimizing parameterized quantum circuits (Ansatz), applicable to Max-Cut, Max-SAT, etc.
+  Optional [QAOALightCone local expectation sampling](docs/qaoa_lightcone.md) builds low-depth Z/ZZ mean-objective circuits for an external counts runner, without changing the existing QAOA API.
 - **Grover's Search Algorithm**  
   Achieves quadratic speedup for target item search in unstructured databases. Amplitude amplification reduces search complexity from $O(N)$ to $O(\sqrt{N})$.
 
