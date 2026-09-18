@@ -1,0 +1,42 @@
+{
+  "execution": "External counts-only software simulator; not a QPU",
+  "repeats": 2,
+  "shots_per_program": 256,
+  "metrics": {
+    "full": {
+      "times_seconds": [
+        25.252488575992174,
+        25.00427406898234
+      ],
+      "median_seconds": 25.128381322487257,
+      "device_sampled_peak_MiB": [
+        60.8359375,
+        60.953125
+      ],
+      "preparations_per_run": 1536,
+      "compiled_gates_per_run": 89088,
+      "calls_per_run": 6
+    },
+    "factorized": {
+      "times_seconds": [
+        6.153715483960696,
+        5.7901175149017945
+      ],
+      "median_seconds": 5.971916499431245,
+      "device_sampled_peak_MiB": [
+        60.01171875,
+        60.01953125
+      ],
+      "preparations_per_run": 768,
+      "compiled_gates_per_run": 20480,
+      "calls_per_run": 3
+    },
+    "time_ratio_full_over_new": 4.207758317598787,
+    "errors": [
+      0.04296875,
+      0.05078125
+    ]
+  },
+  "scope": "fixture-specific; different preparation budgets; not universal efficiency",
+  "probability_or_state_queries_in_algorithm": false
+}

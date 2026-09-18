@@ -53,6 +53,8 @@ pyqpanda-algorithm 是由本源量子（Origin Quantum）开发的量子算法�
 
 ### 2. **机器学习与数据挖掘算法**
 
+可选的 [QSVM 分量抽样核](docs/QSVM_factorized_kernel.md) 通过外部 counts runner 执行既有理想特征图的二位/单位分量；原 QSVM API 保持不变。
+
 将量子计算能力引入经典机器学习流程，提升分类、聚类、回归等任务的效率与精度。
 
 - **QSVM（量子支持向量机）**  
