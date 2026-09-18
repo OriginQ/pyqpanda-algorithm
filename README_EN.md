@@ -40,6 +40,8 @@ Integrates quantum computing into classical machine learning to improve efficien
   A regression model for fitting continuous variables (e.g., time series prediction).
 - **QKMeans (Quantum K-Means Clustering)**  
   Quantum-accelerated large-scale data clustering for high-dimensional data scenarios.
+
+Optional [adaptive centroid assignment](docs/qkmeans_adaptive_assignment.md) allocates a global measurement budget and reports undecided cases; the existing `fit` method is unchanged.
 - **QPCA (Quantum Principal Component Analysis)**  
   Extracts data principal components via quantum circuits to accelerate dimensionality reduction.
 - **QMRMR (Quantum Minimum Redundancy Maximum Relevance)**  

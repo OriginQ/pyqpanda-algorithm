@@ -66,6 +66,8 @@ pyqpanda-algorithm 是由本源量子（Origin Quantum）开发的量子算法�
 - **QKMeans（量子 K-均值聚类）**  
   利用量子加速实现大规模数据聚类，适用于高维数据聚类场景。
 
+可选的 [自适应候选归属](docs/qkmeans_adaptive_assignment.md) 按全局测量预算淘汰候选，无法充分区分时返回未决；原 `fit` 不变。
+
 - **QPCA（量子主成分分析）**  
   通过量子线路提取数据主成分，实现降维加速。
 

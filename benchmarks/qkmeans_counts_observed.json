@@ -1,0 +1,348 @@
+{
+  "backend": "external counts-only software simulator, independent device process",
+  "repeats": 2,
+  "cases": [
+    {
+      "case": {
+        "name": "separated",
+        "point": [
+          -1,
+          -1
+        ],
+        "centroids": [
+          [
+            -1,
+            1
+          ],
+          [
+            -1,
+            -1
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      },
+      "uniform_shots": [
+        1536,
+        1536
+      ],
+      "adaptive_shots": [
+        256,
+        256
+      ],
+      "adaptive_statuses": [
+        "separated",
+        "separated"
+      ],
+      "winners": [
+        1,
+        1
+      ],
+      "alpha_per_assignment": 0.05,
+      "batch_shots": 64,
+      "uniform_seconds": [
+        7.1486909199738875,
+        7.089110590983182
+      ],
+      "uniform_gate_executions": [
+        30720,
+        30720
+      ],
+      "uniform_sampled_peak_MiB": [
+        59.953125,
+        59.953125
+      ],
+      "adaptive_seconds": [
+        2.016134037054144,
+        2.033106456976384
+      ],
+      "adaptive_gate_executions": [
+        5120,
+        5120
+      ],
+      "adaptive_sampled_peak_MiB": [
+        59.71484375,
+        59.65234375
+      ],
+      "shot_reduction_fractions": [
+        0.8333333333333334,
+        0.8333333333333334
+      ]
+    },
+    {
+      "case": {
+        "name": "interior",
+        "point": [
+          -0.2,
+          0.1
+        ],
+        "centroids": [
+          [
+            0.8,
+            -0.1
+          ],
+          [
+            -0.2,
+            0.1
+          ],
+          [
+            0.8,
+            0.5
+          ]
+        ]
+      },
+      "uniform_shots": [
+        1536,
+        1536
+      ],
+      "adaptive_shots": [
+        832,
+        960
+      ],
+      "adaptive_statuses": [
+        "separated",
+        "separated"
+      ],
+      "winners": [
+        1,
+        1
+      ],
+      "alpha_per_assignment": 0.05,
+      "batch_shots": 64,
+      "uniform_seconds": [
+        8.831509641953744,
+        8.440884788986295
+      ],
+      "uniform_gate_executions": [
+        35328,
+        35328
+      ],
+      "uniform_sampled_peak_MiB": [
+        60.078125,
+        60.07421875
+      ],
+      "adaptive_seconds": [
+        5.292234709020704,
+        5.612000814988278
+      ],
+      "adaptive_gate_executions": [
+        19136,
+        22080
+      ],
+      "adaptive_sampled_peak_MiB": [
+        59.96875,
+        60.0234375
+      ],
+      "shot_reduction_fractions": [
+        0.45833333333333337,
+        0.375
+      ]
+    },
+    {
+      "case": {
+        "name": "close",
+        "point": [
+          -1,
+          0
+        ],
+        "centroids": [
+          [
+            -1,
+            0.1
+          ],
+          [
+            -1,
+            0.12
+          ],
+          [
+            1,
+            0
+          ]
+        ]
+      },
+      "uniform_shots": [
+        1536,
+        1536
+      ],
+      "adaptive_shots": [
+        1536,
+        1536
+      ],
+      "adaptive_statuses": [
+        "undecided",
+        "undecided"
+      ],
+      "winners": [
+        null,
+        null
+      ],
+      "alpha_per_assignment": 0.05,
+      "batch_shots": 64,
+      "uniform_seconds": [
+        8.309048500959761,
+        8.125468560960144
+      ],
+      "uniform_gate_executions": [
+        32768,
+        32768
+      ],
+      "uniform_sampled_peak_MiB": [
+        60.0390625,
+        59.96875
+      ],
+      "adaptive_seconds": [
+        8.292921492015012,
+        8.140979055082425
+      ],
+      "adaptive_gate_executions": [
+        32320,
+        32320
+      ],
+      "adaptive_sampled_peak_MiB": [
+        59.90625,
+        60.00390625
+      ],
+      "shot_reduction_fractions": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "case": {
+        "name": "tie",
+        "point": [
+          -0.2,
+          0.1
+        ],
+        "centroids": [
+          [
+            -0.2,
+            0.1
+          ],
+          [
+            -0.2,
+            0.1
+          ]
+        ]
+      },
+      "uniform_shots": [
+        1024,
+        1024
+      ],
+      "adaptive_shots": [
+        1024,
+        1024
+      ],
+      "adaptive_statuses": [
+        "undecided",
+        "undecided"
+      ],
+      "winners": [
+        null,
+        null
+      ],
+      "alpha_per_assignment": 0.05,
+      "batch_shots": 64,
+      "uniform_seconds": [
+        6.555078932084143,
+        6.149632323067635
+      ],
+      "uniform_gate_executions": [
+        23552,
+        23552
+      ],
+      "uniform_sampled_peak_MiB": [
+        60.05859375,
+        59.98046875
+      ],
+      "adaptive_seconds": [
+        6.330582457012497,
+        5.931173361022957
+      ],
+      "adaptive_gate_executions": [
+        23552,
+        23552
+      ],
+      "adaptive_sampled_peak_MiB": [
+        60.00390625,
+        60.03125
+      ],
+      "shot_reduction_fractions": [
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "case": {
+        "name": "off_center",
+        "point": [
+          -0.2,
+          0.1
+        ],
+        "centroids": [
+          [
+            0.8,
+            -0.1
+          ],
+          [
+            -0.15,
+            0.2
+          ],
+          [
+            0.8,
+            0.5
+          ]
+        ]
+      },
+      "uniform_shots": [
+        1536,
+        1536
+      ],
+      "adaptive_shots": [
+        768,
+        960
+      ],
+      "adaptive_statuses": [
+        "separated",
+        "separated"
+      ],
+      "winners": [
+        1,
+        1
+      ],
+      "alpha_per_assignment": 0.05,
+      "batch_shots": 64,
+      "uniform_seconds": [
+        9.511616726987995,
+        9.496164992917329
+      ],
+      "uniform_gate_executions": [
+        35328,
+        35328
+      ],
+      "uniform_sampled_peak_MiB": [
+        60.046875,
+        60.13671875
+      ],
+      "adaptive_seconds": [
+        5.433624212979339,
+        6.64392439101357
+      ],
+      "adaptive_gate_executions": [
+        17664,
+        22080
+      ],
+      "adaptive_sampled_peak_MiB": [
+        60.05859375,
+        60.05078125
+      ],
+      "shot_reduction_fractions": [
+        0.5,
+        0.375
+      ]
+    }
+  ],
+  "scope": "one alpha budget per assignment; easy examples are not a coverage or general performance study; time includes startup/protocol/logging; RSS is sampled"
+}
