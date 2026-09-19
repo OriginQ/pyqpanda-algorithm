@@ -1,0 +1,7 @@
+include LICENSE NOTICE requirements.txt requirements-pyqpanda.txt requirements-qcloud.txt
+include irrigation.py irrigation_model.py solvers.py
+include data/demo_3zones_7days.json
+global-exclude *.pdf
+recursive-include docs *.md
+recursive-include tests *.py
+recursive-include wheat_irrigation/data *.json
