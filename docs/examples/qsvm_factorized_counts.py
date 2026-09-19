@@ -1,10 +1,9 @@
-"""Run the fixed ideal-map estimator with an explicitly supplied counts adapter.
+"""使用显式提供的测量计数适配器运行固定理想特征映射的估计器。
 
-Usage: python docs/examples/qsvm_factorized_counts.py \
-    --runner my_backend:run_counts --shots 1024
+用法：python docs/examples/qsvm_factorized_counts.py --runner my_backend:run_counts --shots 1024
 
-No simulator or analytic fallback is selected here. Local simulator results
-must not be labelled hardware data or a full noisy-device kernel.
+此处不选择默认模拟器，也不回退到解析计算。
+本地模拟结果不能标作真机数据，也不能当作完整含噪器件的量子核。
 """
 
 import argparse
@@ -18,7 +17,7 @@ from pyqpanda_alg.QSVM import FactorizedQuantumKernel
 
 
 def run_example(run_counts, shots=1024):
-    """Return measured matrices and resource records for two fresh evaluations."""
+    """返回两次独立重新测量所得的矩阵及资源记录。"""
     calls = []
 
     def tracked_counts(program, requested_shots):
@@ -32,12 +31,12 @@ def run_example(run_counts, shots=1024):
         })
         return counts
 
-    # Repeated component values can be reused at the SAME feature position.
+    # 只有同一特征位置上的重复分量值才能复用。
     train = np.array([
         [0.2, 0.3, 0.4, 0.5, 0.6, 0.7],
         [0.2, 0.3, 0.8, 0.5, 0.9, 0.7],
         [0.9, 0.1, 0.4, 0.2, 0.6, 0.3],
-        [0.2, 0.3, 0.4, 0.5, 0.6, 0.7],  # exact duplicate
+        [0.2, 0.3, 0.4, 0.5, 0.6, 0.7],  # 完全重复的数据行
     ])
     test = np.array([
         [0.2, 0.3, 0.4, 0.2, 0.9, 0.3],

@@ -7,12 +7,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Budgeted, counts-only assignment for the existing two-feature SWAP encoding.
+"""针对现有双特征 SWAP 编码，在预算约束下仅依据测量计数进行分配。
 
-This optional decision layer does not alter ``QuantumKmeans.fit``. It selects
-among measured ancilla-one probabilities, not general Euclidean distances.
-The caller supplies the measurement runner; no backend or exact-probability
-fallback is selected here.
+这一可选决策层不改变 ``QuantumKmeans.fit``。它依据辅助量子比特测得 1 的
+概率进行选择，而不是依据一般的欧氏距离。
+测量执行器由调用方提供；此处不选择后端，也不会回退到精确概率计算。
 """
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -27,12 +26,12 @@ __all__ = ["AssignmentResult", "adaptive_assign", "build_assignment_program"]
 
 @dataclass(frozen=True)
 class AssignmentResult:
-    """Immutable snapshot, with tuples indexed by original candidate order.
+    """不可变快照，其中元组按候选的原始顺序索引。
 
-    ``winner`` is an index only for ``separated`` or ``single_candidate``.
-    Unmeasured candidates have mean ``None`` and interval ``(0, 1)``.
-    Eliminated candidates retain their last cumulative statistics; ``active``
-    contains the surviving indices, not a ranking or an estimated winner.
+    仅当状态为 ``separated`` 或 ``single_candidate`` 时，``winner`` 才是索引。
+    未测量候选的均值为 ``None``，区间为 ``(0, 1)``。
+    已淘汰候选保留其最后的累计统计量；``active`` 包含尚未淘汰的候选索引，
+    并不表示排名或估计的优胜者。
     """
     status: str
     winner: Optional[int]
@@ -69,9 +68,9 @@ def _shot_count(value, name, minimum):
 
 
 def _append_fredkin(program, control, left, right):
-    # CX(right,left) CCX(control,left,right) CX(right,left).
-    # The CCX is the standard exact (not relative-phase) H/T/CX decomposition.
-    # Only single-qubit gates and singly controlled NOT gates are emitted.
+    # 门序列为 CX(right,left) CCX(control,left,right) CX(right,left)。
+    # CCX 采用标准的精确 H/T/CX 分解，而非相对相位分解。
+    # 仅生成单量子比特门和单控制比特的非门。
     program << CNOT(right, left)
     program << H(right) << CNOT(left, right) << T(right).dagger()
     program << CNOT(control, right) << T(right) << CNOT(left, right)
@@ -83,13 +82,13 @@ def _append_fredkin(program, control, left, right):
 
 
 def build_assignment_program(point: Iterable[Real], centroid: Iterable[Real]) -> QProg:
-    """Build a fresh three-qubit SWAP-test program, measuring only q2 into c0.
+    """新建三量子比特 SWAP 测试程序，仅将 q2 的测量结果写入 c0。
 
-    Each input is two finite real coordinates ``(x, y)`` in ``[-1, 1]``.
-    On q0/q1, prepare ``U3((y+1)*pi/2, (x+1)*pi/2, 0)`` as in the legacy
-    implementation. The controlled SWAP uses exact H/T/CNOT decomposition.
-    The caller owns the returned program. It needs a fresh |000> preparation
-    on every shot, standard gate/dagger support, and only c0 in its counts.
+    每个输入包含两个位于 ``[-1, 1]`` 内的有限实数坐标 ``(x, y)``。
+    与原有实现一样，在 q0/q1 上使用 ``U3((y+1)*pi/2, (x+1)*pi/2, 0)``
+    制备状态。受控 SWAP 采用精确的 H/T/CNOT 分解。
+    返回程序的所有权归调用方。每次采样都需重新制备 |000>，执行环境需支持
+    标准量子门及其厄米共轭操作，测量计数中只能包含 c0。
     """
     point = _point_snapshot(point, "point")
     centroid = _point_snapshot(centroid, "centroid")
@@ -128,29 +127,25 @@ def adaptive_assign(
     max_shots: int = 4096,
     alpha: float = 0.05,
 ) -> AssignmentResult:
-    """Eliminate separated candidates using cumulative fixed-batch counts.
+    """使用固定批量的累计测量计数，淘汰已由区间分离判定的候选。
 
-    ``max_shots`` is a global hard cap on requested shots, not a per-candidate
-    cap. Active candidates are visited in original-index round-robin order.
-    Never request a partial batch. A runner failure or invalid counts raises
-    immediately, without retrying or falling back to another backend.
+    ``max_shots`` 是请求采样总数的全局硬上限，而不是每个候选各自的上限。
+    尚未淘汰的候选按原始索引顺序轮询。绝不请求不足一批的采样。
+    执行器失败或计数无效时立即抛出异常，不重试，也不回退到其他后端。
 
-    ``run_counts(program, shots)`` must return a mapping whose only possible
-    keys are ``'0'`` and ``'1'`` and whose nonnegative integer (non-bool) values
-    sum exactly to ``shots``. Missing outcomes count as zero. Every callback
-    receives a freshly built caller-owned program; input coordinates are
-    snapshotted before any callback. Statistics are local to this invocation.
+    ``run_counts(program, shots)`` 必须返回映射，键只能为 ``'0'`` 和 ``'1'``，
+    值必须是非负整数（不能是布尔值），且总和严格等于 ``shots``。
+    缺失结果按零次计数。每次回调都接收一个新建的、归调用方所有的程序；
+    在任何回调之前，都会对输入坐标创建快照。统计量仅属于本次调用。
 
-    For K candidates and L = floor(max_shots / batch_shots), use the radius
-    sqrt(log(2*K*max(1,L)/alpha)/(2*n)) at each candidate's fixed sample sizes
-    n = j*batch_shots. The union bound covers all potential K*L looks, so
-    adaptive elimination is valid assuming independent stationary Bernoulli
-    shots for each fixed candidate. For one assignment, the probability of
-    returning an incorrect separated winner is at most alpha. This is not
-    a bound conditional on having returned a winner, nor a hardware-fidelity
-    guarantee or a statement about Euclidean clustering quality.
-    Alpha covers one assignment; multiple points/iterations need a separate
-    error-budget allocation. See docs/qkmeans_adaptive_assignment.md.
+    对于 K 个候选，令 L = floor(max_shots / batch_shots)，在每个候选的固定
+    样本量 n = j*batch_shots 处，使用半径 sqrt(log(2*K*max(1,L)/alpha)/(2*n))。
+    联合界覆盖所有可能的 K*L 次检查，因此，只要对每个固定候选的采样都是
+    独立且分布平稳的伯努利采样，自适应淘汰就有效。对于一次分配，返回一个
+    错误的、状态为 separated 的优胜者的概率至多为 alpha。这不是以已经返回
+    优胜者为条件的概率界，也不是硬件保真度保证，更不代表欧氏聚类质量。
+    alpha 只涵盖一次分配；多个数据点或多轮迭代需要另行分配错误概率预算。
+    参见 docs/qkmeans_adaptive_assignment.md。
     """
     point = _point_snapshot(point, "point")
     if isinstance(centroids, (str, bytes, Mapping)):
@@ -188,12 +183,12 @@ def adaptive_assign(
     if k == 1:
         return result("single_candidate", 0)
     looks = max_shots // batch_shots
-    # Log-space arithmetic avoids overflowing the ratio for very small alpha.
+    # 在对数域中计算，避免 alpha 极小时比值溢出。
     log_factor = log(2) + log(k) + log(max(1, looks)) - log(alpha)
     while total + batch_shots <= max_shots:
         for index in active:
-            # The round's tuple is fixed; an earlier look may eliminate a
-            # candidate that has not yet received its turn in this round.
+            # 本轮遍历的元组已固定；较早的检查可能淘汰
+            # 本轮尚未轮到的候选。
             if index not in active:
                 continue
             if total + batch_shots > max_shots:

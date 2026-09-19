@@ -1,4 +1,4 @@
-"""Explicit SDK simulation example; keeps success and failure measurements."""
+"""显式使用SDK模拟器的示例；同时保留成功和失败的测量结果。"""
 import json
 from pyqpanda3.core import CPUQVM,QProg,H,S,CNOT,measure
 from pyqpanda_alg.QRecovery import weak_z_recovery_block
@@ -9,7 +9,7 @@ def example(shots=256):
     p<<H(0)<<CNOT(0,1)
     p<<weak_z_recovery_block(0,2,3,first_cbit=0,recovery_cbit=1,strength=.8)
     p<<H(0)<<S(0)
-    # Operator-side test readout; not part of recovery or its input.
+    # 操作者侧的测试读出，不属于恢复操作或其输入。
     p<<S(0).dagger()<<H(0)<<CNOT(0,1)<<H(0)
     p<<measure(0,2)<<measure(1,3)
     simulator=CPUQVM();simulator.run(p,shots)

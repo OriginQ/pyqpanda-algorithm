@@ -1,8 +1,8 @@
-"""Small sampling-only example. No backend is selected implicitly.
+"""只通过抽样估计的小示例，不隐式选择后端。
 
-Run without --runner to inspect plans only. To sample, supply a configured
-module:function implementing (QProg, shots) -> integer counts; see
-../docs/qaoa_lightcone.md for the cbit convention and statistical limitations.
+未指定 --runner 时仅查看结构计划。若要实际抽样，须提供已配置的
+module:function，接口为 (QProg, shots) -> 整数计数。
+经典位顺序和统计限制见 ../docs/qaoa_lightcone.md。
 """
 
 import argparse
@@ -12,14 +12,14 @@ from pyqpanda_alg.QAOA import QAOALightCone
 
 
 def make_example():
-    """A depth-one chain: small cones in an explicit 12-qubit register."""
+    """深度为一的链式问题：在显式12位寄存器中构造较小的局部光锥。"""
     terms: dict[tuple[int, ...], float] = {(q, q + 1): 0.5 for q in range(11)}
     terms.update({(): 0.5, (0,): -0.3})
     return QAOALightCone(n_qubits=12, terms=terms, depth=1)
 
 
 def run_example(run_counts, shots=256):
-    """Evaluate two settings with fresh samples but the same structural plans."""
+    """复用同一结构计划，但对两组参数分别重新抽样。"""
     executor = make_example()
     return tuple(executor.estimate(gammas, betas, shots, run_counts)
                  for gammas, betas in [([0.27], [-0.18]), ([0.31], [0.22])])

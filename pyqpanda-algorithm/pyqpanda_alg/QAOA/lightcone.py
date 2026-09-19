@@ -10,13 +10,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Sampling-only, backward-light-cone QAOA for a Z/ZZ mean objective.
+"""用于 Z/ZZ 均值目标、仅依赖采样的反向光锥 QAOA。
 
-This opt-in executor uses |+> initialization, exp(-i gamma H_cost), and
-RX(-2 beta), matching the existing QAOA implementation's default gates.
-Only immutable dependency plans are reused. A caller-supplied counts runner
-is mandatory; this module never creates a quantum backend or queries its state.
-"""
+此执行器需显式选用，采用 |+> 初始化、exp(-i gamma H_cost) 和
+RX(-2 beta)，与现有 QAOA 实现的默认门一致。
+仅复用不可变的依赖计划。调用方必须提供返回测量计数的执行函数；
+本模块从不创建量子后端，也不查询其状态。"""
 
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
@@ -35,7 +34,7 @@ __all__ = [
 
 @dataclass(frozen=True)
 class ZTerm:
-    """A copied, canonical global support and its finite real coefficient."""
+    """已复制并规范化的全局支撑集及其有限实系数。"""
 
     qubits: tuple[int, ...]
     coefficient: float
@@ -43,7 +42,7 @@ class ZTerm:
 
 @dataclass(frozen=True)
 class LightConeLayer:
-    """Retained cost terms and mixer qubits, both in global indices."""
+    """保留的代价项与混合器量子比特，均使用全局索引。"""
 
     cost_terms: tuple[ZTerm, ...]
     mixer_qubits: tuple[int, ...]
@@ -51,10 +50,10 @@ class LightConeLayer:
 
 @dataclass(frozen=True)
 class LightConePlan:
-    """One target's immutable plan; layers are in forward execution order.
+    """单个目标的不可变计划；各层按正向执行顺序排列。
 
-    ``global_qubits[local_index]`` is the inverse of ``global_to_local``.
-    The plan is structural, not specialized to any gamma or beta value.
+    ``global_qubits[local_index]`` 是 ``global_to_local`` 的逆映射。
+    此计划仅描述结构，不针对任何特定的 gamma 或 beta 值。
     """
 
     target: ZTerm
@@ -63,17 +62,17 @@ class LightConePlan:
 
     @property
     def global_to_local(self) -> Mapping[int, int]:
-        """Read-only map from original labels to contiguous local indices."""
+        """从原始标签到连续局部索引的只读映射。"""
         return MappingProxyType({q: i for i, q in enumerate(self.global_qubits)})
 
 
 @dataclass(frozen=True)
 class LightConeProgram:
-    """A fresh, caller-owned QProg and its immutable interpretation.
+    """新建且归调用方所有的 QProg，以及其不可变的解释信息。
 
-    The QProg itself is mutable; it is never stored back into the executor.
-    All local qubits are measured to same-index cbits. For width ``w``, a
-    counts key must be exactly ``c[w-1]...c[1]c[0]`` (c0 at the right).
+    QProg 本身可变；它从不被存回执行器。
+    所有局部量子比特均测量到同索引的经典比特。宽度为 ``w`` 时，
+    计数字典的键必须严格采用 ``c[w-1]...c[1]c[0]`` 格式（c0 在最右侧）。
     """
 
     program: QProg
@@ -81,28 +80,28 @@ class LightConeProgram:
 
     @property
     def local_target(self) -> tuple[int, ...]:
-        """The target's qubits after global-to-local remapping."""
+        """目标量子比特从全局索引重映射到局部索引后的结果。"""
         mapping = self.plan.global_to_local
         return tuple(mapping[q] for q in self.plan.target.qubits)
 
     @property
     def parity_cbits(self) -> tuple[int, ...]:
-        """Cbits whose XOR determines the target's +/-1 measurement."""
+        """其异或值决定目标 +/-1 测量结果的经典比特。"""
         return self.local_target
 
     @property
     def measurement_cbits(self) -> tuple[int, ...]:
-        """All measured cbit indices, in increasing order."""
+        """所有被测经典比特的索引，按递增顺序排列。"""
         return tuple(range(len(self.plan.global_qubits)))
 
 
 @dataclass(frozen=True)
 class LightConeEstimate:
-    """Sampled mean and shot accounting for one evaluation.
+    """单次求值的采样均值与采样次数统计。
 
-    ``term_means`` contains unweighted parity means in ``executor.plans``
-    order. Constants have no entry and require no shots. ``total_shots``
-    counts preparations across all programs, not shots of one global circuit.
+    ``term_means`` 按 ``executor.plans`` 的顺序存储未加权的奇偶均值。
+    常数项不占条目，也不需要采样。``total_shots`` 统计所有程序的
+    总制备次数，而非单个全局电路的采样次数。
     """
 
     mean: float
@@ -133,13 +132,13 @@ def _real(value, name: str) -> float:
 
 
 def _objective_sum(values: list[float]) -> float:
-    """Keep fsum's usual path; rescue finite cancellation after overflow."""
+    """保留 fsum 的常规路径；溢出时恢复相消后仍有限的求和结果。"""
     try:
         result = fsum(values)
     except OverflowError:
-        # These are already-rounded finite weighted sample means, not quantum
-        # amplitudes. Exact summation here avoids overflowing intermediate sums
-        # without scaling away a tiny residual after large cancellation.
+        # 这些值是已经舍入的有限加权样本均值，而非量子振幅。
+        # 此处精确求和可避免中间和溢出，同时不会因缩放而丢失
+        # 大数相消后的微小残差。
         exact = sum((Fraction.from_float(value) for value in values), Fraction(0))
         try:
             result = float(exact)
@@ -189,9 +188,9 @@ def _make_plan(target: ZTerm, terms: tuple[ZTerm, ...],
     support = set(target.qubits)
     backwards = []
     for _ in range(depth):
-        # Freeze the entering support before visiting this commuting cost layer.
-        # Iteratively growing support while selecting terms would wrongly walk
-        # arbitrarily far along a chain within a single layer.
+        # 遍历此可交换代价层之前，先固定进入该层时的支撑集。
+        # 若在选择项时迭代扩展支撑集，就会错误地在单层内
+        # 沿链传播至任意远处。
         mixers = tuple(sorted(support))
         selected = sorted({index for q in mixers for index in incident[q]})
         costs = tuple(terms[index] for index in selected)
@@ -221,28 +220,28 @@ def _parity_mean(counts: Mapping[str, int], width: int,
 
 @dataclass(frozen=True, init=False)
 class QAOALightCone:
-    """Reusable local sampling plans for ``H = constant + sum a_S Z_S``.
+    """用于 ``H = constant + sum a_S Z_S`` 的可复用局部采样计划。
 
-    Parameters
-    ----------
+    参数
+    ----
     n_qubits : int
-        Explicit nonnegative global width. Sparse global labels are allowed.
+        显式指定的非负全局宽度。允许使用稀疏的全局标签。
     terms : Mapping[tuple[int, ...], real]
-        ``()`` is the constant; ``(i,)`` is Z_i; ``(i, j)`` is Z_i Z_j.
-        Indices must be distinct within a term and in ``range(n_qubits)``.
-        Pair order is canonicalized; duplicate canonical supports are rejected.
-        Weights are copied as finite floats; zero coefficients are omitted.
-        Booleans and complex numbers (even with zero imaginary part) are rejected.
+        ``()`` 表示常数；``(i,)`` 表示 Z_i；``(i, j)`` 表示 Z_i Z_j。
+        同一项内的索引必须互不相同，且均位于 ``range(n_qubits)`` 内。
+        比特对的顺序会被规范化；规范化后支撑集重复的项将被拒绝。
+        权重被复制为有限浮点数；零系数项被省略。
+        不接受布尔值或复数（即使其虚部为零）。
     depth : int
-        Nonnegative number of cost-then-mixer layers. At depth zero, nonconstant
-        targets are still sampled from local |+> preparations.
+        先执行代价门、再执行混合器的层数，须非负。深度为零时，
+        非常数目标仍从局部制备的 |+> 态中采样。
 
-    Notes
-    -----
-    There is one plan per nonzero nonconstant term, in sorted support order.
-    No grouping, optimizer, CVaR/Gibbs objective, full bitstring reconstruction,
-    backend selection, or expectation-value cache is provided. Changing weights
-    or depth requires a new instance; changing angles reuses only the plans.
+    说明
+    ----
+    每个非零且非常数的项对应一个计划，按支撑集排序。
+    不提供分组、优化器、CVaR/Gibbs 目标、完整比特串重建、
+    后端选择或期望值缓存。修改权重或深度需要新建实例；
+    修改角度时仅复用计划。
     """
 
     n_qubits: int
@@ -269,12 +268,12 @@ class QAOALightCone:
         object.__setattr__(self, "plans", plans)
 
     def build_programs(self, gammas: Iterable[Real], betas: Iterable[Real]) -> tuple[LightConeProgram, ...]:
-        """Build fresh measured local QProgs for exactly ``depth`` angle pairs.
+        """为恰好 ``depth`` 对角度新建带测量的局部 QProg。
 
-        Each program prepares |+> on every cone qubit, then executes retained
-        cost gates (RZ(2 gamma a), or CNOT/RZ/CNOT) and RX(-2 beta) mixers.
-        Constants are omitted as global phases. No device is called here.
-        All parameters and computed gate angles must be finite real floats.
+        每个程序先将光锥内的各量子比特制备为 |+> 态，再执行保留的
+        代价门（RZ(2 gamma a) 或 CNOT/RZ/CNOT）和 RX(-2 beta) 混合器。
+        常数项仅产生全局相位，因此被省略。此处不调用任何设备。
+        所有参数及计算得到的门角度都必须是有限的实浮点数。
         """
         gamma_values = _parameters(gammas, self.depth, "gammas")
         beta_values = _parameters(betas, self.depth, "betas")
@@ -305,23 +304,23 @@ class QAOALightCone:
 
     def estimate(self, gammas: Iterable[Real], betas: Iterable[Real], shots: int,
                  run_counts: Callable[[QProg, int], Mapping[str, int]]) -> LightConeEstimate:
-        """Sample the mean objective using only ``run_counts(program, shots)``.
+        """仅通过 ``run_counts(program, shots)`` 采样估计目标均值。
 
-        ``shots`` is a positive integer PER PROGRAM, not a total budget. The
-        callback must return nonnegative integer counts summing to exactly
-        ``shots``; keys are width-bit strings ``c[w-1]...c[0]``. No probabilities,
-        integer keys, whitespace, prefixes, implicit padding, or quasi-counts
-        are accepted. Omitted zero-count outcomes are fine.
+        ``shots`` 是每个程序的正整数采样次数，而非总预算。
+        回调必须返回非负整数计数，其总和须恰好为 ``shots``；
+        键为与电路宽度一致的比特串 ``c[w-1]...c[0]``。不接受概率、
+        整数键、空白、前缀、隐式补位或准计数。
+        可以省略计数为零的结果。
 
-        The runner must freshly prepare and sample each program. Errors propagate
-        without backend fallback or retries. A failure after earlier calls may
-        already have consumed shots; no partial estimate is returned. Even a
-        constant-only objective requires a callable, but never invokes it.
+        执行函数必须为每个程序重新制备并采样。错误直接向上传播，
+        不切换备用后端，也不重试。若此前已有调用，失败时可能已
+        消耗采样次数；不返回部分估计。即使目标仅含常数项，
+        也必须提供可调用对象，但不会调用它。
         """
         shots = _integer(shots, "shots", minimum=1)
         if not callable(run_counts):
             raise TypeError("run_counts must be a callable; no default backend is provided")
-        # Validate/build the entire batch before submitting any program.
+        # 提交任何程序之前，先验证并构建整个批次。
         jobs = self.build_programs(gammas, betas)
         means = tuple(_parity_mean(run_counts(job.program, shots),
                                    len(job.plan.global_qubits), job.parity_cbits, shots)

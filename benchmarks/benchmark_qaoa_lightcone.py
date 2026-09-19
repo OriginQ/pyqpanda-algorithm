@@ -1,8 +1,9 @@
-"""Compare full and local QAOA sampling with an explicit counts runner.
+"""使用显式测量计数接口，对比完整线路与局部光锥的QAOA抽样。
 
-Example: PYTHONPATH=pyqpanda-algorithm python benchmarks/benchmark_qaoa_lightcone.py
+运行示例：
+PYTHONPATH=pyqpanda-algorithm python benchmarks/benchmark_qaoa_lightcone.py
     --runner my_device:run_counts --shots 256
-No default simulator, exact probability or state inspection is used.
+不隐式选择模拟器，也不查询精确概率或内部态。
 """
 import argparse
 import importlib

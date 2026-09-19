@@ -1,7 +1,7 @@
-"""Compare full and factorized QSVM sampling using an explicit counts runner.
+"""通过显式测量计数接口，对比完整QSVM线路与分量抽样。
 
-This repeated-component fixture demonstrates conditional reuse, not universal
-shot savings. No default simulator, exact probabilities or PSD repair.
+此重复分量样例展示有条件的复用收益，测量次数的节省并不覆盖所有输入。
+不隐式选择模拟器，不取精确概率，也不进行半正定修复。
 """
 import argparse
 import importlib

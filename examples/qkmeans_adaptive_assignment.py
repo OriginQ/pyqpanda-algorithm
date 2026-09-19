@@ -1,4 +1,4 @@
-"""Explicit software measurement backend; the algorithm sees only counts."""
+"""显式使用软件测量后端；算法只接收测量计数。"""
 from pyqpanda3.core import CPUQVM
 from pyqpanda_alg.QKmeans import adaptive_assign
 

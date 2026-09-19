@@ -1,8 +1,7 @@
-"""Independent small-system oracles and counts-contract tests.
+"""独立小系统参考与测量计数接口约定测试。
 
-CPUQVM probabilities are used ONLY here as a test oracle. Scripted counts
-below test protocol/bookkeeping, not hardware accuracy. The sampling test
-runs actual CPUQVM measurements; device/Port acceptance is separate.
+CPUQVM的概率只在这里作为测试参考。脚本生成的计数用于检查协议和记账，
+不是器件精度证据。抽样测试实际执行CPUQVM测量；设备及Port接口另行验收。
 """
 
 from collections import Counter
@@ -16,7 +15,7 @@ from pyqpanda_alg.QSVM.quantum_kernel_svm import _build_circuit
 
 
 def feature(values):
-    """Independent forward feature map; not the production overlap builder."""
+    """独立构造正向特征映射，不复用待测的重叠线路构造器。"""
     circuit = QCircuit()
     for _ in range(2):
         for q, value in enumerate(values):
@@ -48,7 +47,7 @@ def without_measurements(program):
 
 
 class RecordingCounts:
-    """Scripted unit-test double; never presented as measured data."""
+    """脚本驱动的单元测试替身，绝不当作实际测量数据。"""
 
     def __init__(self, zero_counts=None):
         self.calls = []
@@ -64,7 +63,7 @@ class RecordingCounts:
 
 
 class SamplingCounts(RecordingCounts):
-    """Actual measurements, no probabilities passed to evaluate."""
+    """执行真实测量，不向evaluate传入精确概率。"""
 
     def __call__(self, program, shots):
         self.calls.append((program, shots))
@@ -182,7 +181,7 @@ def test_cache_exact_keys_within_call_not_across_calls_or_batches():
     runner = RecordingCounts([4] * 5 + [2] * 5)
     kernel = FactorizedQuantumKernel(runner, shots=8, batch_size=1)
     np.testing.assert_array_equal(kernel.evaluate(x, y), np.full((3, 2), 0.25))
-    assert len(runner.calls) == 5  # one core, four ordered single pairs
+    assert len(runner.calls) == 5  # 一个二位核心分量，加上四组有序的单位分量输入对。
     assert Counter(p.qubits_num() for p, _ in runner.calls) == {2: 1, 1: 4}
     np.testing.assert_array_equal(kernel.evaluate(x, y), np.full((3, 2), 0.0625))
     assert len(runner.calls) == 10

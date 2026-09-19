@@ -10,7 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Counts-only component sampling for the fixed, ideal QSVM feature map."""
+"""仅依赖测量计数，对固定且理想的 QSVM 特征映射进行分量采样。"""
 
 from collections.abc import Mapping
 from itertools import combinations, islice, product
@@ -48,7 +48,7 @@ def _as_data(values, name):
         data = np.array(data, dtype=np.float64, copy=True)
         if not np.isfinite(data).all():
             raise ValueError(f"{name} must contain finite float64 values")
-        # Finite features can still overflow the fixed map's gate parameters.
+        # 特征值即使有限，仍可能使固定映射的门参数溢出。
         phase = 2.0 * (np.pi - data[:, 0]) * (np.pi - data[:, 1])
         if not np.isfinite(2.0 * data).all() or not np.isfinite(phase).all():
             raise ValueError(f"{name} produces non-finite feature-map angles")
@@ -56,7 +56,7 @@ def _as_data(values, name):
 
 
 def _overlap_program(x, y):
-    """Restrict the legacy overlap gate order to one connected component."""
+    """将原有重叠电路的门顺序限制到单个连通分量。"""
     width = len(x)
     program = QProg(width)
     qubits = program.qubits()
@@ -70,7 +70,7 @@ def _overlap_program(x, y):
         if width == 2:
             program << CNOT(qubits[0], qubits[1]) << U1(qubits[1], phase_x)
             if layer == 1:
-                # Cancel only the adjacent middle CNOT pair, as in the source.
+                # 与原实现一致，仅消去中间相邻的一对 CNOT。
                 program << U1(qubits[1], -phase_y)
             program << CNOT(qubits[0], qubits[1])
     for layer in range(2):
@@ -99,52 +99,48 @@ def _zero_frequency(counts, width, shots):
 
 
 class FactorizedQuantumKernel:
-    """Sample the existing QSVM map using circuits of at most two qubits.
+    """使用至多两个量子比特的电路对现有 QSVM 映射采样。
 
-    This is an opt-in *ideal, fixed-map* estimator, not a general noisy echo
-    kernel. The map has two encoding layers, entangles only features 0 and 1,
-    and leaves every later feature independent. Each non-identity component
-    is prepared and measured by the caller; its all-zero frequency is used
-    in a product. No simulator, state, probability oracle or PSD projection
-    is used here. ``QuantumKernel_vqnet`` is unchanged.
+    这是需显式选用的*理想、固定映射*估计器，并非通用的含噪回波核。
+    此映射有两层编码，仅使特征 0 和 1 发生纠缠，其后各特征保持独立。
+    每个非恒等分量均由调用方制备并测量；其全零结果频率用于乘积计算。
+    此处不使用模拟器、量子态、概率查询接口或半正定（PSD）投影。
+    ``QuantumKernel_vqnet`` 保持不变。
 
-    Parameters
-    ----------
+    参数
+    ----
     run_counts : callable
-        Required ``run_counts(program, shots) -> Mapping[str, int]``. Execute
-        the supplied measured QProg from all-zero initialization and return
-        exactly ``shots`` observations. Keys are binary strings of the local
-        width (1 or 2), values non-negative integers. Absent zero keys mean
-        zero successes. The runner owns execution/reset and must provide
-        independent samples across component positions and stationary
-        behavior throughout an evaluation. Runner exceptions propagate.
-    shots : int, default=1024
-        Shots per distinct non-identity component, not per matrix element.
-    batch_size : int, default=100
-        Maximum number of matrix index pairs buffered at once. Calls to the
-        runner remain sequential, each with ``shots``; this does not bound
-        the evaluation-local cache or batch device submissions.
-    n_qbits : int or None, default=None
-        Optional expected feature count (>=2). None infers it per evaluate
-        call. This is the original feature width, not the execution width.
+        必须提供 ``run_counts(program, shots) -> Mapping[str, int]``。
+        从全零初始化出发，执行所提供的带测量 QProg，并返回恰好
+        ``shots`` 次观测。键为局部宽度（1 或 2）的二进制字符串，
+        值为非负整数。缺少全零键表示成功次数为零。
+        执行函数负责执行与重置，必须保证不同分量位置之间的样本独立，
+        且在整个求值过程中保持平稳的统计行为。执行函数的异常直接向上传播。
+    shots : int，默认值为 1024
+        每个不同的非恒等分量的采样次数，而非每个矩阵元素的采样次数。
+    batch_size : int，默认值为 100
+        一次缓冲的矩阵索引对数量上限。对执行函数的调用仍按顺序进行，
+        每次均采样 ``shots`` 次；此参数既不限制单次求值内的缓存大小，
+        也不将设备提交合并成批次。
+    n_qbits : int 或 None，默认值为 None
+        可选的预期特征数（>=2）。为 None 时，每次调用 evaluate 时推断。
+        此值是原始特征宽度，而非执行电路的宽度。
 
-    Notes
-    -----
-    Exactly equal component inputs (after float64 conversion) contribute
-    1 without execution. This identity and symmetry require the ideal map;
-    they do not calibrate preparation, gate or measurement noise. Likewise,
-    local measurements need not reproduce a full noisy device circuit.
+    说明
+    ----
+    分量输入在转换为 float64 后若完全相等，则无需执行，直接贡献 1。
+    这一恒等性质与对称性以理想映射为前提；它们不校准制备、量子门
+    或测量噪声。同样，局部测量未必能复现完整含噪设备电路的结果。
 
-    An evaluation reuses a measured frequency only for the same component
-    position and exactly equal ordered input pair. Different positions stay
-    independent even when their numeric values match. Reuse and symmetric
-    mirroring correlate matrix entries; neither creates extra samples. No
-    statistics survive the call, including a failed call. Distinct runner
-    invocations must not replay one common random sample stream.
+    单次求值仅在分量位置相同且有序输入对完全相等时复用已测频率。
+    不同位置即使数值相同，也保持独立。复用与对称镜像会使矩阵元素
+    之间产生相关性；两者都不会产生额外样本。调用结束后不保留任何
+    统计量，调用失败时亦然。不同次执行函数调用不得重放同一条
+    公共随机样本流。
 
-    Independent unbiased component frequencies give an unbiased product
-    for the ideal kernel, but finite-shot Gram matrices need not be PSD.
-    See ``docs/QSVM_factorized_kernel.md`` for assumptions and resource costs.
+    相互独立且无偏的分量频率，其乘积是理想核的无偏估计，
+    但有限采样次数下的 Gram 矩阵不一定半正定。
+    假设条件与资源成本参见 ``docs/QSVM_factorized_kernel.md``。
     """
 
     def __init__(self, run_counts, *, shots=1024, batch_size=100, n_qbits=None):
@@ -156,14 +152,14 @@ class FactorizedQuantumKernel:
         self._n_qbits = None if n_qbits is None else _positive_integer(n_qbits, "n_qbits", 2)
 
     def evaluate(self, x_vec, y_vec=None):
-        """Return an (n_x, n_y) float64 sampled kernel; usable as SVC callable.
+        """返回形状为 (n_x, n_y)、类型为 float64 的采样核矩阵；可用作 SVC 的可调用核函数。
 
-        Accept real finite 1D (one sample) or 2D numeric array-likes, with
-        matching d>=2. Explicit empty (0, d) arrays return an empty matrix;
-        [] has no valid feature dimension and is rejected. x_vec=None,
-        ragged/non-numeric arrays, non-finite values/angles and inconsistent
-        feature widths raise ValueError before any runner call. y_vec=None
-        means x_vec. Equal datasets use one triangle mirrored exactly.
+        接受元素为有限实数的一维（单个样本）或二维类数值数组，
+        特征维数须一致且满足 d>=2。显式形状为 (0, d) 的空数组返回空矩阵；
+        [] 没有有效的特征维度，因此会被拒绝。x_vec=None、参差不齐或
+        非数值数组、非有限值或角度，以及不一致的特征宽度，均会在
+        调用任何执行函数之前引发 ValueError。y_vec=None 表示使用 x_vec。
+        两个数据集相等时，仅计算一个三角区域，再精确镜像到另一侧。
         """
         x = _as_data(x_vec, "x_vec")
         y = x if y_vec is None else _as_data(y_vec, "y_vec")
@@ -191,7 +187,7 @@ class FactorizedQuantumKernel:
                     cx = tuple(x[i, start:stop])
                     cy = tuple(y[j, start:stop])
                     if cx == cy:
-                        continue  # Ideal fixed-map identity, not a noisy measurement.
+                        continue  # 理想固定映射的恒等性质，而非含噪测量。
                     key = (start, stop, cx, cy)
                     if key not in cache:
                         program = _overlap_program(cx, cy)

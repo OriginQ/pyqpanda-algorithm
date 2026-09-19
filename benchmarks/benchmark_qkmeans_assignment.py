@@ -1,8 +1,8 @@
-"""Compare uniform measurements with budgeted adaptive centroid assignment.
+"""对比均匀测量分配与总预算内的自适应候选中心归属。
 
-Run with --runner module:function; the callback executes the supplied measured
-QProg and returns integer counts. No backend is chosen implicitly. Each case
-has a separate alpha budget; these runs are not an empirical coverage theorem.
+通过 --runner module:function 指定接口；回调执行传入的含测量QProg，
+返回整数计数。此处不隐式选择后端。每个案例单独使用自己的alpha预算；
+这些有限实跑不是对统计覆盖率的一般证明。
 """
 import argparse
 from dataclasses import asdict
@@ -30,7 +30,7 @@ def benchmark(run_counts, shots=512, batch=64, alpha=.05):
         for center in centers:
             program = build_assignment_program(point, center)
             counts = run_counts(program, shots)
-            # Use the same strict contract for the uniform baseline.
+            # 均匀分配基线也使用相同的严格计数约定。
             from pyqpanda_alg.QKmeans.adaptive_assignment import _ones_from_counts
             frequencies.append(_ones_from_counts(counts, shots) / shots)
         uniform_time = perf_counter() - start

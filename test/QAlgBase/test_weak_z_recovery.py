@@ -1,4 +1,4 @@
-"""Independent SDK circuit reference; state reads are TEST ONLY."""
+"""独立SDK线路参考；读取内部态仅限测试。"""
 import numpy as np
 import pytest
 from pyqpanda3.core import CPUQVM,QProg,X
@@ -7,8 +7,8 @@ from pyqpanda_alg.QRecovery import weak_z_recovery_block
 
 @pytest.mark.parametrize('s',[.6,.8,.95])
 def test_complete_measured_maps_including_failed_branches(s):
-    # Deferring the first Z measurement is valid only because subsequent gates
-    # use that flag exclusively as a control and never rotate it again.
+    # 可以延后第一次Z测量，是因为后续门只把该标志位用作控制，
+    # 不再对该标志位施加任何旋转。
     measured=weak_z_recovery_block(0,1,2,first_cbit=0,recovery_cbit=1,strength=s)
     columns=[]
     for bit in [0,1]:

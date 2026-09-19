@@ -1,4 +1,4 @@
-"""Counts-contract tests; CPUQVM is an independent circuit reference only."""
+"""测量计数接口约定测试；CPUQVM仅作为独立线路参考。"""
 from dataclasses import FrozenInstanceError
 import math
 
@@ -15,7 +15,7 @@ CENTERS = ((0.0, -1.0), (0.0, 0.0), (0.0, 1.0))
 
 
 class CountsRunner:
-    """Deterministic contract fixture, not a physical sampling experiment."""
+    """用于接口约定的确定性测试样例，不是物理抽样实验。"""
     def __init__(self, point=POINT, centers=CENTERS, fractions=(0.0, 0.5, 1.0)):
         self.templates = [build_assignment_program(point, c).originir() for c in centers]
         self.fractions = fractions
@@ -222,7 +222,7 @@ def test_fredkin_decomposition_full_matrix_against_native_gate():
         b << SWAP(0, 1).control(2)
         actual.append(_state(a))
         reference.append(_state(b))
-    # All amplitudes, not just probabilities: catches relative-phase errors.
+    # 比较所有复振幅而不只是概率，以检出相对相位错误。
     np.testing.assert_allclose(np.array(actual), np.array(reference), atol=2e-14, rtol=0)
 
 
@@ -289,7 +289,7 @@ def test_production_module_has_no_backend_or_probability_access():
 
 
 def test_touching_intervals_are_not_eliminated():
-    # K=2, L=2, n=64 gives radius 1/4 with this alpha.
+    # 在此alpha下，K=2、L=2、n=64给出的区间半径为1/4。
     runner = CountsRunner(centers=CENTERS[:2], fractions=(0.25, 0.75))
     result = adaptive_assign(POINT, CENTERS[:2], runner, max_shots=128,
                              alpha=8 * math.exp(-8))

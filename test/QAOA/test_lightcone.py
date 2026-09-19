@@ -1,7 +1,6 @@
-"""Bounded light-cone tests; CPUQVM is a TEST-ONLY independent oracle.
+"""有限范围的光锥测试；CPUQVM只作为测试中的独立参考。
 
-Production estimation is exercised only via the supplied counts callback.
-No exact probabilities are supplied to the estimator.
+实际估计接口仅通过外部计数回调调用，不向估计器提供精确概率。
 """
 
 from dataclasses import FrozenInstanceError
@@ -31,7 +30,7 @@ def plan_for(executor, target):
 
 
 def exact_probabilities(program):
-    """TEST ONLY: omit final measurements, then inspect the CPU reference."""
+    """仅用于测试：省略末端测量，再读取CPU模拟器的参考态。"""
     unmeasured = QProg(program.qubits_num())
     for gate in program.gate_operations():
         unmeasured << gate
@@ -54,7 +53,7 @@ def parity_mean(probabilities, qubits):
 
 
 def full_legacy_program(n_qubits, terms, gammas, betas):
-    """Reference the existing QAOA construction, not the light-cone builder."""
+    """以原有QAOA线路构造为参考，不复用待测的光锥构造器。"""
     operator = PauliOperator({"I": 0.0})
     for support, coefficient in terms.items():
         label = " ".join("Z%d" % q for q in support) or "I"
@@ -83,7 +82,7 @@ def test_synchronous_layers_do_not_walk_whole_cost_layer():
     assert two.layers[1] == one.layers[0]
     assert {t.qubits for t in two.layers[0].cost_terms} == {
         (0,), (0, 1), (1,), (1, 2)}
-    # This must not depend on the insertion order of commuting cost terms.
+    # 结果不得依赖同层对易代价项的插入顺序。
     reversed_terms = dict(reversed(tuple(terms.items())))
     assert make_executor(5, terms, 2).plans == make_executor(5, reversed_terms, 2).plans
 
@@ -260,7 +259,7 @@ def test_counts_endianness_parity_total_shots_and_fresh_sampling():
     calls = []
     def runner(program, shots):
         calls.append((program, shots))
-        # c1=0, c0=1 in every shot: Z0=-1, Z0Z1=-1, Z1=+1.
+        # 每次测量均为c1=0、c0=1，因此Z0=-1、Z0Z1=-1、Z1=+1。
         return {"01": np.int64(shots), "00": 0}
     first = executor.estimate([0.2], [0.3], np.int64(7), runner)
     assert first.mean == 4
@@ -274,7 +273,7 @@ def test_counts_endianness_parity_total_shots_and_fresh_sampling():
     assert second.term_means == (1, -1, -1)
     assert executor.plans is plans
     third = executor.estimate([0.2], [0.3], 7, lambda p, s: {"00": s})
-    assert third.mean == 10  # The original parameter values do not hit a result cache.
+    assert third.mean == 10  # 即使重新使用原参数，也不能直接命中旧测量结果的缓存。
     assert first.mean == 4
     with pytest.raises(FrozenInstanceError):
         first.mean = 99
@@ -312,14 +311,14 @@ def test_rx_negative_sign_against_one_qubit_independent_formula():
     assert abs(expected) > 0.1
     assert parity_mean(exact_probabilities(job.program), (0,)) == pytest.approx(expected)
     assert "RX q[0],(-0.46000000)" in job.program.originir()
-    # Distinguish the opposite-sign convention explicitly.
+    # 显式区分符号相反的约定。
     wrong = QProg(1)
     wrong << H(0) << RZ(0, 2 * gamma * weight) << RX(0, 2 * beta)
     assert parity_mean(exact_probabilities(wrong), (0,)) == pytest.approx(-expected)
 
 
 def test_cpu_reference_counts_adapter_and_non_palindromic_bit_order():
-    """CPUQVM sampling is an explicit TEST runner, never a production default."""
+    """显式选择CPUQVM作为测试抽样接口；它不是算法默认的执行后端。"""
     reference = CPUQVM()
     measured = QProg(2)
     measured << X(0) << measure(0, 0) << measure(1, 1)
@@ -331,7 +330,7 @@ def test_cpu_reference_counts_adapter_and_non_palindromic_bit_order():
         calls.append(shots)
         reference.run(program, shots=shots)
         return reference.result().get_counts()
-    # These angles prepare |1>; the counts test is deterministic, not a flaky tolerance.
+    # 这些角度制备|1>，因此计数断言是确定性的，不依赖不稳定的统计容差。
     result = executor.estimate([math.pi / 4], [math.pi / 4], 32, counts_only)
     assert result.mean == -1
     assert result.total_shots == 32
@@ -353,7 +352,7 @@ def test_zero_edge_does_not_expand_and_isolated_fields_stay_local():
     assert plan_for(executor, (3,)).global_qubits == (3,)
     assert len(executor.plans) == 3
     with pytest.raises(ValueError):
-        make_executor(0, {(0,): 0}, 0)  # Even a zero term is validated.
+        make_executor(0, {(0,): 0}, 0)  # 系数为零的项也要校验。
 
 
 def test_target_marginal_not_entire_cone_marginal_is_promised():
@@ -380,7 +379,7 @@ def test_example_preview_does_not_run_backend(monkeypatch, capsys):
 
 
 def test_example_explicit_runner_submits_fresh_small_programs(monkeypatch, capsys):
-    # Test data only: this adapter checks CLI dispatch, not physical execution.
+    # 仅为测试数据：此适配器检查命令行分派，不代表物理执行。
     adapter = ModuleType("lightcone_test_adapter")
     programs = []
     def run_counts(program, shots):
