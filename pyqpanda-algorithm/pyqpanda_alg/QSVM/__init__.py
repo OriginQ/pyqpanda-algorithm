@@ -4,5 +4,6 @@ reference: `Supervised learning with quantum enhanced feature spaces <https://ar
 '''
 
 from .quantum_kernel_svm import QuantumKernel_vqnet
+from .factorized_kernel import FactorizedQuantumKernel
 
-__all__ = ['QuantumKernel_vqnet']
+__all__ = ['QuantumKernel_vqnet', 'FactorizedQuantumKernel']

@@ -8,4 +8,8 @@ QKMeans has the potential to provide speedup over classical K-Means when process
 
 from .QuantumKmeans import QuantumKmeans
 
-__all__ = ['QuantumKmeans']
+from .adaptive_assignment import AssignmentResult, adaptive_assign, build_assignment_program
+
+__all__ = [
+    'QuantumKmeans', 'AssignmentResult', 'adaptive_assign', 'build_assignment_program'
+]

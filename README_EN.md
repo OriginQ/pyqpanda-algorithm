@@ -28,6 +28,7 @@ Suitable for combinatorial optimization and large-scale search problems (e.g., p
   Converts combinatorial optimization problems into quadratic unconstrained binary optimization problems (a universal modeling form for quantum annealing and variational quantum algorithms).
 - **QAOA (Quantum Approximate Optimization Algorithm)**  
   A hybrid quantum-classical variational algorithm that approximates QUBO solutions by optimizing parameterized quantum circuits (Ansatz), applicable to Max-Cut, Max-SAT, etc.
+  Optional [QAOALightCone local expectation sampling](docs/qaoa_lightcone.md) builds low-depth Z/ZZ mean-objective circuits for an external counts runner, without changing the existing QAOA API.
 - **Grover's Search Algorithm**  
   Achieves quadratic speedup for target item search in unstructured databases. Amplitude amplification reduces search complexity from $O(N)$ to $O(\sqrt{N})$.
 
@@ -39,6 +40,8 @@ Integrates quantum computing into classical machine learning to improve efficien
   A regression model for fitting continuous variables (e.g., time series prediction).
 - **QKMeans (Quantum K-Means Clustering)**  
   Quantum-accelerated large-scale data clustering for high-dimensional data scenarios.
+
+Optional [adaptive centroid assignment](docs/qkmeans_adaptive_assignment.md) allocates a global measurement budget and reports undecided cases; the existing `fit` method is unchanged.
 - **QPCA (Quantum Principal Component Analysis)**  
   Extracts data principal components via quantum circuits to accelerate dimensionality reduction.
 - **QMRMR (Quantum Minimum Redundancy Maximum Relevance)**  
@@ -52,6 +55,8 @@ Solves key problems in physical modeling and engineering simulation (e.g., eigen
   Extracts matrix singular values/vectors under a variational framework (for dimensionality reduction and recommendation systems).
 
 ### 4. General Tools & Basic Components
+
+Optional [heralded weak-Z recovery](docs/weak_z_recovery.md) restores the data and reference correlations on success, without re-preparing data or discarding failed trials.
 Provides underlying tools for quantum computing workflows.
 - **QAE (Quantum Amplitude Estimation)**  
   Precisely estimates target state amplitude/measurement probability with quadratic speedup (e.g., financial derivative pricing, risk assessment).

@@ -24,7 +24,8 @@ from . import default_circuits
 from . import qaoa
 from . import dstate
 from . import spsa
+from .lightcone import QAOALightCone
 
 
-__all__ = ['qaoa', 'dstate', 'spsa', 'default_circuits']
+__all__ = ['qaoa', 'dstate', 'spsa', 'default_circuits', 'QAOALightCone']
 
