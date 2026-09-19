@@ -55,6 +55,8 @@ Solves key problems in physical modeling and engineering simulation (e.g., eigen
   Extracts matrix singular values/vectors under a variational framework (for dimensionality reduction and recommendation systems).
 
 ### 4. General Tools & Basic Components
+
+Optional [heralded weak-Z recovery](docs/weak_z_recovery.md) restores the data and reference correlations on success, without re-preparing data or discarding failed trials.
 Provides underlying tools for quantum computing workflows.
 - **QAE (Quantum Amplitude Estimation)**  
   Precisely estimates target state amplitude/measurement probability with quadratic speedup (e.g., financial derivative pricing, risk assessment).

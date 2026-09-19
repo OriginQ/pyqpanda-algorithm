@@ -1,0 +1,30 @@
+{
+  "backend": "External classical-control quantum simulator (software; no QPU)",
+  "sdk": "pyqpanda3 0.4.1",
+  "strength": 0.8,
+  "shots": 512,
+  "expected_joint_success": 0.4,
+  "counts": {
+    "0000": 97,
+    "0001": 89,
+    "0010": 76,
+    "0011": 87,
+    "0110": 96,
+    "0111": 67
+  },
+  "heralded_successes": 186,
+  "successful_outputs_failing_joint_readout": 0,
+  "bit_order": "c3(reference), c2(data), c1(recovery), c0(first result)",
+  "success_rule": "c1 == 0",
+  "joint_verification_rule": "c3 == c2 == 0 after H,S followed by inverse and Bell decoding",
+  "data_reference_qubits": [
+    0,
+    1
+  ],
+  "auxiliary_qubits": [
+    2,
+    3
+  ],
+  "failures_retained": true,
+  "scope": "Fixed ideal weak-Z instrument; finite sampled check, no noisy-hardware claim. Reproduce the circuit with examples/weak_z_recovery.py; samples vary."
+}
