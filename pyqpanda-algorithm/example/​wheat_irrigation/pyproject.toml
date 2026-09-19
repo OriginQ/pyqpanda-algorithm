@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "yellow-river-wheat-irrigation"
+version = "0.2.0"
+description = "ET0 and soil-water forecasting with QUBO/QAOA irrigation scheduling for winter wheat"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {file = "LICENSE"}
+dependencies = ["numpy>=1.23", "scipy>=1.9", "matplotlib>=3.6"]
+
+[project.optional-dependencies]
+pyqpanda = ["pyqpanda_alg>=2.0.0,<3", "pyqpanda3>=0.4.1,<0.5", "pandas", "scikit-learn"]
+qcloud = ["pyqpanda3>=0.4.1,<0.5"]
+
+[project.scripts]
+wheat-irrigation = "wheat_irrigation.cli:main"
+
+[tool.setuptools]
+license-files = ["LICENSE", "NOTICE"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["wheat_irrigation*"]
+
+[tool.setuptools.package-data]
+wheat_irrigation = ["data/*.json"]

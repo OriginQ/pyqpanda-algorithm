@@ -1,0 +1,10 @@
+Yellow River Wheat Irrigation
+
+The repository is distributed under the Apache License, Version 2.0.
+The application adds wheat growth-stage scenarios, gross water-supply
+accounting, forecasting, packaging, and reports. This copy uses the
+pyqpanda_alg QAOA implementation as its default scheduling backend, with
+NumPy and classical alternatives available explicitly.
+
+The bundled demonstration parameters are synthetic. Agronomic background and
+parameter descriptions are documented in docs/SOURCES.md.

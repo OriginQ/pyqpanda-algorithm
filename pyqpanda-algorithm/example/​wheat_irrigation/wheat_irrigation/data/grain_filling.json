@@ -1,0 +1,204 @@
+{
+  "name": "关中缺水冬小麦 / 灌浆期 / 3 地块 7 天",
+  "region": "黄河流域—渭河关中平原（合成缺水麦田）",
+  "crop": "winter_wheat",
+  "start_date": "2026-05-12",
+  "source_note": "完全合成的教学场景：日期、土壤、气象、作物系数、允许耗水比例、权重、面积、灌水深、效率及预算均为演示设定，非观测、预报或当地灌溉定额。FAO56仅提供ETc/TAW/RAW概念框架；关中区域与冬小麦生育期背景见docs/SOURCES.md。本场景未经田间标定，不是灌溉处方。",
+  "days": 7,
+  "water_budget_m3": 700.0,
+  "irrigation_efficiency": 0.75,
+  "dose_mm": 25.0,
+  "water_cost": 1.0,
+  "spatial_weight": 400.0,
+  "timing_weight": 400.0,
+  "zone_area_ha": 1.0,
+  "zones": [
+    {
+      "name": "Wheat-A",
+      "growth_stage": "grain_filling",
+      "taw_mm": 120.0,
+      "initial_moisture_mm": 69,
+      "window_days": [
+        1,
+        2,
+        4
+      ],
+      "target_mm": 73,
+      "stress_weights": [
+        1.4,
+        1.4,
+        1.3,
+        1.3,
+        1.2,
+        1.1,
+        1.0
+      ],
+      "allowable_depletion_fraction": 0.55,
+      "et0_mm": [
+        4.8,
+        5.0,
+        5.2,
+        5.3,
+        5.0,
+        4.9,
+        4.7
+      ],
+      "crop_coefficient": [
+        1.1,
+        1.08,
+        1.05,
+        1.02,
+        0.98,
+        0.94,
+        0.9
+      ],
+      "rainfall_mm": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0
+      ],
+      "effective_rain_fraction": 0.8,
+      "capillary_rise_mm": [
+        0.15,
+        0.15,
+        0.15,
+        0.15,
+        0.15,
+        0.15,
+        0.15
+      ]
+    },
+    {
+      "name": "Wheat-B",
+      "growth_stage": "grain_filling",
+      "taw_mm": 135.0,
+      "initial_moisture_mm": 75,
+      "window_days": [
+        2,
+        3,
+        5
+      ],
+      "target_mm": 81,
+      "stress_weights": [
+        1.3,
+        1.3,
+        1.2,
+        1.2,
+        1.1,
+        1.0,
+        0.9
+      ],
+      "allowable_depletion_fraction": 0.55,
+      "et0_mm": [
+        4.8,
+        5.0,
+        5.2,
+        5.3,
+        5.0,
+        4.9,
+        4.7
+      ],
+      "crop_coefficient": [
+        1.1,
+        1.08,
+        1.05,
+        1.02,
+        0.98,
+        0.94,
+        0.9
+      ],
+      "rainfall_mm": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0
+      ],
+      "effective_rain_fraction": 0.8,
+      "capillary_rise_mm": [
+        0.15,
+        0.15,
+        0.15,
+        0.15,
+        0.15,
+        0.15,
+        0.15
+      ]
+    },
+    {
+      "name": "Wheat-C",
+      "growth_stage": "grain_filling",
+      "taw_mm": 110.0,
+      "initial_moisture_mm": 58,
+      "window_days": [
+        3,
+        5,
+        7
+      ],
+      "target_mm": 70,
+      "stress_weights": [
+        2.3,
+        2.3,
+        2.2,
+        2.1,
+        2.0,
+        1.9,
+        1.8
+      ],
+      "allowable_depletion_fraction": 0.55,
+      "et0_mm": [
+        4.8,
+        5.0,
+        5.2,
+        5.3,
+        5.0,
+        4.9,
+        4.7
+      ],
+      "crop_coefficient": [
+        1.1,
+        1.08,
+        1.05,
+        1.02,
+        0.98,
+        0.94,
+        0.9
+      ],
+      "rainfall_mm": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0
+      ],
+      "effective_rain_fraction": 0.8,
+      "capillary_rise_mm": [
+        0.15,
+        0.15,
+        0.15,
+        0.15,
+        0.15,
+        0.15,
+        0.15
+      ]
+    }
+  ],
+  "adjacency": [
+    [
+      "Wheat-A",
+      "Wheat-B"
+    ],
+    [
+      "Wheat-B",
+      "Wheat-C"
+    ]
+  ]
+}

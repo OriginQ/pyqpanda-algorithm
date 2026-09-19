@@ -1,0 +1,5 @@
+-r requirements.txt
+pyqpanda_alg>=2.0.0,<3
+pyqpanda3>=0.4.1,<0.5
+pandas
+scikit-learn
