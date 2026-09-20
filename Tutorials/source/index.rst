@@ -20,6 +20,11 @@ Overall, it provides a standardized set of tools for developers, allowing them t
 
 .. toctree::
     :maxdepth: 2
+    :caption: Algorithm Guides
+
+    QST
+.. toctree::
+    :maxdepth: 2
     :caption: Changelog
 
     Changelog
@@ -42,3 +47,4 @@ Overall, it provides a standardized set of tools for developers, allowing them t
     autoapi/pyqpanda_alg/QSVD/index
     autoapi/pyqpanda_alg/QSVR/index
     autoapi/pyqpanda_alg/QUBO/index
+    autoapi/pyqpanda_alg/QST/index
