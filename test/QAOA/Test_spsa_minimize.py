@@ -54,5 +54,30 @@ class TestSPSAMinimize:
         # 验证回调函数被调用
         assert len(noise_function.history) > 0
         assert noise_function.eval_count > 0
-    
+    def test_spsa_maxiter_remains_hard_cap_with_tolerance(self, simple_function):
+        """maxiter must still terminate SPSA when tol is supplied but never met."""
+        history = []
+        result = spsa.spsa_minimize(
+            simple_function,
+            np.array([1.0, -2.0]),
+            tol=0.0,
+            callback=lambda x: history.append(x.copy()),
+            maxiter=3,
+        )
+
+        assert isinstance(result, np.ndarray)
+        assert len(history) == 3
+
+    def test_spsa_tolerance_can_still_stop_before_maxiter(self, simple_function):
+        """A satisfied tolerance should still stop SPSA before the hard cap."""
+        history = []
+        spsa.spsa_minimize(
+            simple_function,
+            np.array([1.0, -2.0]),
+            tol=np.inf,
+            callback=lambda x: history.append(x.copy()),
+            maxiter=10,
+        )
+
+        assert len(history) == 1
 

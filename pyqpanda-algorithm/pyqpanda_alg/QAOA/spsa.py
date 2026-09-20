@@ -224,10 +224,9 @@ def spsa_minimize(func, x0, args=(), tol=None, bounds=None, callback=None, **opt
         if callback is not None:
             callback(x)
 
-        if tol is not None:
-            if np.linalg.norm(grad)/nx < tol:
-                break
-        elif k >= maxiter:
+        if tol is not None and np.linalg.norm(grad) / nx < tol:
+            break
+        if k >= maxiter:
             break
 
     return x
