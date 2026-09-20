@@ -28,7 +28,7 @@ def _quadratic_func_to_coeff(quadratic_func):
         raise ValueError("Unable to create polynomial from given function: no variables found.")
 
     quadratic_func = sp.Poly(quadratic_func)
-    uni = quadratic_func.monoms()
+    monoms = quadratic_func.monoms()
     coeffs = quadratic_func.coeffs()
     x = list(quadratic_func.gens)
 
@@ -36,17 +36,23 @@ def _quadratic_func_to_coeff(quadratic_func):
     linear = np.zeros(len(x))
     quadratic = np.zeros((len(x), len(x)))
 
-    for i, unit in enumerate(uni):
-        tmp = _get_index(unit, 1)
-        tmp2 = _get_index(unit, 2)
-        if len(tmp2) > 0:
-            linear[tmp2[0]] += coeffs[i]
-        elif len(tmp) == 0:
-            constant[0] = coeffs[i]
-        elif len(tmp) == 1:
-            linear[tmp[0]] += coeffs[i]
+    # QUBO variables are binary, so x**k == x for every positive integer k.
+    # Normalize powers to their variable support before classifying each term.
+    # This also lets algebraically distinct polynomial monomials accumulate into
+    # one canonical QUBO coefficient (for example x0**2*x1 and x0*x1**3).
+    for coeff, powers in zip(coeffs, monoms):
+        support = [index for index, power in enumerate(powers) if power > 0]
+        if len(support) > 2:
+            raise ValueError(
+                "QUBO supports at most two distinct variables per monomial after binary normalization."
+            )
+        if len(support) == 0:
+            constant[0] += coeff
+        elif len(support) == 1:
+            linear[support[0]] += coeff
         else:
-            quadratic[tmp[0]][tmp[1]] = coeffs[i]
+            quadratic[support[0]][support[1]] += coeff
+
     return quadratic, linear, constant[0]
 
 
@@ -93,7 +99,7 @@ class QuadraticBinary:
             linear = [0] * len(quadratic)
         if linear is None and quadratic is None:
             linear = [0]
-            quadratic = [0]
+            quadratic = [[0]]
 
         self.constant = constant
         self.linear = linear
