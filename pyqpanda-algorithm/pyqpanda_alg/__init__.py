@@ -51,4 +51,7 @@ from . import QSVR
 from . import Grover
 from . import QmRMR
 from . import QSEncode
+from . import QDenseCoding
+from . import QWalk
+from . import QEC
 
