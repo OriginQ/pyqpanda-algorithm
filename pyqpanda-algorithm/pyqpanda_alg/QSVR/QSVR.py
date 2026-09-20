@@ -134,8 +134,8 @@ class Quantum_SVR:
     def show_res(self):
         svr = SVR(kernel=self.k_kernel, gamma=0.1)
         svr.fit(self.x, self.y)
-        x0_test = np.linspace(min(self.x[:, 0]), max(self.x[:, 1]), 30)
-        x1_test = np.linspace(min(self.x[:, 0]), max(self.x[:, 1]), 30)
+        x0_test = np.linspace(min(self.x[:, 0]), max(self.x[:, 0]), 30)
+        x1_test = np.linspace(min(self.x[:, 1]), max(self.x[:, 1]), 30)
         X0_test, X1_test = np.meshgrid(x0_test, x1_test)
         X_test = np.c_[X0_test.ravel(), X1_test.ravel()]
         y_pred = svr.predict(X_test).reshape(X0_test.shape)
