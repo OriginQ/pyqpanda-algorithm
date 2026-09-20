@@ -21,8 +21,10 @@ important resource for solving optimization problems and advancing research on q
 
 '''
 '''
-pyqpanda-algorithm Python\n
-Copyright (C) Origin Quantum 2017-2023\n
+pyqpanda-algorithm Python
+
+Copyright (C) Origin Quantum 2017-2023
+
 Licensed Under Apache Licence 2.0
 '''
 
@@ -51,4 +53,4 @@ from . import QSVR
 from . import Grover
 from . import QmRMR
 from . import QSEncode
-
+from . import HadamardTest
