@@ -49,6 +49,7 @@ from . import QAE
 from . import QSVD
 from . import QSVR
 from . import Grover
+from . import QCount
 from . import QmRMR
 from . import QSEncode
 
