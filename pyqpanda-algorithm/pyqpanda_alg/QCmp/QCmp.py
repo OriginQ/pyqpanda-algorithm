@@ -518,6 +518,7 @@ def qft_qubit_comparator(q_state_1, q_state_2, q_cmp, function='geq'):
             The first state qubits.
         q_state_2 : ``Qubit``, ``QVec``\n
             The second state qubits.
+            This register must hold at least as many qubits as ``q_state_1``.
         q_cmp : ``QVec``\n
             Comparison result qubit.
         function : ``str{'geq', 'g', 'seq', 's'}``, optional\n
@@ -551,6 +552,9 @@ def qft_qubit_comparator(q_state_1, q_state_2, q_cmp, function='geq'):
     {'0': 0.7500000000000007, '1': 0.2500000000000002}
     
     """
+
+    if len(q_state_1) > len(q_state_2):
+        raise ValueError('q_state_1 is longer than q_state_2')
 
     cir = QCircuit()
 

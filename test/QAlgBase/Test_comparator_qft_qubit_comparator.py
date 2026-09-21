@@ -20,16 +20,19 @@ class Test_comparator_qft_qubit_comparator:
         self.machine.run(prog, 1000)
         return self.machine.result().get_prob_dict([q_cmp]).get('1', 0.0)
 
-    def _basis_prob(self, n, a, b, function):
-        # q_state_1 = 0..n-1, q_state_2 = n..2n-1, q_cmp = 2n, lowest index is LSB
+    def _basis_prob(self, n, a, b, function, n2=None):
+        # q_state_1 = 0..n-1, q_state_2 = n..n+n2-1, q_cmp last, lowest index is LSB
+        if n2 is None:
+            n2 = n
         q_state_1 = list(range(n))
-        q_state_2 = list(range(n, 2 * n))
-        q_cmp = 2 * n
+        q_state_2 = list(range(n, n + n2))
+        q_cmp = n + n2
 
         prog = QProg()
         for j in range(n):
             if (a >> j) & 1:
                 prog << X(q_state_1[j])
+        for j in range(n2):
             if (b >> j) & 1:
                 prog << X(q_state_2[j])
         prog << qft_qubit_comparator(q_state_1, q_state_2, [q_cmp], function=function)
@@ -98,6 +101,18 @@ class Test_comparator_qft_qubit_comparator:
                     f"expected {expected:.4f}, got {prob_high:.4f}"
                 )
 
+    @pytest.mark.parametrize("function", ['g', 'geq', 's', 'seq'])
+    def test_all_basis_pairs_narrow_first_register(self, function):
+        # q_state_1 is allowed to be shorter than q_state_2
+        for a in range(4):
+            for b in range(8):
+                expected = 1.0 if PREDICATES[function](a, b) else 0.0
+                prob_high = self._basis_prob(2, a, b, function, n2=3)
+                assert abs(prob_high - expected) < 1e-6, (
+                    f"function={function}, a={a}, b={b}: "
+                    f"expected {expected:.4f}, got {prob_high:.4f}"
+                )
+
     def test_state_registers_restored(self):
         prog = QProg()
         prog << H(0) << H(1) << H(2) << X(3)
@@ -110,6 +125,12 @@ class Test_comparator_qft_qubit_comparator:
             assert abs(prob - expected) < 1e-6, (
                 f"state {state}: expected {expected:.4f}, got {prob:.4f}"
             )
+
+    def test_longer_first_register_raises(self):
+        # the difference is held in q_state_2 + q_cmp, so q_state_1 values at or
+        # above 2 ** len(q_state_2) would wrap and give a wrong comparison
+        with pytest.raises(ValueError):
+            qft_qubit_comparator([0, 1, 2], [3, 4], [5], function='geq')
 
     def test_unknown_function_raises(self):
         with pytest.raises(NameError):
