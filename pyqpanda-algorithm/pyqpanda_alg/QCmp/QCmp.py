@@ -177,7 +177,7 @@ def interpolation_comparator(value, q_state, q_anc_cmp, function='g', reuse=Fals
     against a given classical number(can be float).
     This function introduces an interpolation method to make qubits "look" like a float number when compared,
     so that comparisons can be made in the real number domain. In detail, when sampling, we regard the
-    quantum state ``a`` as the interval from ``inf:=a-0.5`` to ``sup:=a+1.5``. When comparing the quantum
+    quantum state ``a`` as the interval from ``inf:=a-0.5`` to ``sup:=a+0.5``. When comparing the quantum
     state with ``inf+delta``, the probability of smaller is delta.
 
     Parameters
@@ -230,10 +230,10 @@ def interpolation_comparator(value, q_state, q_anc_cmp, function='g', reuse=Fals
     circuit = QCircuit()
 
     if function == 's':
-        pass
+        circuit << X(q_cmp)
 
     elif function == 'g':
-        circuit << X(q_cmp)
+        pass
 
     else:
         raise NameError('method is not recognized')
@@ -242,7 +242,7 @@ def interpolation_comparator(value, q_state, q_anc_cmp, function='g', reuse=Fals
         raise ValueError('Negative input')
 
     value_int = int(round(value + 1e-10))
-    value_res = value - value_int + 0.5
+    value_res = value_int - value + 0.5
     if value_res < 0:
         value_res = 0
     angle = np.arcsin(value_res ** 0.5) * 2
@@ -258,7 +258,8 @@ def interpolation_comparator(value, q_state, q_anc_cmp, function='g', reuse=Fals
     for i in range(n_state):
         if i == 0:
             if value_inverse[0] == 0:
-                circuit << RY(q_anc_cmp[0], angle)
+                circuit << _zero_control(q_state[0], RY(q_anc_cmp[0], angle)) \
+                        << CNOT(q_state[0], q_anc_cmp[0])
             else:
                 circuit << RY(q_anc_cmp[0], angle).control(q_state[0])
 
