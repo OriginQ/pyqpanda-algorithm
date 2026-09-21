@@ -357,7 +357,9 @@ def qubit_comparator(q_state_1, q_state_2, q_anc_cmp, function='geq'):
     if len(q_state_1) > len(q_state_2):
         q_state = q_state_2
         q_ctr = q_state_1
-        circuit << X(q_cmp)
+        # swapping the operands flips the inequality, but not eq/neq
+        if function != 'eq' and function != 'neq':
+            circuit << X(q_cmp)
         if function == 's' or function == 'geq':
             flag = True
         else:
