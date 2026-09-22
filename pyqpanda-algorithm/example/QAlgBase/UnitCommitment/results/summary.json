@@ -1,0 +1,25 @@
+{
+  "schema_version": "case5_runtime_fakebackend_public_summary_v1",
+  "scope": {
+    "execution_environment": "OriginQ qpanda3_runtime local FakeBackend",
+    "remote_quantum_task_submitted": false,
+    "real_qpu_submitted": false,
+    "api_key_value_saved": false
+  },
+  "reference_total_cost": 28439.30737379966,
+  "device_runs": [
+    {
+      "device": "WK_C180",
+      "shots": 256,
+      "feasible_probability": 0.859375,
+      "best_cost": 28453.30737379966,
+      "gap_percent": 0.04922764051876245,
+      "bell_even_parity_probability": 0.6875,
+      "bell_passed": true,
+      "physical_block": [85, 94, 95, 96, 103, 104, 105, 113, 114, 123],
+      "runtime_version": "1.0.1",
+      "pyqpanda3_version": "0.3.5"
+    }
+  ]
+}
+

@@ -1,0 +1,1814 @@
+{
+  "schema_version": "case5_day_ahead_v1",
+  "scope": {
+    "hours": 24,
+    "real_qpu_submitted": false,
+    "remote_quantum_task_submitted": false,
+    "execution_environment": "local CPUQVM and SciPy"
+  },
+  "profile": {
+    "name": "matpower_case5_day_ahead_24h",
+    "load_scales": [
+      0.62,
+      0.6,
+      0.58,
+      0.58,
+      0.6,
+      0.66,
+      0.75,
+      0.84,
+      0.92,
+      0.96,
+      0.98,
+      1.0,
+      0.99,
+      0.97,
+      0.95,
+      0.97,
+      1.03,
+      1.1,
+      1.08,
+      1.02,
+      0.94,
+      0.84,
+      0.75,
+      0.68
+    ],
+    "demand_mw": [
+      620.0,
+      600.0,
+      580.0,
+      580.0,
+      600.0,
+      660.0,
+      750.0,
+      840.0,
+      920.0,
+      960.0,
+      980.0,
+      1000.0,
+      990.0,
+      970.0,
+      950.0,
+      970.0,
+      1030.0,
+      1100.0,
+      1080.0,
+      1020.0,
+      940.0,
+      840.0,
+      750.0,
+      680.0
+    ],
+    "reserve_mw": [
+      31.0,
+      30.0,
+      28.999999999999996,
+      28.999999999999996,
+      30.0,
+      33.0,
+      37.5,
+      42.0,
+      46.0,
+      48.0,
+      49.0,
+      50.0,
+      49.5,
+      48.5,
+      47.5,
+      48.5,
+      51.5,
+      55.00000000000001,
+      54.0,
+      51.0,
+      47.0,
+      42.0,
+      37.5,
+      34.0
+    ],
+    "reserve_fraction": 0.05
+  },
+  "classical_reference": {
+    "solver": "scipy.optimize.milp",
+    "total_cost": 311445.94991786417,
+    "commitments": [
+      [
+        1,
+        1,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        0,
+        0,
+        1
+      ]
+    ],
+    "hourly": [
+      {
+        "hour": 0,
+        "demand_mw": 620.0,
+        "reserve_mw": 31.0,
+        "commitments": [
+          1,
+          1,
+          0,
+          0,
+          1
+        ],
+        "generation_mw": [
+          20.0,
+          0.0,
+          0.0,
+          0.0,
+          600.0
+        ],
+        "variable_cost": 6280.0,
+        "fixed_cost": 7.0,
+        "total_cost": 6287.0,
+        "branch_flows_mw": [
+          253.02961122675083,
+          141.46813586036538,
+          -374.4977470871162,
+          67.02961122675092,
+          -118.9703887732492,
+          -225.50225291288385
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 1,
+        "demand_mw": 600.0,
+        "reserve_mw": 30.0,
+        "commitments": [
+          1,
+          0,
+          0,
+          0,
+          1
+        ],
+        "generation_mw": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          600.0
+        ],
+        "variable_cost": 6000.0,
+        "fixed_cost": 4.0,
+        "total_cost": 6004.0,
+        "branch_flows_mw": [
+          244.2019740817834,
+          135.40313888191912,
+          -379.60511296370254,
+          64.20197408178348,
+          -115.79802591821661,
+          -220.39488703629752
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 2,
+        "demand_mw": 580.0,
+        "reserve_mw": 28.999999999999996,
+        "commitments": [
+          1,
+          0,
+          0,
+          0,
+          1
+        ],
+        "generation_mw": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          580.0
+        ],
+        "variable_cost": 5800.0,
+        "fixed_cost": 4.0,
+        "total_cost": 5804.0,
+        "branch_flows_mw": [
+          236.0619082790573,
+          130.88970091918847,
+          -366.9516091982458,
+          62.06190827905735,
+          -111.93809172094274,
+          -213.04839080175427
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 3,
+        "demand_mw": 580.0,
+        "reserve_mw": 28.999999999999996,
+        "commitments": [
+          1,
+          0,
+          0,
+          0,
+          1
+        ],
+        "generation_mw": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          580.0
+        ],
+        "variable_cost": 5800.0,
+        "fixed_cost": 4.0,
+        "total_cost": 5804.0,
+        "branch_flows_mw": [
+          236.0619082790573,
+          130.88970091918847,
+          -366.9516091982458,
+          62.06190827905735,
+          -111.93809172094274,
+          -213.04839080175427
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 4,
+        "demand_mw": 600.0,
+        "reserve_mw": 30.0,
+        "commitments": [
+          1,
+          0,
+          0,
+          0,
+          1
+        ],
+        "generation_mw": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          600.0
+        ],
+        "variable_cost": 6000.0,
+        "fixed_cost": 4.0,
+        "total_cost": 6004.0,
+        "branch_flows_mw": [
+          244.2019740817834,
+          135.40313888191912,
+          -379.60511296370254,
+          64.20197408178348,
+          -115.79802591821661,
+          -220.39488703629752
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 5,
+        "demand_mw": 660.0,
+        "reserve_mw": 33.0,
+        "commitments": [
+          1,
+          1,
+          0,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          20.0,
+          0.0,
+          0.0,
+          600.0
+        ],
+        "variable_cost": 6860.0,
+        "fixed_cost": 7.0,
+        "total_cost": 6867.0,
+        "branch_flows_mw": [
+          270.6848855166857,
+          153.59812981725784,
+          -364.2830153339436,
+          72.68488551668578,
+          -125.31511448331432,
+          -235.71698466605648
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 6,
+        "demand_mw": 750.0,
+        "reserve_mw": 37.5,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          37.33944145890239,
+          0.0,
+          502.6605585410976
+        ],
+        "variable_cost": 9256.788829178047,
+        "fixed_cost": 12.0,
+        "total_cost": 9268.788829178047,
+        "branch_flows_mw": [
+          293.48383402343404,
+          179.17672451766367,
+          -262.66055854109766,
+          68.4838340234341,
+          -119.17672451766362,
+          -239.99999999999997
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 7,
+        "demand_mw": 840.0,
+        "reserve_mw": 42.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          140.35538719055592,
+          0.0,
+          489.644612809444
+        ],
+        "variable_cost": 12217.107743811117,
+        "fixed_cost": 12.0,
+        "total_cost": 12229.107743811117,
+        "branch_flows_mw": [
+          277.7276891903797,
+          181.91692361906445,
+          -249.64461280944403,
+          25.727689190379778,
+          -85.9169236190644,
+          -240.0
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 8,
+        "demand_mw": 920.0,
+        "reserve_mw": 46.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          231.92511672980353,
+          0.0,
+          478.07488327019644
+        ],
+        "variable_cost": 14848.50233459607,
+        "fixed_cost": 12.0,
+        "total_cost": 14860.50233459607,
+        "branch_flows_mw": [
+          263.72222711655365,
+          184.35265615364287,
+          -238.0748832701964,
+          -12.277772883446332,
+          -56.35265615364287,
+          -240.0
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 9,
+        "demand_mw": 960.0,
+        "reserve_mw": 48.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          277.70998149942744,
+          0.0,
+          472.29001850057256
+        ],
+        "variable_cost": 16164.19962998855,
+        "fixed_cost": 12.0,
+        "total_cost": 16176.19962998855,
+        "branch_flows_mw": [
+          256.7194960796405,
+          185.5705224209321,
+          -232.2900185005726,
+          -31.280503920359422,
+          -41.570522420932036,
+          -240.0
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 10,
+        "demand_mw": 980.0,
+        "reserve_mw": 49.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          300.60241388423924,
+          0.0,
+          469.39758611576053
+        ],
+        "variable_cost": 16822.048277684782,
+        "fixed_cost": 12.0,
+        "total_cost": 16834.048277684782,
+        "branch_flows_mw": [
+          253.2181305611841,
+          186.17945555457672,
+          -229.39758611576053,
+          -40.7818694388159,
+          -34.17945555457669,
+          -240.0
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 11,
+        "demand_mw": 1000.0,
+        "reserve_mw": 50.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          323.4948462690512,
+          0.0,
+          466.5051537309486
+        ],
+        "variable_cost": 17479.89692538102,
+        "fixed_cost": 12.0,
+        "total_cost": 17491.89692538102,
+        "branch_flows_mw": [
+          249.71676504272753,
+          186.78838868822132,
+          -226.50515373094868,
+          -50.283234957272455,
+          -26.788388688221275,
+          -239.99999999999997
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 12,
+        "demand_mw": 990.0,
+        "reserve_mw": 49.5,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          312.0486300766452,
+          0.0,
+          467.9513699233548
+        ],
+        "variable_cost": 17150.972601532903,
+        "fixed_cost": 12.0,
+        "total_cost": 17162.972601532903,
+        "branch_flows_mw": [
+          251.4674478019558,
+          186.48392212139902,
+          -227.95136992335478,
+          -45.532552198044186,
+          -30.48392212139899,
+          -240.00000000000003
+        ],
+        "max_line_violation_mw": 2.842170943040401e-14
+      },
+      {
+        "hour": 13,
+        "demand_mw": 970.0,
+        "reserve_mw": 48.5,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          289.1561976918333,
+          0.0,
+          470.8438023081665
+        ],
+        "variable_cost": 16493.123953836664,
+        "fixed_cost": 12.0,
+        "total_cost": 16505.123953836664,
+        "branch_flows_mw": [
+          254.96881332041235,
+          185.87498898775442,
+          -230.84380230816652,
+          -36.031186679587634,
+          -37.87498898775438,
+          -240.0
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 14,
+        "demand_mw": 950.0,
+        "reserve_mw": 47.5,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          266.2637653070213,
+          0.0,
+          473.73623469297854
+        ],
+        "variable_cost": 15835.275306140424,
+        "fixed_cost": 12.0,
+        "total_cost": 15847.275306140424,
+        "branch_flows_mw": [
+          258.47017883886895,
+          185.26605585410982,
+          -233.73623469297848,
+          -26.529821161131068,
+          -45.26605585410982,
+          -240.0
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 15,
+        "demand_mw": 970.0,
+        "reserve_mw": 48.5,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          289.1561976918333,
+          0.0,
+          470.8438023081665
+        ],
+        "variable_cost": 16493.123953836664,
+        "fixed_cost": 12.0,
+        "total_cost": 16505.123953836664,
+        "branch_flows_mw": [
+          254.96881332041235,
+          185.87498898775442,
+          -230.84380230816652,
+          -36.031186679587634,
+          -37.87498898775438,
+          -240.0
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 16,
+        "demand_mw": 1030.0,
+        "reserve_mw": 51.5,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          357.8334948462689,
+          0.0,
+          462.16650515373095
+        ],
+        "variable_cost": 18466.669896925378,
+        "fixed_cost": 12.0,
+        "total_cost": 18478.669896925378,
+        "branch_flows_mw": [
+          244.46471676504285,
+          187.70178838868824,
+          -222.1665051537309,
+          -64.53528323495715,
+          -15.7017883886883,
+          -240.00000000000003
+        ],
+        "max_line_violation_mw": 2.842170943040401e-14
+      },
+      {
+        "hour": 17,
+        "demand_mw": 1100.0,
+        "reserve_mw": 55.00000000000001,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          437.95700819311077,
+          0.0,
+          452.0429918068891
+        ],
+        "variable_cost": 20769.140163862216,
+        "fixed_cost": 12.0,
+        "total_cost": 20781.140163862216,
+        "branch_flows_mw": [
+          232.20993745044493,
+          189.8330543564444,
+          -212.04299180688912,
+          -97.7900625495551,
+          10.166945643555664,
+          -240.0
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 18,
+        "demand_mw": 1080.0,
+        "reserve_mw": 54.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          415.0645758082987,
+          0.0,
+          454.93542419170103
+        ],
+        "variable_cost": 20111.29151616597,
+        "fixed_cost": 12.0,
+        "total_cost": 20123.29151616597,
+        "branch_flows_mw": [
+          235.71130296890155,
+          189.2241212227998,
+          -214.93542419170103,
+          -88.28869703109848,
+          2.775878777200205,
+          -240.0
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 19,
+        "demand_mw": 1020.0,
+        "reserve_mw": 51.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          346.387278653863,
+          0.0,
+          463.61272134613694
+        ],
+        "variable_cost": 18137.74557307726,
+        "fixed_cost": 12.0,
+        "total_cost": 18149.74557307726,
+        "branch_flows_mw": [
+          246.21539952427105,
+          187.39732182186594,
+          -223.6127213461369,
+          -59.784600475728936,
+          -19.397321821865944,
+          -240.0
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 20,
+        "demand_mw": 940.0,
+        "reserve_mw": 47.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          254.8175491146154,
+          0.0,
+          475.1824508853845
+        ],
+        "variable_cost": 15506.350982292308,
+        "fixed_cost": 12.0,
+        "total_cost": 15518.350982292308,
+        "branch_flows_mw": [
+          260.22086159809714,
+          184.9615892872875,
+          -235.18245088538447,
+          -21.779138401902813,
+          -48.961589287287495,
+          -240.0
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 21,
+        "demand_mw": 840.0,
+        "reserve_mw": 42.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          140.35538719055592,
+          0.0,
+          489.644612809444
+        ],
+        "variable_cost": 12217.107743811117,
+        "fixed_cost": 12.0,
+        "total_cost": 12229.107743811117,
+        "branch_flows_mw": [
+          277.7276891903797,
+          181.91692361906445,
+          -249.64461280944403,
+          25.727689190379778,
+          -85.9169236190644,
+          -240.0
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 22,
+        "demand_mw": 750.0,
+        "reserve_mw": 37.5,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          37.33944145890239,
+          0.0,
+          502.6605585410976
+        ],
+        "variable_cost": 9256.788829178047,
+        "fixed_cost": 12.0,
+        "total_cost": 9268.788829178047,
+        "branch_flows_mw": [
+          293.48383402343404,
+          179.17672451766367,
+          -262.66055854109766,
+          68.4838340234341,
+          -119.17672451766362,
+          -239.99999999999997
+        ],
+        "max_line_violation_mw": 0.0
+      },
+      {
+        "hour": 23,
+        "demand_mw": 680.0,
+        "reserve_mw": 34.0,
+        "commitments": [
+          1,
+          1,
+          0,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          47.36313131313159,
+          0.0,
+          0.0,
+          592.6368686868684
+        ],
+        "variable_cost": 7196.815656565657,
+        "fixed_cost": 7.0,
+        "total_cost": 7203.815656565657,
+        "branch_flows_mw": [
+          279.7656565656566,
+          160.2343434343435,
+          -352.6368686868684,
+          75.76565656565668,
+          -128.2343434343435,
+          -240.0
+        ],
+        "max_line_violation_mw": 0.0
+      }
+    ]
+  },
+  "hourly_qaoa": {
+    "backend": "statevector",
+    "decomposition": "24 independent five-qubit QAOA solves",
+    "total_cost": 311504.11495495355,
+    "gap_percent": 0.018675804615444908,
+    "commitments": [
+      [
+        1,
+        0,
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        1,
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        0,
+        1,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        0,
+        1,
+        1
+      ]
+    ],
+    "hourly": [
+      {
+        "hour": 0,
+        "demand_mw": 620.0,
+        "reserve_mw": 31.0,
+        "commitments": [
+          1,
+          0,
+          0,
+          1,
+          1
+        ],
+        "generation_mw": [
+          20.0,
+          0.0,
+          0.0,
+          0.0,
+          600.0
+        ],
+        "variable_cost": 6280.0,
+        "fixed_cost": 8.0,
+        "total_cost": 6288.0,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.6030378927376773,
+        "qaoa_best_cost": 6312.0,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 1,
+        "demand_mw": 600.0,
+        "reserve_mw": 30.0,
+        "commitments": [
+          1,
+          0,
+          0,
+          0,
+          1
+        ],
+        "generation_mw": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          600.0
+        ],
+        "variable_cost": 6000.0,
+        "fixed_cost": 4.0,
+        "total_cost": 6004.0,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.6044517066094437,
+        "qaoa_best_cost": 6018.0,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 2,
+        "demand_mw": 580.0,
+        "reserve_mw": 28.999999999999996,
+        "commitments": [
+          1,
+          0,
+          0,
+          0,
+          1
+        ],
+        "generation_mw": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          580.0
+        ],
+        "variable_cost": 5800.0,
+        "fixed_cost": 4.0,
+        "total_cost": 5804.0,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.7185008053701407,
+        "qaoa_best_cost": 5818.0,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 3,
+        "demand_mw": 580.0,
+        "reserve_mw": 28.999999999999996,
+        "commitments": [
+          1,
+          0,
+          0,
+          0,
+          1
+        ],
+        "generation_mw": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          580.0
+        ],
+        "variable_cost": 5800.0,
+        "fixed_cost": 4.0,
+        "total_cost": 5804.0,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.6677851512590687,
+        "qaoa_best_cost": 5818.0,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 4,
+        "demand_mw": 600.0,
+        "reserve_mw": 30.0,
+        "commitments": [
+          1,
+          0,
+          0,
+          0,
+          1
+        ],
+        "generation_mw": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          600.0
+        ],
+        "variable_cost": 6000.0,
+        "fixed_cost": 4.0,
+        "total_cost": 6004.0,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.4833352923587075,
+        "qaoa_best_cost": 6018.0,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 5,
+        "demand_mw": 660.0,
+        "reserve_mw": 33.0,
+        "commitments": [
+          1,
+          1,
+          0,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          20.0,
+          0.0,
+          0.0,
+          600.0
+        ],
+        "variable_cost": 6860.0,
+        "fixed_cost": 7.0,
+        "total_cost": 6867.0,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.6241759169714517,
+        "qaoa_best_cost": 6889.0,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 6,
+        "demand_mw": 750.0,
+        "reserve_mw": 37.5,
+        "commitments": [
+          1,
+          1,
+          0,
+          1,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          0.0,
+          24.94056725903267,
+          515.0594327409673
+        ],
+        "variable_cost": 9258.217017770978,
+        "fixed_cost": 11.0,
+        "total_cost": 9269.217017770978,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.48288694127097354,
+        "qaoa_best_cost": 9301.217017770978,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 7,
+        "demand_mw": 840.0,
+        "reserve_mw": 42.0,
+        "commitments": [
+          1,
+          1,
+          0,
+          1,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          0.0,
+          93.74920560197721,
+          536.2507943980228
+        ],
+        "variable_cost": 12222.476168059316,
+        "fixed_cost": 11.0,
+        "total_cost": 12233.476168059316,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.369327734204537,
+        "qaoa_best_cost": 12265.476168059316,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 8,
+        "demand_mw": 920.0,
+        "reserve_mw": 46.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          231.92511672980353,
+          0.0,
+          478.07488327019644
+        ],
+        "variable_cost": 14848.50233459607,
+        "fixed_cost": 12.0,
+        "total_cost": 14860.50233459607,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.32306653246586947,
+        "qaoa_best_cost": 14894.50233459607,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 9,
+        "demand_mw": 960.0,
+        "reserve_mw": 48.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          277.70998149942744,
+          0.0,
+          472.29001850057256
+        ],
+        "variable_cost": 16164.19962998855,
+        "fixed_cost": 12.0,
+        "total_cost": 16176.19962998855,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.38219441767468354,
+        "qaoa_best_cost": 16210.19962998855,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 10,
+        "demand_mw": 980.0,
+        "reserve_mw": 49.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          300.60241388423924,
+          0.0,
+          469.39758611576053
+        ],
+        "variable_cost": 16822.048277684782,
+        "fixed_cost": 12.0,
+        "total_cost": 16834.048277684782,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.20766620117964543,
+        "qaoa_best_cost": 16868.048277684782,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 11,
+        "demand_mw": 1000.0,
+        "reserve_mw": 50.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          323.4948462690512,
+          0.0,
+          466.5051537309486
+        ],
+        "variable_cost": 17479.89692538102,
+        "fixed_cost": 12.0,
+        "total_cost": 17491.89692538102,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.2488384313041719,
+        "qaoa_best_cost": 17525.89692538102,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 12,
+        "demand_mw": 990.0,
+        "reserve_mw": 49.5,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          312.0486300766452,
+          0.0,
+          467.9513699233548
+        ],
+        "variable_cost": 17150.972601532903,
+        "fixed_cost": 12.0,
+        "total_cost": 17162.972601532903,
+        "max_line_violation_mw": 2.842170943040401e-14,
+        "qaoa_feasible_probability": 0.29380456103725877,
+        "qaoa_best_cost": 17196.972601532903,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 13,
+        "demand_mw": 970.0,
+        "reserve_mw": 48.5,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          289.1561976918333,
+          0.0,
+          470.8438023081665
+        ],
+        "variable_cost": 16493.123953836664,
+        "fixed_cost": 12.0,
+        "total_cost": 16505.123953836664,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.28078386230418745,
+        "qaoa_best_cost": 16539.123953836664,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 14,
+        "demand_mw": 950.0,
+        "reserve_mw": 47.5,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          266.2637653070213,
+          0.0,
+          473.73623469297854
+        ],
+        "variable_cost": 15835.275306140424,
+        "fixed_cost": 12.0,
+        "total_cost": 15847.275306140424,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.26532565308231437,
+        "qaoa_best_cost": 15881.275306140424,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 15,
+        "demand_mw": 970.0,
+        "reserve_mw": 48.5,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          289.1561976918333,
+          0.0,
+          470.8438023081665
+        ],
+        "variable_cost": 16493.123953836664,
+        "fixed_cost": 12.0,
+        "total_cost": 16505.123953836664,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.21725788751387967,
+        "qaoa_best_cost": 16539.123953836664,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 16,
+        "demand_mw": 1030.0,
+        "reserve_mw": 51.5,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          357.8334948462689,
+          0.0,
+          462.16650515373095
+        ],
+        "variable_cost": 18466.669896925378,
+        "fixed_cost": 12.0,
+        "total_cost": 18478.669896925378,
+        "max_line_violation_mw": 2.842170943040401e-14,
+        "qaoa_feasible_probability": 0.37761520481212474,
+        "qaoa_best_cost": 18512.669896925378,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 17,
+        "demand_mw": 1100.0,
+        "reserve_mw": 55.00000000000001,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          437.95700819311077,
+          0.0,
+          452.0429918068891
+        ],
+        "variable_cost": 20769.140163862216,
+        "fixed_cost": 12.0,
+        "total_cost": 20781.140163862216,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.07510811917381595,
+        "qaoa_best_cost": 20815.140163862216,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 18,
+        "demand_mw": 1080.0,
+        "reserve_mw": 54.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          415.0645758082987,
+          0.0,
+          454.93542419170103
+        ],
+        "variable_cost": 20111.29151616597,
+        "fixed_cost": 12.0,
+        "total_cost": 20123.29151616597,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.254315483144547,
+        "qaoa_best_cost": 20157.29151616597,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 19,
+        "demand_mw": 1020.0,
+        "reserve_mw": 51.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          346.387278653863,
+          0.0,
+          463.61272134613694
+        ],
+        "variable_cost": 18137.74557307726,
+        "fixed_cost": 12.0,
+        "total_cost": 18149.74557307726,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.11792386033528435,
+        "qaoa_best_cost": 18183.74557307726,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 20,
+        "demand_mw": 940.0,
+        "reserve_mw": 47.0,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          254.8175491146154,
+          0.0,
+          475.1824508853845
+        ],
+        "variable_cost": 15506.350982292308,
+        "fixed_cost": 12.0,
+        "total_cost": 15518.350982292308,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.1646324456685591,
+        "qaoa_best_cost": 15552.350982292308,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 21,
+        "demand_mw": 840.0,
+        "reserve_mw": 42.0,
+        "commitments": [
+          1,
+          1,
+          0,
+          1,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          0.0,
+          93.74920560197721,
+          536.2507943980228
+        ],
+        "variable_cost": 12222.476168059316,
+        "fixed_cost": 11.0,
+        "total_cost": 12233.476168059316,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.41539764370810667,
+        "qaoa_best_cost": 12265.476168059316,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 22,
+        "demand_mw": 750.0,
+        "reserve_mw": 37.5,
+        "commitments": [
+          1,
+          1,
+          1,
+          0,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          170.0,
+          37.33944145890239,
+          0.0,
+          502.6605585410976
+        ],
+        "variable_cost": 9256.788829178047,
+        "fixed_cost": 12.0,
+        "total_cost": 9268.788829178047,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.43091060814787135,
+        "qaoa_best_cost": 9302.788829178047,
+        "fallback_to_classical": false
+      },
+      {
+        "hour": 23,
+        "demand_mw": 680.0,
+        "reserve_mw": 34.0,
+        "commitments": [
+          1,
+          1,
+          0,
+          1,
+          1
+        ],
+        "generation_mw": [
+          40.0,
+          47.36313131313159,
+          0.0,
+          0.0,
+          592.6368686868684
+        ],
+        "variable_cost": 7196.815656565657,
+        "fixed_cost": 11.0,
+        "total_cost": 7207.815656565657,
+        "max_line_violation_mw": 0.0,
+        "qaoa_feasible_probability": 0.6173017581278921,
+        "qaoa_best_cost": 7239.815656565657,
+        "fallback_to_classical": false
+      }
+    ]
+  }
+}
+

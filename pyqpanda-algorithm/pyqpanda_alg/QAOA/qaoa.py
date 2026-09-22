@@ -22,6 +22,101 @@ from .default_circuits import *
 from .. plugin import *
 
 
+def _parse_pauli_word(word, indices=None):
+    """Return ``(qubit, pauli)`` pairs from supported QPanda3 word formats."""
+
+    if isinstance(word, dict):
+        return [
+            (int(index), str(pauli).upper())
+            for index, pauli in word.items()
+            if str(pauli).upper() != "I"
+        ]
+    if indices is not None:
+        characters = str(word).replace(" ", "")
+        return [
+            (int(index), character.upper())
+            for index, character in zip(indices, characters)
+            if character.upper() != "I"
+        ]
+    text = str(word).strip()
+    if not text:
+        return []
+    pairs = []
+    for token in text.split():
+        token = token.strip()
+        if not token or token.upper() == "I":
+            continue
+        pairs.append((int(token[1:]), token[0].upper()))
+    return pairs
+
+
+def _normalise_pauli_terms(raw_terms):
+    """Normalize PauliOperator terms across QPanda3 minor-version APIs."""
+
+    normalised = []
+    for item in raw_terms:
+        if hasattr(item, "coef") and hasattr(item, "paulis"):
+            coefficient = item.coef()
+            paulis = [
+                (int(pauli.qbit()), str(pauli.pauli_char()).upper())
+                for pauli in item.paulis()
+            ]
+        elif isinstance(item, tuple) and len(item) == 3:
+            word, indices, coefficient = item
+            paulis = _parse_pauli_word(word, indices)
+        elif isinstance(item, tuple) and len(item) == 2:
+            word, coefficient = item
+            paulis = _parse_pauli_word(word)
+        else:
+            raise TypeError(f"unsupported Pauli term representation: {item!r}")
+        normalised.append((complex(coefficient), tuple(paulis)))
+    return normalised
+
+
+def _pauli_term_data(operator):
+    """Return ``(coefficient, paulis)`` without assuming ``.terms()`` exists.
+
+    QPanda3 releases expose PauliOperator data through different surfaces. The
+    current release provides ``terms()`` and ``to_hamiltonian_pq2()``; some
+    PyPI/IDE environments expose only the latter or one of the data accessors.
+    Keeping this compatibility boundary here lets the QAOA implementation use
+    one representation while preserving the public algorithm API.
+    """
+
+    accessor = getattr(operator, "terms", None)
+    if accessor is not None:
+        raw_terms = accessor() if callable(accessor) else accessor
+        return _normalise_pauli_terms(raw_terms)
+
+    for name, arguments in (
+        ("to_hamiltonian_pq2", ()),
+        ("toHamiltonian", (True,)),
+        ("data_3tuple_list_complex_coeff", ()),
+    ):
+        converter = getattr(operator, name, None)
+        if converter is None:
+            continue
+        try:
+            raw_terms = converter(*arguments)
+        except (AttributeError, TypeError):
+            continue
+        if isinstance(raw_terms, dict):
+            raw_terms = list(raw_terms.items())
+        return _normalise_pauli_terms(raw_terms)
+
+    for name in ("data_dict_complex_coeff", "data_dict_float_coeff"):
+        accessor = getattr(operator, name, None)
+        if accessor is None:
+            continue
+        raw_terms = accessor() if callable(accessor) else accessor
+        return _normalise_pauli_terms(list(raw_terms.items()))
+
+    raise AttributeError(
+        "PauliOperator exposes none of terms(), to_hamiltonian_pq2(), "
+        "toHamiltonian(), or the supported data accessors"
+    )
+
+
 
 def p_1(n):
     """
@@ -37,7 +132,7 @@ def p_1(n):
 
     Examples
         Transfer :math:`x_0` into pauli operator :math:`\\frac{I-Z_0}{2}`
-    
+
     >>> from pyqpanda_alg.QAOA import qaoa
     >>> operator_0 = qaoa.p_1(0)
     >>> print(operator_0)
@@ -61,7 +156,7 @@ def p_0(n):
 
     Examples
         Transfer :math:`x_0` into pauli operator :math:`\\frac{I+Z_0}{2}`
-    
+
     >>> from pyqpanda_alg.QAOA import qaoa
     >>> operator_0 = qaoa.p_0(0)
     >>> print(operator_0)
@@ -72,7 +167,7 @@ def p_0(n):
 
 
 def problem_to_z_operator(problem, norm=False):
-    """
+    r"""
     Transfer polynomial function with binary variables :math:`f(x_0, \cdots, x_n)` to
     pauli operator :math:`f(\\frac{I-Z_0}{2}, \cdots, \\frac{I-Z_n}{2})`
 
@@ -116,7 +211,7 @@ def problem_to_z_operator(problem, norm=False):
 
     if norm:
         # coef_list = [np.fabs(x) for term, x in hamiltonian.toHamiltonian(True) if term]
-        coef_list = [np.fabs(term.coef().real) for term in hamiltonian.terms()]
+        coef_list = [np.fabs(coefficient.real) for coefficient, _ in _pauli_term_data(hamiltonian)]
         norm_factor = 1 / np.mean(coef_list)
         # hamiltonian = norm_hami(hamiltonian, norm_factor)
         hamiltonian = norm_factor * hamiltonian
@@ -196,7 +291,7 @@ def pauli_z_operator_to_circuit(operator, qlist, gamma=np.pi):
         Print a circuit of hamiltonian for problem :math:`f(\\vec{x})=2x_0x_1 + 3x_2 - 1` with :math:`\\theta=0`
 
     .. code-block:: python
-    
+
         import sympy as sp
         from pyqpanda_alg.QAOA import qaoa
         vars = sp.symbols('x0:3')
@@ -220,10 +315,9 @@ def pauli_z_operator_to_circuit(operator, qlist, gamma=np.pi):
     """
     circuit = QCircuit()
     constant = 0
-    for term in operator.terms():
-        coef = term.coef().real
-        paulis = term.paulis()
-        index_list = [q.qbit() for q in paulis if q.is_Z()]
+    for coefficient, paulis in _pauli_term_data(operator):
+        coef = coefficient.real
+        index_list = [index for index, pauli in paulis if pauli == "Z"]
         ang = coef * gamma
         n = len(index_list)
         if n == 0:
@@ -244,7 +338,7 @@ def pauli_z_operator_to_circuit(operator, qlist, gamma=np.pi):
 
 
 class QAOA:
-    """
+    r"""
     This class provides the quantum alternative operator ansatz algorithm optimizer. It assumes a polynomial problem
     consisting only of binary variables. The problem is then translated into an Ising Hamiltonian whose minimal eigen
     vector and corresponding eigenstate correspond to the optimal solution of the original optimization problem.
@@ -295,7 +389,7 @@ class QAOA:
     """
 
     def __init__(self, problem, init_circuit=None,
-                 mixer_circuit=None, norm=False):
+                 mixer_circuit=None, norm=False, noise_model=None):
 
         self.measure_type = None
         self.optimizer = None
@@ -318,21 +412,21 @@ class QAOA:
             self.problem = problem.pauli_operator()
             self.operator = problem.pauli_operator()
             qubit = set()
-            for term in problem.terms():
-                qubit = qubit |set([qubit.qbit() for qubit in term.paulis()])
+            for _, paulis in _pauli_term_data(self.operator):
+                qubit.update(index for index, _ in paulis)
             problem_dimension = len(qubit)
 
         elif isinstance(problem, PauliOperator):
             self.problem = problem
             self.operator = problem
             qubit = set()
-            for term in problem.terms():
-                qubit = qubit |set([qubit.qbit() for qubit in term.paulis()])
+            for _, paulis in _pauli_term_data(self.operator):
+                qubit.update(index for index, _ in paulis)
             problem_dimension = len(qubit)
-        
+
         else:
             raise TypeError("problem must be a sympy expression or a PauliOperator")
-        
+
         self.problem_dimension = problem_dimension
         self.init_circuit = init_circuit
 
@@ -343,6 +437,10 @@ class QAOA:
         self.circuit_iter = 0
 
         self.energy_dict = {}
+        # ``noise_model`` is optional so the original ideal state-vector path
+        # remains unchanged.  The UnitCommitment application uses this hook to
+        # run a local finite-shot rehearsal with pyqpanda3 ``NoiseModel``.
+        self.noise_model = noise_model
 
     def calculate_energy(self, x):
         """
@@ -353,7 +451,7 @@ class QAOA:
             x : ``array-like``\n
                 one binary variables solution in vector form.
 
-        Return 
+        Return
             ``float``\n
             function value of the solution :math:`f(x)`.
 
@@ -393,9 +491,8 @@ class QAOA:
 
         if isinstance(self.problem, PauliOperator):
             result = 0
-            for term in self.problem.terms():
-                coef = term.coef()
-                term_dic = {pauli.qbit(): pauli.pauli_char() for pauli in term.paulis() if pauli.is_Z()}
+            for coef, paulis in _pauli_term_data(self.problem):
+                term_dic = {index: pauli for index, pauli in paulis if pauli == "Z"}
                 real_coef = coef.real if isinstance(coef, complex) else coef
                 if term_dic.keys():
                     exp = 1
@@ -509,19 +606,30 @@ class QAOA:
             '110': 0.122, '111': 0.14}
 
         """
+        if self.noise_model is not None and shots <= 0:
+            raise ValueError("a noise model requires a positive finite-shot run")
+
         qvm = CPUQVM()
         qaoa_prog = QProg(self.problem_dimension)
         qlist = qaoa_prog.qubits()
         qaoa_prog << self._qaoa_circuit(qlist, gammas, betas)
 
+        def _run(program, run_shots):
+            if self.noise_model is None:
+                qvm.run(program, shots=run_shots)
+            else:
+                # Keep the positional form compatible with the installed
+                # pyqpanda3 extension across its supported minor versions.
+                qvm.run(program, run_shots, self.noise_model)
+
         if shots == -1:
-            qvm.run(qaoa_prog, shots=1)
+            _run(qaoa_prog, 1)
             prob_result = qvm.result().get_prob_dict()
             prob_result = parse_quantum_result_dict(prob_result, qlist, select_max=-1)
         elif shots > 0:
             qaoa_prog << measure_all(qlist, qlist)
             # prob_result = qvm.run_with_configuration(qaoa_prog, clist, shots)
-            qvm.run(qaoa_prog, shots=shots)
+            _run(qaoa_prog, shots)
             prob_result = qvm.result().get_prob_dict(qlist)
             # for key in prob_result.keys():
             #     prob_result[key] = prob_result[key] / shots
@@ -533,7 +641,7 @@ class QAOA:
         return prob_result
 
     def _loss_function_default(self, measure_result):
-        """
+        r"""
         Given a result, calculate the energy expectation.
         If measure type is sample, return :math:`E=\frac{1}{N_{\rm{shots}}}\sum_{i=0}^{2^n-1} n_iE_i`.
 
@@ -781,7 +889,7 @@ class QAOA:
 
     def run(self, layer=1, initial_para=None, shots=-1, loss_type=None, optimize_type=None, optimizer=None,
             optimizer_option=None, **loss_option):
-        """
+        r"""
         Optimize the function by QAOA algorithm.
 
         Parameters
@@ -878,9 +986,9 @@ class QAOA:
 
         .. parsed-literal::
             [('000', 0.6848946054168573),
-             ('010', 0.1575526972909123), 
-             ('001', 0.15755269729091226), 
-             ('100', 7.957749518311524e-13), 
+             ('010', 0.1575526972909123),
+             ('001', 0.15755269729091226),
+             ('100', 7.957749518311524e-13),
              ('110', 1.8305953815081342e-13)]
 
 
@@ -995,3 +1103,4 @@ class QAOA:
         qaoa_result = dict(zip(keys, items))
 
         return qaoa_result, para_result, loss_result
+

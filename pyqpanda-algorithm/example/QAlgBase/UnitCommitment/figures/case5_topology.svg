@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560" role="img" aria-labelledby="title desc">
+  <title id="title">Five-bus active-power benchmark network</title>
+  <desc id="desc">One-line diagram of the PJM five-bus benchmark with five buses, five generators, three loads, six branches, and finite limits on branches 1-2 and 4-5.</desc>
+  <defs>
+    <marker id="load-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L7,3 z" fill="#b23a48"/>
+    </marker>
+  </defs>
+  <rect width="1000" height="560" fill="#ffffff"/>
+  <text x="500" y="34" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#17324d">Five-bus active-power benchmark</text>
+  <text x="500" y="56" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#607d8b">PJM five-bus one-line representation</text>
+
+  <!-- transmission branches -->
+  <g fill="none" stroke="#1f4e79" stroke-width="3.5" stroke-linecap="round">
+    <path d="M150 280 L350 130" stroke="#b23a48"/>
+    <path d="M150 280 L350 430"/>
+    <path d="M150 280 L760 280"/>
+    <path d="M350 130 L550 280"/>
+    <path d="M550 280 L350 430"/>
+    <path d="M350 430 L760 280" stroke="#b23a48"/>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="13" text-anchor="middle">
+    <text x="235" y="186" fill="#b23a48">L12 (400 MVA)</text>
+    <text x="252" y="380" fill="#1f4e79">L14</text>
+    <text x="455" y="268" fill="#1f4e79">L15</text>
+    <text x="450" y="190" fill="#1f4e79">L23</text>
+    <text x="450" y="382" fill="#1f4e79">L34</text>
+    <text x="612" y="364" fill="#b23a48">L45 (240 MVA)</text>
+  </g>
+
+  <!-- busbars -->
+  <g stroke="#17324d" stroke-width="12" stroke-linecap="butt">
+    <path d="M120 280 H180"/>
+    <path d="M320 130 H380"/>
+    <path d="M520 280 H580"/>
+    <path d="M320 430 H380"/>
+    <path d="M730 280 H790"/>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" fill="#17324d">
+    <text x="150" y="258">B1</text>
+    <text x="350" y="108">B2</text>
+    <text x="550" y="258">B3</text>
+    <text x="350" y="408">B4</text>
+    <text x="760" y="258">B5</text>
+  </g>
+
+  <!-- generators -->
+  <g fill="none" stroke="#2e7d32" stroke-width="2">
+    <path d="M75 210 L120 270"/>
+    <path d="M75 350 L120 290"/>
+    <path d="M640 195 L565 270"/>
+    <path d="M245 500 L335 438"/>
+    <path d="M895 200 L775 275"/>
+  </g>
+  <g fill="#e8f5e9" stroke="#2e7d32" stroke-width="2.5">
+    <circle cx="70" cy="202" r="18"/>
+    <circle cx="70" cy="358" r="18"/>
+    <circle cx="648" cy="187" r="18"/>
+    <circle cx="235" cy="507" r="18"/>
+    <circle cx="905" cy="194" r="18"/>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="12" font-weight="700" text-anchor="middle" fill="#1b5e20">
+    <text x="70" y="206">G</text>
+    <text x="70" y="362">G</text>
+    <text x="648" y="191">G</text>
+    <text x="235" y="511">G</text>
+    <text x="905" y="198">G</text>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="12" fill="#1b5e20">
+    <text x="22" y="178">G1 40 MW</text>
+    <text x="20" y="388">G2 170 MW</text>
+    <text x="625" y="159">G3 520 MW</text>
+    <text x="170" y="535">G4 200 MW</text>
+    <text x="830" y="170">G5 600 MW</text>
+  </g>
+
+  <!-- loads -->
+  <g fill="none" stroke="#b23a48" stroke-width="2.2" marker-end="url(#load-arrow)">
+    <path d="M350 145 V205"/>
+    <path d="M550 295 V355"/>
+    <path d="M370 442 L455 500"/>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="12" fill="#8e2938">
+    <text x="350" y="224" text-anchor="middle">Load 300 MW</text>
+    <text x="550" y="378" text-anchor="middle">Load 300 MW</text>
+    <text x="470" y="518" text-anchor="start">Load 400 MW</text>
+  </g>
+
+  <!-- legend -->
+  <g font-family="Arial, sans-serif" font-size="11">
+    <path d="M90 548 H130" stroke="#1f4e79" stroke-width="3.5"/>
+    <text x="140" y="552" fill="#37474f">unlimited-rate branch</text>
+    <path d="M355 548 H395" stroke="#b23a48" stroke-width="3.5"/>
+    <text x="405" y="552" fill="#8e2938">finite branch limit</text>
+    <text x="900" y="552" text-anchor="end" fill="#607d8b">Source: embedded PJM five-bus benchmark parameters</text>
+  </g>
+</svg>
+
