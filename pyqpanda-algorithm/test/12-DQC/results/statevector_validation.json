@@ -1,0 +1,56 @@
+{
+  "lambda20": {
+    "case": "lambda20",
+    "backend": "numpy",
+    "n_qubits": 3,
+    "depth": 2,
+    "collocation_points": 24,
+    "optimization_steps": 40,
+    "training_loss": 19.01025127210166,
+    "best_training_loss": 19.01025127210166,
+    "aggregate_rmse": 0.4415323625052115,
+    "max_abs_error": 1.1160505353250512,
+    "component_rmse": [
+      0.4693309041492781,
+      0.41186181746950995
+    ],
+    "holdout_residual_rms": 4.057105299618463,
+    "training_uses_reference": false
+  },
+  "coupled": {
+    "case": "coupled",
+    "backend": "numpy",
+    "n_qubits": 3,
+    "depth": 2,
+    "collocation_points": 24,
+    "optimization_steps": 40,
+    "training_loss": 1.263729473406629,
+    "best_training_loss": 1.1154618421820863,
+    "aggregate_rmse": 0.33772143893282164,
+    "max_abs_error": 0.6580257200983866,
+    "component_rmse": [
+      0.3448022181620715,
+      0.33048898768374474
+    ],
+    "holdout_residual_rms": 1.0419545400725054,
+    "training_uses_reference": false
+  },
+  "riccati": {
+    "case": "riccati",
+    "backend": "numpy",
+    "n_qubits": 3,
+    "depth": 2,
+    "collocation_points": 24,
+    "optimization_steps": 40,
+    "training_loss": 1.9638167434234741,
+    "best_training_loss": 1.9638167434234741,
+    "aggregate_rmse": 0.1648560401212771,
+    "max_abs_error": 0.4222916173810217,
+    "component_rmse": [
+      0.1648560401212771
+    ],
+    "holdout_residual_rms": 1.3723906933385996,
+    "training_uses_reference": false
+  }
+}
+

@@ -46,9 +46,20 @@ from . import QSVM
 from . import QUBO
 from . import QCmp
 from . import QAE
-from . import QSVD
-from . import QSVR
+# QSVD and QSVR use optional data-science dependencies that are not needed by
+# every algorithm.  Keep the package root importable for lightweight modules
+# such as DQC when those optional dependencies are not installed.
+try:
+    from . import QSVD
+except ImportError as exc:
+    warnings.warn(f"QSVD is unavailable because an optional dependency is missing: {exc}", ImportWarning)
+try:
+    from . import QSVR
+except ImportError as exc:
+    warnings.warn(f"QSVR is unavailable because an optional dependency is missing: {exc}", ImportWarning)
 from . import Grover
 from . import QmRMR
 from . import QSEncode
+from . import DQC
+
 
