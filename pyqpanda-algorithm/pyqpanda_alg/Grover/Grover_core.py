@@ -498,7 +498,11 @@ class GroverAdaptiveSearch:
 
         Returns
             minimum_indexes, minimum_res : ( ``list[list[int]]``, ``float``)\n
-                The optimization result including the solution array and the optimal value.
+                Measured solutions attaining the incumbent value, in variable order
+                (least significant bit first), without duplicates. Equal-value samples
+                are retained even when the initial value is already optimal. The list
+                is empty if no sampled state attains or improves the initial value.
+                This finite search does not certify global optimality or enumerate all ties.
 
         Examples
             An example for minimization of quadratic binary function: x0 * x1 + x0 - x1.
@@ -565,7 +569,7 @@ class GroverAdaptiveSearch:
                     if outcome not in indexes_measured:
                         indexes_measured.append(outcome)
                     if v == 0:
-                        if outcome not in indexes_measured:
+                        if outcome not in minimum_indexes:
                             minimum_indexes.append(outcome)
                         if process_show:
                             print('minimum Key Again: ', outcome)

@@ -1,75 +1,99 @@
-# import pytest
-# import numpy as np
-# from pyqpanda_alg.Grover import GroverAdaptiveSearch
-# from pyqpanda3.core import QCircuit, U1
-# from pyqpanda_alg.plugin import hadamard_circuit, QFT
-#
-#
-# class Test_grover_run:
-#
-#     def flip_oracle_function(self, q_index_value, current_min):
-#         q_index = q_index_value[:2]
-#         q_value = q_index_value[2:]
-#         n_value = len(q_value)
-#         factor = np.pi * 2 ** (1 - n_value)
-#         cal_cir = QCircuit()
-#         cal_cir << hadamard_circuit(q_value)
-#         for i, q_i in enumerate(q_value):
-#             cal_cir << U1(q_i, factor * 2 ** i).control(q_index)
-#             cal_cir << U1(q_i, factor * 2 ** i).control(q_index[0])
-#             cal_cir << U1(q_i, -factor * 2 ** i).control(q_index[1])
-#             cal_cir << U1(q_i, factor * 2 ** i * (-current_min))
-#         cal_cir << QFT(q_value).dagger()
-#         return cal_cir
-#
-#     def n_value_function_basic(self, current_min):
-#         n_value = 2 if current_min == 0 else 3
-#         return n_value
-#
-#     def value_function_basic(self, var_array):
-#         var_array = list(map(int, var_array))[::-1]  # 转换为二进制并反转顺序
-#         x0, x1 = var_array[0], var_array[1]
-#         value = x0 * x1 + x0 - x1
-#         return value
-#
-#     def calculate_optimal_solution_brute_force(self, value_function, n_bits=2):
-#         best_value = float('inf')
-#         best_solution = None
-#
-#         # 遍历所有可能的二进制组合
-#         for i in range(2 ** n_bits):
-#             binary_str = format(i, f'0{n_bits}b')
-#             current_value = value_function(binary_str)
-#
-#             if current_value < best_value:
-#                 best_value = current_value
-#                 best_solution = binary_str
-#
-#         return best_solution, best_value
-#
-#     def test_run_basic_parameters(self):
-#         """测试run接口基本参数"""
-#         demo_search = GroverAdaptiveSearch(
-#             init_value=0,
-#             n_index=2,
-#             oracle_circuit=self.flip_oracle_function
-#         )
-#
-#         theoretical_opt_solution, theoretical_opt_value = self.calculate_optimal_solution_brute_force(
-#             self.value_function_basic
-#         )
-#
-#         res = demo_search.run(
-#             continue_times=5,
-#             n_value_function=self.n_value_function_basic,
-#             value_function=self.value_function_basic,
-#             process_show=True
-#         )
-#
-#         optimal_solution, optimal_value = res[0], res[1]
-#         print(f"✓ run接口返回有效结果: 最优解='{optimal_solution}', 函数值={optimal_value}")
-#
-#
-# if __name__ == "__main__":
-#     # 运行测试
-#     pytest.main([__file__, "-v", "-s"])
+"""Deterministic CPU regressions for adaptive search result retention."""
+
+import numpy as np
+import pytest
+from pyqpanda3.core import QCircuit, X
+from pyqpanda_alg.Grover import GroverAdaptiveSearch, mark_data_reflection
+
+
+@pytest.mark.parametrize("rotation_change", ["increase", "random"])
+@pytest.mark.parametrize(
+    "values, initial, samples, expected_keys, expected_value",
+    [
+        ([2, 3, 4, 5], 2, [0], {0}, 2),
+        ([5, 2, 2, 9], 2, [1, 2], {1, 2}, 2),
+        ([2, 2, 3, 4], 9, [0, 1], {0, 1}, 2),
+        ([5, 5, 2, 2], 5, [0, 1, 2, 3], {2, 3}, 2),
+        ([-3, -3, 1, 2], -3, [0, 1], {0, 1}, -3),
+        ([1, 4, 5, 6], 1, [1], set(), 1),
+        ([2, 4, 5, 6], 9, [0, 1], {0}, 2),
+        ([0, 0, 0, 0], 0, [0, 1, 2, 3], {0, 1, 2, 3}, 0),
+    ],
+    ids=[
+        "initial-already-optimal",
+        "equal-initial-minima",
+        "improve-then-tie",
+        "discard-old-minima-after-improvement",
+        "negative-initial-minima",
+        "no-sampled-minimum",
+        "worse-samples-excluded",
+        "constant-objective",
+    ],
+)
+def test_search_retains_measured_minima(
+    rotation_change: str,
+    values: list[int],
+    initial: int,
+    samples: list[int],
+    expected_keys: set[int],
+    expected_value: int,
+) -> None:
+    """Only measured states attaining the incumbent belong in the result.
+
+    Prepare a chosen computational basis state using the public init callback.
+    A diagonal threshold oracle and Grover reflection preserve that basis state
+    up to phase. Thus CPUQVM's real measurements are deterministic; no simulator
+    or result is mocked. Advance preparation only after the value callback sees
+    a measurement, so forward and inverse preparations within an iteration agree.
+    """
+    observed: list[int] = []
+
+    def prepare(qubits: list[int], threshold: float) -> QCircuit:
+        key = samples[min(len(observed), len(samples) - 1)]
+        circuit = QCircuit()
+        for bit in range(2):
+            if key & (1 << bit):
+                circuit << X(qubits[bit])
+        return circuit
+
+    def oracle(qubits: list[int], threshold: float) -> QCircuit:
+        marked = [
+            format(key, "02b") for key, value in enumerate(values) if value < threshold
+        ]
+        if not marked:
+            return QCircuit()
+        return mark_data_reflection(qubits[:2], marked)
+
+    def measured_value(bits: str) -> int:
+        key = int(bits, 2)
+        observed.append(key)
+        return values[key]
+
+    search = GroverAdaptiveSearch(
+        init_value=initial,
+        n_index=2,
+        init_circuit=prepare,
+        oracle_circuit=oracle,
+    )
+    random_state = np.random.get_state()
+    try:
+        np.random.seed(7)
+        solutions, value = search.run(
+            continue_times=4,
+            n_value_function=lambda threshold: 1,
+            value_function=measured_value,
+            rotation_change=rotation_change,
+        )
+    finally:
+        np.random.set_state(random_state)
+
+    assert observed[: len(samples)] == samples
+    assert value == expected_value
+    # Public solutions are in variable order (least significant bit first).
+    keys = [sum(bit << index for index, bit in enumerate(bits)) for bits in solutions]
+    assert set(keys) == expected_keys
+    assert len(keys) == len(set(keys)), "Repeated samples must not duplicate solutions"
+    assert all(
+        len(bits) == 2 and all(bit in (0, 1) for bit in bits) for bits in solutions
+    )
+    assert all(key in observed and values[key] == value for key in keys)
