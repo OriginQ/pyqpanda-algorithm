@@ -43,9 +43,18 @@ def iswap(q1, q2, angle):
     return xycir
 
 
-def parity_partition_xy_mixer(qlist, beta):
+def parity_partition_xy_mixer(qlist: list[int], beta: float) -> QCircuit:
     """
     Quantum circuits to approximate a parity-partition XY mixer.
+
+    Empty and singleton domains return the identity, preserving Hamming weight.
+    Two qubits receive one XY interaction. Larger domains follow the supplied
+    qubit order around a ring: even-indexed pairs, then odd-indexed pairs.
+    An odd ring closes with a separate last-to-first interaction; an even
+    ring includes that edge in the second partition.
+    The existing angle convention is retained: each pair implements
+    exp(+i * beta * (XX + YY)). This partitioned product is generally not
+    the exact exponential of the sum of all ring interactions.
 
     Parameters
         qlist : ``list``\n
@@ -104,10 +113,9 @@ q_3:  |0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤
     q_num = len(qlist)
     cir = QCircuit()
 
+    if q_num < 2:
+        return cir
     beta = - 2 * beta
-    if q_num == 1:
-        # cir << pq.RX(qlist, beta)
-        cir << RX(qlist[0], beta)
     if q_num == 2:
         # cir << pq.iSWAP(qlist[0], qlist[1], beta)
         cir << iswap(qlist[0], qlist[1], beta)
@@ -123,6 +131,9 @@ q_3:  |0>─┤RX(1.57079633)├ ┤CNOT├ ┤RZ(-3.14159265)├ ┤CNOT├ ┤
             else:
                 # cir << pq.iSWAP(qlist[-1], qlist[0], beta)
                 cir << iswap(qlist[-1], qlist[0], beta)
+        if q_num % 2:
+            # An odd ring needs a third partition for its closing edge.
+            cir << iswap(qlist[-1], qlist[0], beta)
 
     return cir
 
