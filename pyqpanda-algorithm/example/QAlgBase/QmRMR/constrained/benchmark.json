@@ -1,0 +1,55 @@
+{
+  "seed": 42,
+  "n_features": 6,
+  "select_num": 3,
+  "optimizer": "slsqp",
+  "maxiter": 24,
+  "layers": 3,
+  "initializer": "amplitude",
+  "initializer_strength": 1.0,
+  "initial_scale": 0.5,
+  "optimization_objective": "expectation",
+  "cvar_alpha": 0.25,
+  "ring": false,
+  "restarts": 2,
+  "warm_start": true,
+  "instances": [
+    {
+      "name": "reference_n6_k3_seed42",
+      "seed": 42,
+      "n_features": 6,
+      "select_num": 3
+    },
+    {
+      "name": "n6_k2_seed7",
+      "seed": 7,
+      "n_features": 6,
+      "select_num": 2
+    },
+    {
+      "name": "n6_k4_seed19",
+      "seed": 19,
+      "n_features": 6,
+      "select_num": 4
+    },
+    {
+      "name": "n8_k3_seed17",
+      "seed": 17,
+      "n_features": 8,
+      "select_num": 3
+    },
+    {
+      "name": "n8_k4_seed23",
+      "seed": 23,
+      "n_features": 8,
+      "select_num": 4
+    },
+    {
+      "name": "n10_k5_seed31",
+      "seed": 31,
+      "n_features": 10,
+      "select_num": 5
+    }
+  ]
+}
+

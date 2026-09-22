@@ -1,0 +1,39 @@
+{
+  "run_id": "smoke",
+  "project_version": "0.2.0",
+  "command": [
+    "python",
+    "scripts/run_benchmark.py",
+    "--instances",
+    "1",
+    "--layers",
+    "1",
+    "--maxiter",
+    "2",
+    "--run-id",
+    "smoke",
+    "--no-plot"
+  ],
+  "config": {
+    "optimizer": "slsqp",
+    "maxiter": 2,
+    "layers": 1,
+    "initializer": "amplitude",
+    "initializer_strength": 1.0,
+    "ring": false,
+    "restarts": 2,
+    "initial_scale": 0.5,
+    "optimization_objective": "expectation",
+    "cvar_alpha": 0.25,
+    "warm_start": true,
+    "instance_count": 1
+  },
+  "instances": [
+    {
+      "name": "reference_n6_k3_seed42",
+      "seed": 42,
+      "n_features": 6,
+      "select_num": 3
+    }
+  ]
+}

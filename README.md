@@ -66,8 +66,10 @@ pyqpanda-algorithm 是由本源量子（Origin Quantum）开发的量子算法�
 - **QPCA（量子主成分分析）**  
   通过量子线路提取数据主成分，实现降维加速。
 
-- **QMRMR（量子最小冗余最大相关）**  
-  实现高效特征选择，减少冗余特征影响。
+- **QMRMR（量子最小冗余最大相关）**
+  实现高效特征选择，减少冗余特征影响；同时提供保持固定选择数量的
+  Dicke 态 + XY 混合器 QAOA 实现和可复现的经典基线比较，详见
+  [`example/QAlgBase/QmRMR/constrained`](pyqpanda-algorithm/example/QAlgBase/QmRMR/constrained/README.md)。
 
 - **QARM（量子关联规则挖掘）**  
   快速挖掘频繁项集与关联规则，适用于市场篮子分析等任务。
@@ -154,3 +156,4 @@ pyqpanda_alg采用Python作为主要语言，对系统的环境要求如下：
 <p align="center">
   <img src="my-folder/本源量子云小助手.jpg" alt="本源量子官方小助手" width="30%">
 </p>
+

@@ -1,0 +1,6 @@
+instance,seed,n_features,select_num,method,selected_state,selected_value,expected_value,expected_gap,optimization_value,optimization_objective,cvar_alpha,selected_probability,feasible_probability,optimum_probability,optimum_value,optimum_gap,evaluations,parameter_count,depth,optimizer,layers,restarts,warm_start_used
+reference_n6_k3_seed42,42,6,3,exact_enumeration,011100,0.8378619328579009,,,,,,,,,,0.0,20,0,0,,,,
+reference_n6_k3_seed42,42,6,3,greedy_forward,011100,0.8378619328579009,,,,,,,,,,0.0,15,0,0,,,,
+reference_n6_k3_seed42,42,6,3,exchange_baseline,101100,2.015348635657194,1.5760157629499671,0.7381538300920663,1.5760157629499671,expectation,,0.40064673231806913,1.0,0.3786362245255953,0.8378619328579009,1.177486702799293,32,15,19,slsqp,,2,
+reference_n6_k3_seed42,42,6,3,constrained_qaoa_xy,010101,1.5939950716046711,1.8579670023806374,1.0201050695227365,1.8579670023806374,expectation,,0.27421561863934213,1.0000000000000022,0.08226320758640164,0.8378619328579009,0.7561331387467702,6,2,163,slsqp,1,2,False
+

@@ -1,0 +1,590 @@
+{
+  "project": "Constraint-preserving QAOA for QmRMR feature selection",
+  "objective": "f(x) = x.T @ Q @ x - relevance.T @ x",
+  "constraint": "each instance uses sum(x) = select_num",
+  "backend": "pyqpanda3 CPUQVM state-vector probabilities",
+  "config": {
+    "optimizer": "slsqp",
+    "maxiter": 2,
+    "layers": 1,
+    "initializer": "amplitude",
+    "initializer_strength": 1.0,
+    "ring": false,
+    "restarts": 2,
+    "initial_scale": 0.5,
+    "optimization_objective": "expectation",
+    "cvar_alpha": 0.25,
+    "warm_start": true,
+    "instance_count": 1
+  },
+  "comparison_conventions": {
+    "state_order": "feature-index order; pyQPanda3 keys are reversed before evaluation",
+    "objective": "selected, expected, and gap metrics use the canonical QmRMR objective",
+    "restart_selection": "minimum variational objective, then selected-state value, then maximum optimum probability"
+  },
+  "primary_instance": {
+    "name": "reference_n6_k3_seed42",
+    "seed": 42,
+    "n_features": 6,
+    "select_num": 3,
+    "problem": {
+      "quadratic": [
+        [
+          0.05808361216819946,
+          0.8493093932876785,
+          0.5165300151926623,
+          0.5820712810065407,
+          0.3140646730986204,
+          0.6372618106676825
+        ],
+        [
+          0.8493093932876785,
+          0.21233911067827616,
+          0.23652705370257127,
+          0.4842902356232237,
+          0.23738318332341463,
+          0.31121427281931086
+        ],
+        [
+          0.5165300151926623,
+          0.23652705370257127,
+          0.6118528947223795,
+          0.16958382140520079,
+          0.17859812076024884,
+          0.5252974349029242
+        ],
+        [
+          0.5820712810065407,
+          0.4842902356232237,
+          0.16958382140520079,
+          0.5142344384136116,
+          0.7706500530576879,
+          0.2433014532297995
+        ],
+        [
+          0.3140646730986204,
+          0.23738318332341463,
+          0.17859812076024884,
+          0.7706500530576879,
+          0.9656320330745594,
+          0.46521779148062
+        ],
+        [
+          0.6372618106676825,
+          0.31121427281931086,
+          0.5252974349029242,
+          0.2433014532297995,
+          0.46521779148062,
+          0.4951769101112702
+        ]
+      ],
+      "linear": [
+        -0.3745401188473625,
+        -0.9507143064099162,
+        -0.7319939418114051,
+        -0.5986584841970366,
+        -0.15601864044243652,
+        -0.15599452033620265
+      ],
+      "objective_convention": "canonical_mrmr",
+      "objective_label": "x.T @ Q @ x - relevance.T @ x"
+    },
+    "exact": {
+      "optimal_value": 0.8378619328579009,
+      "optimal_states": [
+        "011100"
+      ],
+      "feasible_state_count": 20,
+      "values": {
+        "111000": 2.0297601748659955,
+        "110100": 2.6920860716406585,
+        "110010": 2.556296189640747,
+        "110001": 2.879921640913608,
+        "101100": 2.015348635657194,
+        "101010": 2.3914014569669972,
+        "101001": 3.260763357533417,
+        "100110": 3.7423048544952335,
+        "100101": 2.8635709271205254,
+        "100011": 3.6654278262218734,
+        "011100": 0.8378619328579009,
+        "011010": 1.2561138653839268,
+        "011001": 1.6267436698040147,
+        "010110": 2.971461095125711,
+        "010101": 1.5939950716046711,
+        "010011": 2.438051081922241,
+        "001110": 2.842712290205947,
+        "001101": 2.010982715978466,
+        "001011": 3.3668814296057508,
+        "000111": 4.0227103321599795
+      }
+    },
+    "classical_greedy": {
+      "selected_state": "011100",
+      "selected_value": 0.8378619328579009,
+      "optimum_gap": 0.0,
+      "evaluations": 15
+    },
+    "methods": [
+      {
+        "method": "exchange_baseline",
+        "selected_state": "101100",
+        "selected_value": 2.015348635657194,
+        "selected_probability": 0.40064673231806913,
+        "expected_value": 1.5760157629499671,
+        "optimization_value": 1.5760157629499671,
+        "optimization_objective": "expectation",
+        "cvar_alpha": "",
+        "expected_gap": 0.7381538300920663,
+        "feasible_probability": 1.0,
+        "optimum_probability": 0.3786362245255953,
+        "optimum_value": 0.8378619328579009,
+        "optimum_gap": 1.177486702799293,
+        "evaluations": 32,
+        "parameter_count": 15,
+        "gate_count": {
+          "CNOT": 30,
+          "X": 3,
+          "CRY": 15
+        },
+        "depth": 19,
+        "metadata": {
+          "optimizer": "slsqp",
+          "bit_order": "qubit",
+          "objective_convention": "canonical_mrmr",
+          "effective_parameter_count": 15,
+          "supplied_parameter_count": 18,
+          "optimize_unused": false,
+          "restart_count": 2,
+          "restart_expected_values": [
+            2.3467361961545565,
+            1.5760157629499671
+          ],
+          "selected_restart": 1,
+          "run_seed": 43
+        }
+      },
+      {
+        "method": "constrained_qaoa_xy",
+        "selected_state": "010101",
+        "selected_value": 1.5939950716046711,
+        "selected_probability": 0.27421561863934213,
+        "expected_value": 1.8579670023806374,
+        "optimization_value": 1.8579670023806374,
+        "optimization_objective": "expectation",
+        "cvar_alpha": null,
+        "expected_gap": 1.0201050695227365,
+        "feasible_probability": 1.0000000000000022,
+        "optimum_probability": 0.08226320758640164,
+        "optimum_value": 0.8378619328579009,
+        "optimum_gap": 0.7561331387467702,
+        "evaluations": 6,
+        "parameter_count": 2,
+        "gate_count": {
+          "RY": 1,
+          "CRY": 2,
+          "CCCCCRY": 32,
+          "X": 114,
+          "CCRY": 4,
+          "CCCRY": 8,
+          "RZ": 26,
+          "CCCCRY": 16,
+          "CNOT": 40,
+          "RX": 25
+        },
+        "depth": 163,
+        "metadata": {
+          "optimizer": "slsqp",
+          "layers": 1,
+          "initializer": "amplitude",
+          "initializer_strength": 1.0,
+          "ring": false,
+          "optimization_objective": "expectation",
+          "optimization_value": 1.8579670023806374,
+          "cvar_alpha": null,
+          "objective_convention": "canonical_mrmr",
+          "parameter_count": 2,
+          "restart_count": 2,
+          "restart_expected_values": [
+            1.8579670023806374,
+            2.387419138775872
+          ],
+          "restart_optimization_values": [
+            1.8579670023806374,
+            2.387419138775872
+          ],
+          "selected_restart": 0,
+          "initial_scale": 0.5,
+          "warm_start_used": false,
+          "warm_start_source_layers": null,
+          "progressive_target_layers": 1,
+          "run_seed": 143
+        }
+      }
+    ],
+    "best_qaoa_method": "constrained_qaoa_xy",
+    "best_qaoa_probabilities": {
+      "111000": 0.07736668682412941,
+      "110100": 0.019386041955709053,
+      "101100": 0.03560140026220364,
+      "011100": 0.08226320758640164,
+      "110010": 0.014398002537045672,
+      "101010": 0.03967480940200946,
+      "011010": 0.13425541666665786,
+      "100110": 0.0019716003128662242,
+      "010110": 0.037202056947758175,
+      "001110": 0.00850082064391277,
+      "110001": 0.010195824521604308,
+      "101001": 0.03572737793399743,
+      "011001": 0.1265366595413911,
+      "100101": 0.014320529177497444,
+      "010101": 0.27421561863934213,
+      "001101": 0.051594138121975885,
+      "100011": 0.00047218664854967445,
+      "010011": 0.007445932126593744,
+      "001011": 0.0060026080730339665,
+      "000111": 0.02286908207732258
+    }
+  },
+  "instances": [
+    {
+      "name": "reference_n6_k3_seed42",
+      "seed": 42,
+      "n_features": 6,
+      "select_num": 3,
+      "problem": {
+        "quadratic": [
+          [
+            0.05808361216819946,
+            0.8493093932876785,
+            0.5165300151926623,
+            0.5820712810065407,
+            0.3140646730986204,
+            0.6372618106676825
+          ],
+          [
+            0.8493093932876785,
+            0.21233911067827616,
+            0.23652705370257127,
+            0.4842902356232237,
+            0.23738318332341463,
+            0.31121427281931086
+          ],
+          [
+            0.5165300151926623,
+            0.23652705370257127,
+            0.6118528947223795,
+            0.16958382140520079,
+            0.17859812076024884,
+            0.5252974349029242
+          ],
+          [
+            0.5820712810065407,
+            0.4842902356232237,
+            0.16958382140520079,
+            0.5142344384136116,
+            0.7706500530576879,
+            0.2433014532297995
+          ],
+          [
+            0.3140646730986204,
+            0.23738318332341463,
+            0.17859812076024884,
+            0.7706500530576879,
+            0.9656320330745594,
+            0.46521779148062
+          ],
+          [
+            0.6372618106676825,
+            0.31121427281931086,
+            0.5252974349029242,
+            0.2433014532297995,
+            0.46521779148062,
+            0.4951769101112702
+          ]
+        ],
+        "linear": [
+          -0.3745401188473625,
+          -0.9507143064099162,
+          -0.7319939418114051,
+          -0.5986584841970366,
+          -0.15601864044243652,
+          -0.15599452033620265
+        ],
+        "objective_convention": "canonical_mrmr",
+        "objective_label": "x.T @ Q @ x - relevance.T @ x"
+      },
+      "exact": {
+        "optimal_value": 0.8378619328579009,
+        "optimal_states": [
+          "011100"
+        ],
+        "feasible_state_count": 20,
+        "values": {
+          "111000": 2.0297601748659955,
+          "110100": 2.6920860716406585,
+          "110010": 2.556296189640747,
+          "110001": 2.879921640913608,
+          "101100": 2.015348635657194,
+          "101010": 2.3914014569669972,
+          "101001": 3.260763357533417,
+          "100110": 3.7423048544952335,
+          "100101": 2.8635709271205254,
+          "100011": 3.6654278262218734,
+          "011100": 0.8378619328579009,
+          "011010": 1.2561138653839268,
+          "011001": 1.6267436698040147,
+          "010110": 2.971461095125711,
+          "010101": 1.5939950716046711,
+          "010011": 2.438051081922241,
+          "001110": 2.842712290205947,
+          "001101": 2.010982715978466,
+          "001011": 3.3668814296057508,
+          "000111": 4.0227103321599795
+        }
+      },
+      "classical_greedy": {
+        "selected_state": "011100",
+        "selected_value": 0.8378619328579009,
+        "optimum_gap": 0.0,
+        "evaluations": 15
+      },
+      "methods": [
+        {
+          "method": "exchange_baseline",
+          "selected_state": "101100",
+          "selected_value": 2.015348635657194,
+          "selected_probability": 0.40064673231806913,
+          "expected_value": 1.5760157629499671,
+          "optimization_value": 1.5760157629499671,
+          "optimization_objective": "expectation",
+          "cvar_alpha": "",
+          "expected_gap": 0.7381538300920663,
+          "feasible_probability": 1.0,
+          "optimum_probability": 0.3786362245255953,
+          "optimum_value": 0.8378619328579009,
+          "optimum_gap": 1.177486702799293,
+          "evaluations": 32,
+          "parameter_count": 15,
+          "gate_count": {
+            "CNOT": 30,
+            "X": 3,
+            "CRY": 15
+          },
+          "depth": 19,
+          "metadata": {
+            "optimizer": "slsqp",
+            "bit_order": "qubit",
+            "objective_convention": "canonical_mrmr",
+            "effective_parameter_count": 15,
+            "supplied_parameter_count": 18,
+            "optimize_unused": false,
+            "restart_count": 2,
+            "restart_expected_values": [
+              2.3467361961545565,
+              1.5760157629499671
+            ],
+            "selected_restart": 1,
+            "run_seed": 43
+          }
+        },
+        {
+          "method": "constrained_qaoa_xy",
+          "selected_state": "010101",
+          "selected_value": 1.5939950716046711,
+          "selected_probability": 0.27421561863934213,
+          "expected_value": 1.8579670023806374,
+          "optimization_value": 1.8579670023806374,
+          "optimization_objective": "expectation",
+          "cvar_alpha": null,
+          "expected_gap": 1.0201050695227365,
+          "feasible_probability": 1.0000000000000022,
+          "optimum_probability": 0.08226320758640164,
+          "optimum_value": 0.8378619328579009,
+          "optimum_gap": 0.7561331387467702,
+          "evaluations": 6,
+          "parameter_count": 2,
+          "gate_count": {
+            "RY": 1,
+            "CRY": 2,
+            "CCCCCRY": 32,
+            "X": 114,
+            "CCRY": 4,
+            "CCCRY": 8,
+            "RZ": 26,
+            "CCCCRY": 16,
+            "CNOT": 40,
+            "RX": 25
+          },
+          "depth": 163,
+          "metadata": {
+            "optimizer": "slsqp",
+            "layers": 1,
+            "initializer": "amplitude",
+            "initializer_strength": 1.0,
+            "ring": false,
+            "optimization_objective": "expectation",
+            "optimization_value": 1.8579670023806374,
+            "cvar_alpha": null,
+            "objective_convention": "canonical_mrmr",
+            "parameter_count": 2,
+            "restart_count": 2,
+            "restart_expected_values": [
+              1.8579670023806374,
+              2.387419138775872
+            ],
+            "restart_optimization_values": [
+              1.8579670023806374,
+              2.387419138775872
+            ],
+            "selected_restart": 0,
+            "initial_scale": 0.5,
+            "warm_start_used": false,
+            "warm_start_source_layers": null,
+            "progressive_target_layers": 1,
+            "run_seed": 143
+          }
+        }
+      ],
+      "best_qaoa_method": "constrained_qaoa_xy",
+      "best_qaoa_probabilities": {
+        "111000": 0.07736668682412941,
+        "110100": 0.019386041955709053,
+        "101100": 0.03560140026220364,
+        "011100": 0.08226320758640164,
+        "110010": 0.014398002537045672,
+        "101010": 0.03967480940200946,
+        "011010": 0.13425541666665786,
+        "100110": 0.0019716003128662242,
+        "010110": 0.037202056947758175,
+        "001110": 0.00850082064391277,
+        "110001": 0.010195824521604308,
+        "101001": 0.03572737793399743,
+        "011001": 0.1265366595413911,
+        "100101": 0.014320529177497444,
+        "010101": 0.27421561863934213,
+        "001101": 0.051594138121975885,
+        "100011": 0.00047218664854967445,
+        "010011": 0.007445932126593744,
+        "001011": 0.0060026080730339665,
+        "000111": 0.02286908207732258
+      }
+    }
+  ],
+  "aggregate": {
+    "exchange_baseline": {
+      "count": 1,
+      "selected_value": {
+        "mean": 2.015348635657194,
+        "median": 2.015348635657194,
+        "std": 0.0,
+        "min": 2.015348635657194,
+        "max": 2.015348635657194
+      },
+      "expected_value": {
+        "mean": 1.5760157629499671,
+        "median": 1.5760157629499671,
+        "std": 0.0,
+        "min": 1.5760157629499671,
+        "max": 1.5760157629499671
+      },
+      "expected_gap": {
+        "mean": 0.7381538300920663,
+        "median": 0.7381538300920663,
+        "std": 0.0,
+        "min": 0.7381538300920663,
+        "max": 0.7381538300920663
+      },
+      "optimum_gap": {
+        "mean": 1.177486702799293,
+        "median": 1.177486702799293,
+        "std": 0.0,
+        "min": 1.177486702799293,
+        "max": 1.177486702799293
+      },
+      "selected_probability": {
+        "mean": 0.40064673231806913,
+        "median": 0.40064673231806913,
+        "std": 0.0,
+        "min": 0.40064673231806913,
+        "max": 0.40064673231806913
+      },
+      "feasible_probability": {
+        "mean": 1.0,
+        "median": 1.0,
+        "std": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "optimum_probability": {
+        "mean": 0.3786362245255953,
+        "median": 0.3786362245255953,
+        "std": 0.0,
+        "min": 0.3786362245255953,
+        "max": 0.3786362245255953
+      },
+      "success_rate": 0.0,
+      "feasibility_min": 1.0
+    },
+    "constrained_qaoa_xy_p1": {
+      "count": 1,
+      "selected_value": {
+        "mean": 1.5939950716046711,
+        "median": 1.5939950716046711,
+        "std": 0.0,
+        "min": 1.5939950716046711,
+        "max": 1.5939950716046711
+      },
+      "expected_value": {
+        "mean": 1.8579670023806374,
+        "median": 1.8579670023806374,
+        "std": 0.0,
+        "min": 1.8579670023806374,
+        "max": 1.8579670023806374
+      },
+      "expected_gap": {
+        "mean": 1.0201050695227365,
+        "median": 1.0201050695227365,
+        "std": 0.0,
+        "min": 1.0201050695227365,
+        "max": 1.0201050695227365
+      },
+      "optimum_gap": {
+        "mean": 0.7561331387467702,
+        "median": 0.7561331387467702,
+        "std": 0.0,
+        "min": 0.7561331387467702,
+        "max": 0.7561331387467702
+      },
+      "selected_probability": {
+        "mean": 0.27421561863934213,
+        "median": 0.27421561863934213,
+        "std": 0.0,
+        "min": 0.27421561863934213,
+        "max": 0.27421561863934213
+      },
+      "feasible_probability": {
+        "mean": 1.0000000000000022,
+        "median": 1.0000000000000022,
+        "std": 0.0,
+        "min": 1.0000000000000022,
+        "max": 1.0000000000000022
+      },
+      "optimum_probability": {
+        "mean": 0.08226320758640164,
+        "median": 0.08226320758640164,
+        "std": 0.0,
+        "min": 0.08226320758640164,
+        "max": 0.08226320758640164
+      },
+      "success_rate": 0.0,
+      "feasibility_min": 1.0000000000000022
+    }
+  },
+  "primary_best_qaoa": {
+    "method": "constrained_qaoa_xy",
+    "selected_value": 1.5939950716046711,
+    "expected_value": 1.8579670023806374,
+    "optimum_gap": 0.7561331387467702,
+    "optimum_probability": 0.08226320758640164
+  }
+}

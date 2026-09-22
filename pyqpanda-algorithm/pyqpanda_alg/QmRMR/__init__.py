@@ -3,6 +3,23 @@ The QFinance module provides tools related to comparator, Quantum amplitude esti
 '''
 
 
-from .QmRMR_core import Feature_Selection 
+from .QmRMR_core import Feature_Selection
+from .constrained import (
+    ConstrainedQAOAQmRMR,
+    ExchangeAnsatzSelector,
+    OptimizationResult,
+    QmRMRFeatureSelection,
+    QmRMRProblem,
+    greedy_forward_selection,
+)
 
-__all__ = [Feature_Selection]
+__all__ = [
+    "Feature_Selection",
+    "ConstrainedQAOAQmRMR",
+    "ExchangeAnsatzSelector",
+    "OptimizationResult",
+    "QmRMRFeatureSelection",
+    "QmRMRProblem",
+    "greedy_forward_selection",
+]
+

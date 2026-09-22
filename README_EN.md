@@ -41,8 +41,11 @@ Integrates quantum computing into classical machine learning to improve efficien
   Quantum-accelerated large-scale data clustering for high-dimensional data scenarios.
 - **QPCA (Quantum Principal Component Analysis)**  
   Extracts data principal components via quantum circuits to accelerate dimensionality reduction.
-- **QMRMR (Quantum Minimum Redundancy Maximum Relevance)**  
-  Implements efficient feature selection to reduce redundant feature interference.
+- **QMRMR (Quantum Minimum Redundancy Maximum Relevance)**
+  Implements feature selection with reduced redundancy.  The package also
+  includes a fixed-cardinality Dicke-state/XY-mixer QAOA extension and
+  reproducible classical baselines in
+  [`example/QAlgBase/QmRMR/constrained`](pyqpanda-algorithm/example/QAlgBase/QmRMR/constrained/README.md).
 - **QARM (Quantum Association Rule Mining)**  
   Rapidly mines frequent itemsets and association rules (e.g., market basket analysis).
 
@@ -116,3 +119,4 @@ Thanks to all contributors, testers, and community supporters. Special thanks to
 <p align="center">
   <img src="my-folder/本源量子云小助手.jpg" alt="本源量子官方小助手" width="30%">
 </p>
+
