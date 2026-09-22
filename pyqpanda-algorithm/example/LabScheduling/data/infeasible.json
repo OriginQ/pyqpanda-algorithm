@@ -1,0 +1,11 @@
+{
+  "name": "有效输入但单设备容量不足",
+  "horizon": 2,
+  "resources": [{"id": "instrument"}],
+  "tasks": [
+    {"id": "A", "group": "A", "duration": 2,
+     "options": [{"resource": "instrument", "start": 0, "cost": 0}]},
+    {"id": "B", "group": "B", "duration": 2,
+     "options": [{"resource": "instrument", "start": 0, "cost": 0}]}
+  ]
+}

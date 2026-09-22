@@ -1,0 +1,20 @@
+{
+  "name": "共享光谱仪故障后的两组重排",
+  "horizon": 9,
+  "resources": [{"id": "spectrometer", "cleanup": 1, "downtime": [[0, 1]]}],
+  "tasks": [
+    {"id": "sample-A", "group": "group-A", "duration": 2,
+     "original": {"resource": "spectrometer", "start": 0}, "change_cost": 3,
+     "options": [
+       {"resource": "spectrometer", "start": 0, "cost": 0},
+       {"resource": "spectrometer", "start": 1, "cost": 0},
+       {"resource": "spectrometer", "start": 3, "cost": 1},
+       {"resource": "spectrometer", "start": 6, "cost": 2}]},
+    {"id": "sample-B", "group": "group-B", "duration": 2,
+     "original": {"resource": "spectrometer", "start": 3}, "change_cost": 3,
+     "options": [
+       {"resource": "spectrometer", "start": 1, "cost": 1},
+       {"resource": "spectrometer", "start": 3, "cost": 0},
+       {"resource": "spectrometer", "start": 6, "cost": 1}]}
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "date": "2026-09-21",
+  "application_tests": 71,
+  "upstream_tests": 18,
+  "line_coverage_percent": 98.44,
+  "clean_wheel_tests": 71,
+  "repeat_runs": 120,
+  "matching_fields": [
+    "quantum excluding runtime_seconds",
+    "metrics",
+    "samples"
+  ],
+  "input_and_source_hashes_verified": true,
+  "best_samples_in_counts": true,
+  "resource_limit_cli_exit": 5,
+  "medium_clean_objective": 4,
+  "publication": "local only; remote PR head a3ba71c unchanged",
+  "implementation_commit": "22fbbd103c0e187287943de64be5c99ba556914d"
+}

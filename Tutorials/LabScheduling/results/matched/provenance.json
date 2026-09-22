@@ -1,0 +1,357 @@
+{
+  "manifest": {
+    "version": 2,
+    "generator_sha256": "c5b48eb8d0c60cd88977419370b3e7d26b12cdc6f4c54d96324637d62750c3a1",
+    "instances": [
+      {
+        "file": "n3-s0-r0.json",
+        "tasks": 3,
+        "scenario": 0,
+        "replicate": 0,
+        "data_seed": 2026092600,
+        "sha256": "480cb064b75a4ab276c0b40efe62867858b857455db58e9958a5f85325d7a250"
+      },
+      {
+        "file": "n3-s0-r1.json",
+        "tasks": 3,
+        "scenario": 0,
+        "replicate": 1,
+        "data_seed": 2026092601,
+        "sha256": "7bde9f6a7e91f5cf1c50260bd0205f601de5e61e9b34fa903b75cce5f58421ff"
+      },
+      {
+        "file": "n3-s0-r2.json",
+        "tasks": 3,
+        "scenario": 0,
+        "replicate": 2,
+        "data_seed": 2026092602,
+        "sha256": "980e1417cd9e25dfc8d552ad19d76c18194f0c2f9e736508360519214a64bd82"
+      },
+      {
+        "file": "n3-s0-r3.json",
+        "tasks": 3,
+        "scenario": 0,
+        "replicate": 3,
+        "data_seed": 2026092603,
+        "sha256": "7ad2d759c8cfcdcea0574002a9893cd6a38c1192ac23e4e2c6e61c77aca3e00e"
+      },
+      {
+        "file": "n3-s1-r0.json",
+        "tasks": 3,
+        "scenario": 1,
+        "replicate": 0,
+        "data_seed": 2026092610,
+        "sha256": "3102867f59fcc7a80a9774499507f0d52ad6f39327c3f7f339e0b781da147add"
+      },
+      {
+        "file": "n3-s1-r1.json",
+        "tasks": 3,
+        "scenario": 1,
+        "replicate": 1,
+        "data_seed": 2026092611,
+        "sha256": "b995fea8a97f1baea0ec2c94fd6283168e039b6b1a8cbac3c8da689008576b1f"
+      },
+      {
+        "file": "n3-s1-r2.json",
+        "tasks": 3,
+        "scenario": 1,
+        "replicate": 2,
+        "data_seed": 2026092612,
+        "sha256": "fcf3c44d08725a501917977b012a460df0065bddee7201e89fd75769f72f398f"
+      },
+      {
+        "file": "n3-s1-r3.json",
+        "tasks": 3,
+        "scenario": 1,
+        "replicate": 3,
+        "data_seed": 2026092613,
+        "sha256": "7e0b8b9923a6f00ec09c570c68a6964b0e4193de04571463499f254eea50a03c"
+      },
+      {
+        "file": "n3-s2-r0.json",
+        "tasks": 3,
+        "scenario": 2,
+        "replicate": 0,
+        "data_seed": 2026092620,
+        "sha256": "93d4314ad16586792abae5864149abd76be8d08cfbf47d1515c68e3f7cc4b3d4"
+      },
+      {
+        "file": "n3-s2-r1.json",
+        "tasks": 3,
+        "scenario": 2,
+        "replicate": 1,
+        "data_seed": 2026092621,
+        "sha256": "5562af7b6a4430f78b74bf07db67f2ee1e2a54dd89e76076d59f476405f51b02"
+      },
+      {
+        "file": "n3-s2-r2.json",
+        "tasks": 3,
+        "scenario": 2,
+        "replicate": 2,
+        "data_seed": 2026092622,
+        "sha256": "bdbd13d37d5b027158ad3b96617fcbbe127c26450b6577397a5c79ed73f463e3"
+      },
+      {
+        "file": "n3-s2-r3.json",
+        "tasks": 3,
+        "scenario": 2,
+        "replicate": 3,
+        "data_seed": 2026092623,
+        "sha256": "bf2d32ec2da41a07091bdc4b92d015e6b57398275f745d630dfabb8520cbe877"
+      },
+      {
+        "file": "n4-s0-r0.json",
+        "tasks": 4,
+        "scenario": 0,
+        "replicate": 0,
+        "data_seed": 2026092700,
+        "sha256": "08fc30fec69a29a96ae57e373739ff0162ba3fcff6ab53119895679a31029390"
+      },
+      {
+        "file": "n4-s0-r1.json",
+        "tasks": 4,
+        "scenario": 0,
+        "replicate": 1,
+        "data_seed": 2026092701,
+        "sha256": "c9739a81f0c0dbc6ef8e5d5061eccd04a8e046db3d7f670e0b7689d7d4cc69e8"
+      },
+      {
+        "file": "n4-s0-r2.json",
+        "tasks": 4,
+        "scenario": 0,
+        "replicate": 2,
+        "data_seed": 2026092702,
+        "sha256": "88b2b434a81b9ddf68c43898785b4f6f2c891ed28befc9a6f268e6b083dbc547"
+      },
+      {
+        "file": "n4-s0-r3.json",
+        "tasks": 4,
+        "scenario": 0,
+        "replicate": 3,
+        "data_seed": 2026092703,
+        "sha256": "125b0b1fe9d0a431b457b083014998f33cb82d918e140db12414608702847198"
+      },
+      {
+        "file": "n4-s1-r0.json",
+        "tasks": 4,
+        "scenario": 1,
+        "replicate": 0,
+        "data_seed": 2026092710,
+        "sha256": "aa0ece2791aae422f427562f52a225e34573890675432668dc4ecd85a8ccd78b"
+      },
+      {
+        "file": "n4-s1-r1.json",
+        "tasks": 4,
+        "scenario": 1,
+        "replicate": 1,
+        "data_seed": 2026092711,
+        "sha256": "836204438f461f317c06e52eee9095d95210ae5e5be6b81a69c216266aa22a36"
+      },
+      {
+        "file": "n4-s1-r2.json",
+        "tasks": 4,
+        "scenario": 1,
+        "replicate": 2,
+        "data_seed": 2026092712,
+        "sha256": "103484d367bba6939e95310aa224358325eba3c739c1d94228a9d8c28aee2e3f"
+      },
+      {
+        "file": "n4-s1-r3.json",
+        "tasks": 4,
+        "scenario": 1,
+        "replicate": 3,
+        "data_seed": 2026092713,
+        "sha256": "4984d9ea14045c7d5025867e5de16c2cb0e2873919cc72f376d781d8dcf6b318"
+      },
+      {
+        "file": "n4-s2-r0.json",
+        "tasks": 4,
+        "scenario": 2,
+        "replicate": 0,
+        "data_seed": 2026092720,
+        "sha256": "9af23d9f34d060ee7e63feab87ad80511bdd416663485f76bd21cc31c298d504"
+      },
+      {
+        "file": "n4-s2-r1.json",
+        "tasks": 4,
+        "scenario": 2,
+        "replicate": 1,
+        "data_seed": 2026092721,
+        "sha256": "757985044dbd854bc54a96d9bbd6811fa20c7d908ae98ae54c22029e6c189a5a"
+      },
+      {
+        "file": "n4-s2-r2.json",
+        "tasks": 4,
+        "scenario": 2,
+        "replicate": 2,
+        "data_seed": 2026092722,
+        "sha256": "ddc2942dc20ad1a731547e61f8630f5d0816fde5631800724760dfe9c09d6967"
+      },
+      {
+        "file": "n4-s2-r3.json",
+        "tasks": 4,
+        "scenario": 2,
+        "replicate": 3,
+        "data_seed": 2026092723,
+        "sha256": "62dac5d42a79a79081d8ca08bde2e705f673d2c0ea74c9cd10d419709542ed99"
+      },
+      {
+        "file": "n5-s0-r0.json",
+        "tasks": 5,
+        "scenario": 0,
+        "replicate": 0,
+        "data_seed": 2026092800,
+        "sha256": "3b096967495414f6c7221f29bc07fd93e00f4ffd2699ae23860da80297f245fb"
+      },
+      {
+        "file": "n5-s0-r1.json",
+        "tasks": 5,
+        "scenario": 0,
+        "replicate": 1,
+        "data_seed": 2026092801,
+        "sha256": "33be7180ae045495e20118be59832c58b92de1b3606e624fb49ee921324b2178"
+      },
+      {
+        "file": "n5-s0-r2.json",
+        "tasks": 5,
+        "scenario": 0,
+        "replicate": 2,
+        "data_seed": 2026092802,
+        "sha256": "76eebc2eead32041f9502f223147ce83aadee15cbd3aa7d085c0ef5733d8a662"
+      },
+      {
+        "file": "n5-s0-r3.json",
+        "tasks": 5,
+        "scenario": 0,
+        "replicate": 3,
+        "data_seed": 2026092803,
+        "sha256": "1add7f70a8e1245cbfeab43a68ecff0c4363a8466db647bfbc74addacf540223"
+      },
+      {
+        "file": "n5-s1-r0.json",
+        "tasks": 5,
+        "scenario": 1,
+        "replicate": 0,
+        "data_seed": 2026092810,
+        "sha256": "b81bb3521d067c55d1c324a08e3c60a2ac45fe3939757f55be879a4b92088626"
+      },
+      {
+        "file": "n5-s1-r1.json",
+        "tasks": 5,
+        "scenario": 1,
+        "replicate": 1,
+        "data_seed": 2026092811,
+        "sha256": "b4220f8427bb64e26d03a7153c73a5b25aa2ddb0d03c2ca0ff8d4f47f2148faf"
+      },
+      {
+        "file": "n5-s1-r2.json",
+        "tasks": 5,
+        "scenario": 1,
+        "replicate": 2,
+        "data_seed": 2026092812,
+        "sha256": "c5aef421815278af00fc874bf90bc25f908db0c626e7175edda15119410278a8"
+      },
+      {
+        "file": "n5-s1-r3.json",
+        "tasks": 5,
+        "scenario": 1,
+        "replicate": 3,
+        "data_seed": 2026092813,
+        "sha256": "0c66b0c1a454629cd740c4653d9b44eb389629df1ca1f078e941e243b39dca70"
+      },
+      {
+        "file": "n5-s2-r0.json",
+        "tasks": 5,
+        "scenario": 2,
+        "replicate": 0,
+        "data_seed": 2026092820,
+        "sha256": "152b5cba1d3286c2bd54e7a1b8cc0452fd3718a4c5122fb49843942d50587d9c"
+      },
+      {
+        "file": "n5-s2-r1.json",
+        "tasks": 5,
+        "scenario": 2,
+        "replicate": 1,
+        "data_seed": 2026092821,
+        "sha256": "e60d5db27b35fd0b91a5e09b8cd2d6b2a4325844d8588f602fd997e1a1310b48"
+      },
+      {
+        "file": "n5-s2-r2.json",
+        "tasks": 5,
+        "scenario": 2,
+        "replicate": 2,
+        "data_seed": 2026092822,
+        "sha256": "b57d495cbb305f84ddf041862a157fe19d8040ea2224b0d872defce8c9fd9e42"
+      },
+      {
+        "file": "n5-s2-r3.json",
+        "tasks": 5,
+        "scenario": 2,
+        "replicate": 3,
+        "data_seed": 2026092823,
+        "sha256": "8bbbac614632276aae9cc270fa7477a191f2e1d0742c961db5457df28975a83b"
+      }
+    ],
+    "optimization_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "training": {
+      "layers": 1,
+      "shots": 512,
+      "maxiter": 60,
+      "restarts": 2
+    },
+    "shots": [
+      8,
+      16,
+      32,
+      64,
+      128,
+      512
+    ],
+    "selection": "all instances retained; no solver-based selection or tuning"
+  },
+  "manifest_sha256": "e48a1ae889b2f55662ebf6e9e85b100df742a986513efc0b936c4c35daadc737",
+  "sources": {
+    "pyqpanda-algorithm/example/LabScheduling/matched_budget.py": "3cfad1d908f4d11a0c8d058b9e142f83204b80cd170c503a937f90244dc27ce2",
+    "pyqpanda-algorithm/example/LabScheduling/benchmark_v2.py": "f7db56733a7c75c7279489c1471e83df80f3c08ef53e6c5a8b25a1fcade2e049",
+    "pyqpanda-algorithm/example/LabScheduling/ablation.py": "cd8c41d2d100611ee1be776cd1e1d07144bb6b1f250d707f8859e3b27d6c2661",
+    "pyqpanda-algorithm/example/LabScheduling/stress_benchmark.py": "30c66c5a33cbf8c72c62c422a6a442c7504f3359142d1571f2d071e6a0d0ed4e",
+    "pyqpanda-algorithm/example/LabScheduling/make_corpus_v2.py": "c5b48eb8d0c60cd88977419370b3e7d26b12cdc6f4c54d96324637d62750c3a1",
+    "Tutorials/LabScheduling/MATCHED_BUDGET_PROTOCOL.md": "8863ab63d99cf2b2be433991a942364c923ef0752183c10afe1b2639c75be541",
+    "pyqpanda-algorithm/pyqpanda_alg/LabScheduling/milp.py": "fc3b22b705beb95491b6b9c51f875480a021bbb40607810abdc04fd6dc8b97a2",
+    "pyqpanda-algorithm/pyqpanda_alg/LabScheduling/__init__.py": "232397fe0094a0c799b939f58da7689a60b8e40b243a7bce1e1cb072ae8056d7",
+    "pyqpanda-algorithm/pyqpanda_alg/LabScheduling/__main__.py": "9ea4aa0d5ffe882a5e6ffe8eb09b79dcf9dc4de4fbfafbbec33354f8c2ec6046",
+    "pyqpanda-algorithm/pyqpanda_alg/LabScheduling/classical.py": "d1bd575af9969c49cda59cd15328d98f176bb004ebc22e887be173b43d69aac5",
+    "pyqpanda-algorithm/pyqpanda_alg/LabScheduling/problem.py": "22ce9db50a98dc8ad8ee8cc1f9b06cef3e5469df4cfe2b043ad87ad360292990",
+    "pyqpanda-algorithm/pyqpanda_alg/LabScheduling/report.py": "96b5dbc737ea4f80b737b6acfb030fcdb33b0a65b2dbf5eb8ff641e8861df2aa",
+    "pyqpanda-algorithm/pyqpanda_alg/LabScheduling/model.py": "f442c4751a7f17f66e5fae331e14f75eaa327177af5346a49ceddb87e86ef509",
+    "pyqpanda-algorithm/pyqpanda_alg/LabScheduling/bookings.py": "dba45010ef9e5f6a1781d8a8d79e9f3faf4fbf90223f526f550687723de1382a",
+    "pyqpanda-algorithm/pyqpanda_alg/LabScheduling/quantum.py": "3f8469be5a92afbf87eb0c82f7b80282a6443edfbe335a55635717f40501522f",
+    "pyqpanda-algorithm/pyqpanda_alg/LabScheduling/metrics.py": "b084507c46a7bf6cc1ca2a6a116156e24a23efb3fdea699f02b4a29bdbd503e0",
+    "pyqpanda-algorithm/pyqpanda_alg/LabScheduling/reduction.py": "99d07b5b02592a30cd8eb8c141e6bddcbdc2e85b366a057bd4b699018cd491e1"
+  },
+  "python": "3.12.3",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "packages": {
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "pyqpanda3": "0.4.1",
+    "pyqpanda_alg": "2.0.0"
+  },
+  "training": {
+    "layers": 1,
+    "restarts": 2,
+    "total_evaluation_cap": 120,
+    "total_shots": 512
+  }
+}

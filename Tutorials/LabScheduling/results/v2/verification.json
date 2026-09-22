@@ -1,0 +1,11 @@
+{
+  "implementation_commit": "798f1bc",
+  "application_tests": 76,
+  "line_coverage_percent": 98.44,
+  "wheel_environment_tests": 76,
+  "paired_records": 360,
+  "input_seed_grid_complete": true,
+  "counts_and_sampled_best_verified": true,
+  "source_hashes_match": true,
+  "replay_exclusions": "only *_seconds fields"
+}

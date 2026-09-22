@@ -1,0 +1,6 @@
+{
+  "records": 120,
+  "runtime_seconds": 49.05728125599853,
+  "peak_process_rss_kib_linux": 269832,
+  "rss_scope": "whole process high-water mark on Linux; not per circuit"
+}

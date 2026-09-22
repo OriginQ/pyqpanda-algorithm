@@ -1,0 +1,34 @@
+Local verification, 2026-09-21, WSL / Python 3.12.3
+
+APPLICATION TESTS (source-directory coverage)
+........................................................                 [100%]
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.3-final-0 ________________
+
+Name                                                         Stmts   Miss  Cover   Missing
+------------------------------------------------------------------------------------------
+pyqpanda-algorithm/pyqpanda_alg/LabScheduling/__init__.py        5      0   100%
+pyqpanda-algorithm/pyqpanda_alg/LabScheduling/__main__.py       27      3    89%   34-35, 43
+pyqpanda-algorithm/pyqpanda_alg/LabScheduling/classical.py      24      0   100%
+pyqpanda-algorithm/pyqpanda_alg/LabScheduling/model.py         119      0   100%
+pyqpanda-algorithm/pyqpanda_alg/LabScheduling/problem.py       121      1    99%   150
+pyqpanda-algorithm/pyqpanda_alg/LabScheduling/quantum.py       121      2    98%   82, 231
+pyqpanda-algorithm/pyqpanda_alg/LabScheduling/report.py         38      1    97%   71
+------------------------------------------------------------------------------------------
+TOTAL                                                          455      7    98%
+Required test coverage of 95% reached. Total coverage: 98.46%
+56 passed in 5.74s
+
+UPSTREAM EFFECTIVE TESTS (OMP/BLAS threads=1)
+..................                                                       [100%]
+18 passed in 9.08s
+
+QUALITY
+Ruff check: passed
+Ruff format --check: 13 files formatted
+Mypy: no issues in 7 source files
+pip check: no broken requirements
+Built wheel import + medium CPU example: cost=4, violations=0, gap=0
+Full 12-run benchmark replay: exact JSON equality excluding runtime_seconds.
+Final upstream refresh: develop unchanged; 70 open PRs, no new entries.
+Final diff, artifact, secret-pattern, legacy-import and relative-link audits: passed.

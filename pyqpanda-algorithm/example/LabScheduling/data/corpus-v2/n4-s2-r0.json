@@ -1,0 +1,145 @@
+{
+  "name": "heterogeneous-n4-s2-seed2026092720",
+  "horizon": 21,
+  "resources": [
+    {
+      "id": "r0",
+      "cleanup": 0,
+      "downtime": [
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "r1",
+      "cleanup": 1,
+      "downtime": []
+    },
+    {
+      "id": "r2",
+      "cleanup": 0,
+      "downtime": []
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t0",
+      "group": "g0",
+      "duration": 3,
+      "original": {
+        "resource": "r0",
+        "start": 0
+      },
+      "change_cost": 3,
+      "options": [
+        {
+          "resource": "r0",
+          "start": 0,
+          "cost": 0
+        },
+        {
+          "resource": "r2",
+          "start": 1,
+          "cost": 4
+        }
+      ]
+    },
+    {
+      "id": "t1",
+      "group": "g1",
+      "duration": 1,
+      "original": {
+        "resource": "r1",
+        "start": 4
+      },
+      "change_cost": 2,
+      "options": [
+        {
+          "resource": "r1",
+          "start": 4,
+          "cost": 0
+        },
+        {
+          "resource": "r2",
+          "start": 9,
+          "cost": 8
+        },
+        {
+          "resource": "r0",
+          "start": 1,
+          "cost": 6
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "group": "g0",
+      "duration": 3,
+      "original": {
+        "resource": "r2",
+        "start": 7
+      },
+      "change_cost": 3,
+      "options": [
+        {
+          "resource": "r2",
+          "start": 7,
+          "cost": 0
+        },
+        {
+          "resource": "r2",
+          "start": 12,
+          "cost": 6
+        },
+        {
+          "resource": "r0",
+          "start": 9,
+          "cost": 5
+        },
+        {
+          "resource": "r1",
+          "start": 8,
+          "cost": 1
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "group": "g1",
+      "duration": 1,
+      "original": {
+        "resource": "r0",
+        "start": 10
+      },
+      "change_cost": 4,
+      "options": [
+        {
+          "resource": "r0",
+          "start": 10,
+          "cost": 0
+        },
+        {
+          "resource": "r0",
+          "start": 16,
+          "cost": 9
+        }
+      ]
+    }
+  ],
+  "precedence": [
+    [
+      "t0",
+      "t1"
+    ],
+    [
+      "t1",
+      "t2"
+    ],
+    [
+      "t2",
+      "t3"
+    ]
+  ]
+}

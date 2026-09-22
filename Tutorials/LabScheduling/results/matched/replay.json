@@ -1,0 +1,9 @@
+{
+  "records_compared": 360,
+  "identical_except_timing": true,
+  "excluded_fields": "only keys ending in _seconds, recursively",
+  "replay_execution": {
+    "paired_records": 360,
+    "runtime_seconds": 90.55476466599794
+  }
+}

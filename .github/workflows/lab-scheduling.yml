@@ -1,0 +1,97 @@
+name: Laboratory scheduling application
+
+on:
+  push:
+    branches: [contest/qubo-scheduling-app]
+    paths:
+      - 'pyqpanda-algorithm/pyqpanda_alg/LabScheduling/**'
+      - 'pyqpanda-algorithm/pyqpanda_alg/QAOA/**'
+      - 'pyqpanda-algorithm/example/LabScheduling/**'
+      - 'test/LabScheduling/**'
+      - '.github/workflows/lab-scheduling.yml'
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - 'pyqpanda-algorithm/pyqpanda_alg/LabScheduling/**'
+      - 'pyqpanda-algorithm/pyqpanda_alg/QAOA/**'
+      - 'pyqpanda-algorithm/example/LabScheduling/**'
+      - 'test/LabScheduling/**'
+      - '.github/workflows/lab-scheduling.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cpu-tests:
+    name: CPU tests / Python ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python: '3.11'
+            constraints: constraints-py311.txt
+          - python: '3.12'
+            constraints: constraints-py312.txt
+          - python: '3.13'
+            constraints: constraints-py312.txt
+    env:
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install tested dependencies inside project venv
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -c pyqpanda-algorithm/example/LabScheduling/${{ matrix.constraints }} -e ./pyqpanda-algorithm -r pyqpanda-algorithm/example/LabScheduling/requirements-dev.txt
+          .venv/bin/python -m pip check
+      - name: Lint, format and type checks
+        run: |
+          .venv/bin/python -m ruff check --config test/LabScheduling/ruff.toml pyqpanda-algorithm/pyqpanda_alg/LabScheduling test/LabScheduling pyqpanda-algorithm/example/LabScheduling
+          .venv/bin/python -m ruff format --check --config test/LabScheduling/ruff.toml pyqpanda-algorithm/pyqpanda_alg/LabScheduling test/LabScheduling pyqpanda-algorithm/example/LabScheduling
+          .venv/bin/python -m mypy --config-file test/LabScheduling/mypy.ini --python-version ${{ matrix.python }} pyqpanda-algorithm/pyqpanda_alg/LabScheduling
+      - name: Mathematical and real CPU simulator tests
+        run: |
+          .venv/bin/python -m pytest -c test/LabScheduling/pytest.ini test/LabScheduling --timeout=60 --cov=pyqpanda-algorithm/pyqpanda_alg/LabScheduling --cov-fail-under=95
+      - name: End-to-end medium example
+        run: |
+          .venv/bin/python -m pyqpanda_alg.LabScheduling pyqpanda-algorithm/example/LabScheduling/data/medium.json --output reports/medium.json
+      - name: Existing upstream algorithm tests
+        run: |
+          .venv/bin/python -m pytest -c test/LabScheduling/pytest.ini -o 'python_files=Test_*.py' test --ignore=test/LabScheduling --timeout=60
+      - name: Booking cascade and unchanged control
+        run: |
+          .venv/bin/python pyqpanda-algorithm/example/LabScheduling/booking_demo.py
+      - name: Coupled booking tradeoff, unchanged control and weight sensitivity
+        run: |
+          .venv/bin/python pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py --sensitivity
+      - name: Arc pruning crosses the simulator resource boundary
+        run: |
+          .venv/bin/python -m pyqpanda_alg.LabScheduling pyqpanda-algorithm/example/LabScheduling/data/support-chain.json --reduce --pruning arc --output reports/support-chain.json
+      - name: Expected failure states remain explicit
+        run: |
+          .venv/bin/python - <<'PY'
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          data = Path('pyqpanda-algorithm/example/LabScheduling/data')
+          for name, code, status in [
+              ('support-chain', 5, 'resource_limit'),
+              ('infeasible', 3, 'infeasible'),
+          ]:
+              output = Path('reports') / (name + '-failure.json')
+              result = subprocess.run([
+                  sys.executable, '-m', 'pyqpanda_alg.LabScheduling',
+                  str(data / (name + '.json')), '--reduce', '--output', str(output),
+              ], check=False)
+              assert result.returncode == code, (name, result.returncode)
+              assert json.loads(output.read_text())['status'] == status
+          PY

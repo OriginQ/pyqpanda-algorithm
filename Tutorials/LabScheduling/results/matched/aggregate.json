@@ -1,0 +1,117 @@
+{
+  "paired_records": 360,
+  "instance_categories": {
+    "quantum_required": 22,
+    "classical_only": 2,
+    "infeasible": 12
+  },
+  "statuses": {
+    "direct": {
+      "feasible": 240,
+      "infeasible_domain": 60,
+      "no_feasible_sample": 60
+    },
+    "reduced": {
+      "feasible": 220,
+      "classical_propagation": 20,
+      "infeasible_propagation": 120
+    },
+    "uniform_direct": {
+      "feasible": 240,
+      "infeasible_domain": 60,
+      "no_feasible_sample": 60
+    },
+    "uniform_reduced": {
+      "feasible": 220,
+      "classical_propagation": 20,
+      "infeasible_propagation": 120
+    }
+  },
+  "quantum_required_optimal_seeds": {
+    "direct": 217,
+    "reduced": 220,
+    "uniform_direct": 220,
+    "uniform_reduced": 220
+  },
+  "all_feasible_optimal_seeds": {
+    "direct": 237,
+    "reduced": 240,
+    "uniform_direct": 240,
+    "uniform_reduced": 240
+  },
+  "quantum_required_mean_evaluations": {
+    "direct": 119.73181818181818,
+    "reduced": 119.93181818181819,
+    "uniform_direct": 0,
+    "uniform_reduced": 0
+  },
+  "conditional_hit_curves_quantum_required": [
+    {
+      "total_shots": 8,
+      "direct": 0.5657376876907579,
+      "reduced": 0.7138458546160844,
+      "uniform_direct": 0.34549925857913716,
+      "uniform_reduced": 0.48432754058335026,
+      "reduced_vs_uniform_instance_delta_min": 0.029324342768855337,
+      "reduced_vs_uniform_instance_delta_max": 0.45429171766545107,
+      "instances_reduced_better_than_uniform": 22,
+      "instances_reduced_worse_than_uniform": 0
+    },
+    {
+      "total_shots": 16,
+      "direct": 0.7282380637796101,
+      "reduced": 0.8426805362995794,
+      "uniform_direct": 0.524584438281336,
+      "uniform_reduced": 0.6942132781686254,
+      "reduced_vs_uniform_instance_delta_min": -0.14963450134303904,
+      "reduced_vs_uniform_instance_delta_max": 0.4126060024282357,
+      "instances_reduced_better_than_uniform": 21,
+      "instances_reduced_worse_than_uniform": 1
+    },
+    {
+      "total_shots": 32,
+      "direct": 0.8437772870923891,
+      "reduced": 0.9214708054978092,
+      "uniform_direct": 0.7098915954504019,
+      "uniform_reduced": 0.8578376525456675,
+      "reduced_vs_uniform_instance_delta_min": -0.21928521968288658,
+      "reduced_vs_uniform_instance_delta_max": 0.3314960590941308,
+      "instances_reduced_better_than_uniform": 20,
+      "instances_reduced_worse_than_uniform": 2
+    },
+    {
+      "total_shots": 64,
+      "direct": 0.9097960776676878,
+      "reduced": 0.9656867916262879,
+      "uniform_direct": 0.8570917068347362,
+      "uniform_reduced": 0.9479854791263665,
+      "reduced_vs_uniform_instance_delta_min": -0.1292601448731846,
+      "reduced_vs_uniform_instance_delta_max": 0.2852233381205786,
+      "instances_reduced_better_than_uniform": 17,
+      "instances_reduced_worse_than_uniform": 5
+    },
+    {
+      "total_shots": 128,
+      "direct": 0.9460546054022178,
+      "reduced": 0.9893060233528675,
+      "uniform_direct": 0.9502154625721942,
+      "uniform_reduced": 0.9860296115841161,
+      "reduced_vs_uniform_instance_delta_min": -0.0465209228401374,
+      "reduced_vs_uniform_instance_delta_max": 0.1393398958791249,
+      "instances_reduced_better_than_uniform": 13,
+      "instances_reduced_worse_than_uniform": 6
+    },
+    {
+      "total_shots": 512,
+      "direct": 0.9865783989561963,
+      "reduced": 0.9998516588260096,
+      "uniform_direct": 0.9997873318153854,
+      "uniform_reduced": 0.9999630270721145,
+      "reduced_vs_uniform_instance_delta_min": -0.0019158773376248717,
+      "reduced_vs_uniform_instance_delta_max": 0.0007613647856807959,
+      "instances_reduced_better_than_uniform": 2,
+      "instances_reduced_worse_than_uniform": 7
+    }
+  ],
+  "interpretation": "Equal caps, not equal actual work. Instance-first means; curves condition on trained states. Known synthetic corpus, not a new holdout."
+}

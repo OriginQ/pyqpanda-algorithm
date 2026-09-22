@@ -154,3 +154,7 @@ pyqpanda_alg采用Python作为主要语言，对系统的环境要求如下：
 <p align="center">
   <img src="my-folder/本源量子云小助手.jpg" alt="本源量子官方小助手" width="30%">
 </p>
+
+## 应用案例
+
+- [LabReschedule：基于 QUBO 的共享实验室最小扰动重排](Tutorials/LabScheduling/README.md)

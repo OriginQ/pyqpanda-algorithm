@@ -1,0 +1,37 @@
+{
+  "name": "双设备四实验：停机、清洗、小组冲突与前序工艺",
+  "horizon": 12,
+  "resources": [
+    {"id": "spectrometer", "cleanup": 1, "downtime": [[0, 2]]},
+    {"id": "microscope", "cleanup": 1, "downtime": [[7, 8]]}
+  ],
+  "tasks": [
+    {"id": "A-prepare", "group": "group-A", "duration": 2,
+     "original": {"resource": "spectrometer", "start": 0}, "change_cost": 4,
+     "options": [
+       {"resource": "spectrometer", "start": 0, "cost": 0},
+       {"resource": "spectrometer", "start": 2, "cost": 0},
+       {"resource": "spectrometer", "start": 5, "cost": 1},
+       {"resource": "spectrometer", "start": 8, "cost": 2}]},
+    {"id": "A-image", "group": "group-A", "duration": 2,
+     "original": {"resource": "microscope", "start": 4}, "change_cost": 4,
+     "options": [
+       {"resource": "microscope", "start": 2, "cost": 0},
+       {"resource": "microscope", "start": 4, "cost": 0},
+       {"resource": "microscope", "start": 8, "cost": 1},
+       {"resource": "microscope", "start": 6, "cost": 0}]},
+    {"id": "B-measure", "group": "group-B", "duration": 2,
+     "original": {"resource": "spectrometer", "start": 5}, "change_cost": 3,
+     "options": [
+       {"resource": "spectrometer", "start": 2, "cost": 1},
+       {"resource": "spectrometer", "start": 5, "cost": 0},
+       {"resource": "spectrometer", "start": 8, "cost": 1}]},
+    {"id": "B-image", "group": "group-B", "duration": 2,
+     "original": {"resource": "microscope", "start": 0}, "change_cost": 3,
+     "options": [
+       {"resource": "microscope", "start": 0, "cost": 0},
+       {"resource": "microscope", "start": 4, "cost": 1},
+       {"resource": "microscope", "start": 8, "cost": 2}]}
+  ],
+  "precedence": [["A-prepare", "A-image"]]
+}

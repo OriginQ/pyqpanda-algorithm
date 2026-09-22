@@ -1,0 +1,8 @@
+{
+  "instances_compared": 36,
+  "paired_runs_compared": 360,
+  "match": true,
+  "ignored_fields": "all keys ending in _seconds; no other exclusions",
+  "first_run_seconds": 97.70505226500973,
+  "second_run_seconds": 114.04295163899951
+}

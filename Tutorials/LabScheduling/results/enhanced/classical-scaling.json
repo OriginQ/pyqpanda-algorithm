@@ -1,0 +1,4082 @@
+[
+  {
+    "input": {
+      "name": "synthetic-classical-chain-20",
+      "horizon": 44,
+      "resources": [
+        {
+          "id": "oven",
+          "cleanup": 1,
+          "downtime": [
+            [
+              0,
+              2
+            ]
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "t0",
+          "group": "g0",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 0
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 0,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 2,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 4,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t1",
+          "group": "g1",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 2
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 2,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 4,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 6,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t2",
+          "group": "g2",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 4
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 4,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 6,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 8,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t3",
+          "group": "g3",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 6
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 6,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 8,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 10,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t4",
+          "group": "g4",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 8
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 8,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 10,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 12,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t5",
+          "group": "g5",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 10
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 10,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 12,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 14,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t6",
+          "group": "g6",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 12
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 12,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 14,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 16,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t7",
+          "group": "g7",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 14
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 14,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 16,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 18,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t8",
+          "group": "g8",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 16
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 16,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 18,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 20,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t9",
+          "group": "g9",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 18
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 18,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 20,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 22,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t10",
+          "group": "g10",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 20
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 20,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 22,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 24,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t11",
+          "group": "g11",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 22
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 22,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 24,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 26,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t12",
+          "group": "g12",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 24
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 24,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 26,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 28,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t13",
+          "group": "g13",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 26
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 26,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 28,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 30,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t14",
+          "group": "g14",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 28
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 28,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 30,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 32,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t15",
+          "group": "g15",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 30
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 30,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 32,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 34,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t16",
+          "group": "g16",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 32
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 32,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 34,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 36,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t17",
+          "group": "g17",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 34
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 34,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 36,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 38,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t18",
+          "group": "g18",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 36
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 36,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 38,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 40,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t19",
+          "group": "g19",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 38
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 38,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 40,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 42,
+              "cost": 2
+            }
+          ]
+        }
+      ]
+    },
+    "result": {
+      "tasks": 20,
+      "input_sha256": "8fb72e25740af2aaa52003ffbd2aa3db4e4cdb6e772a3445d165c6c4d1efbd69",
+      "milp": {
+        "variables": 60,
+        "best": {
+          "feasible": true,
+          "violations": [],
+          "violation_count": 0,
+          "objective": 40,
+          "preference_cost": 20,
+          "change_cost": 20,
+          "changed_tasks": 10,
+          "max_start_shift": 4,
+          "choices": [
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0
+          ],
+          "schedule": [
+            {
+              "task": "t0",
+              "resource": "oven",
+              "start": 4,
+              "end": 5
+            },
+            {
+              "task": "t1",
+              "resource": "oven",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "task": "t2",
+              "resource": "oven",
+              "start": 8,
+              "end": 9
+            },
+            {
+              "task": "t3",
+              "resource": "oven",
+              "start": 6,
+              "end": 7
+            },
+            {
+              "task": "t4",
+              "resource": "oven",
+              "start": 12,
+              "end": 13
+            },
+            {
+              "task": "t5",
+              "resource": "oven",
+              "start": 10,
+              "end": 11
+            },
+            {
+              "task": "t6",
+              "resource": "oven",
+              "start": 16,
+              "end": 17
+            },
+            {
+              "task": "t7",
+              "resource": "oven",
+              "start": 14,
+              "end": 15
+            },
+            {
+              "task": "t8",
+              "resource": "oven",
+              "start": 20,
+              "end": 21
+            },
+            {
+              "task": "t9",
+              "resource": "oven",
+              "start": 18,
+              "end": 19
+            },
+            {
+              "task": "t10",
+              "resource": "oven",
+              "start": 24,
+              "end": 25
+            },
+            {
+              "task": "t11",
+              "resource": "oven",
+              "start": 22,
+              "end": 23
+            },
+            {
+              "task": "t12",
+              "resource": "oven",
+              "start": 28,
+              "end": 29
+            },
+            {
+              "task": "t13",
+              "resource": "oven",
+              "start": 26,
+              "end": 27
+            },
+            {
+              "task": "t14",
+              "resource": "oven",
+              "start": 32,
+              "end": 33
+            },
+            {
+              "task": "t15",
+              "resource": "oven",
+              "start": 30,
+              "end": 31
+            },
+            {
+              "task": "t16",
+              "resource": "oven",
+              "start": 36,
+              "end": 37
+            },
+            {
+              "task": "t17",
+              "resource": "oven",
+              "start": 34,
+              "end": 35
+            },
+            {
+              "task": "t18",
+              "resource": "oven",
+              "start": 40,
+              "end": 41
+            },
+            {
+              "task": "t19",
+              "resource": "oven",
+              "start": 38,
+              "end": 39
+            }
+          ]
+        },
+        "dual_bound": 40.0,
+        "gap": 0.0,
+        "status": "optimal",
+        "solver_status": 0,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "constraints": 76,
+        "runtime_seconds": 0.01049112000328023
+      },
+      "reduction": {
+        "method": "singleton propagation + disconnected conflict components",
+        "original_qubits": 59,
+        "fixed_variables": [],
+        "fixed_cost": 0,
+        "removals": [],
+        "infeasible_task": null,
+        "component_qubits": [
+          59
+        ],
+        "max_component_qubits": 59,
+        "component_to_original": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58
+          ]
+        ]
+      },
+      "quantum_executed": false,
+      "scope": "classical-only; connected component exceeds CPU quantum cap"
+    }
+  },
+  {
+    "input": {
+      "name": "synthetic-classical-chain-35",
+      "horizon": 74,
+      "resources": [
+        {
+          "id": "oven",
+          "cleanup": 1,
+          "downtime": [
+            [
+              0,
+              2
+            ]
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "t0",
+          "group": "g0",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 0
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 0,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 2,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 4,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t1",
+          "group": "g1",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 2
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 2,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 4,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 6,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t2",
+          "group": "g2",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 4
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 4,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 6,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 8,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t3",
+          "group": "g3",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 6
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 6,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 8,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 10,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t4",
+          "group": "g4",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 8
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 8,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 10,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 12,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t5",
+          "group": "g5",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 10
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 10,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 12,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 14,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t6",
+          "group": "g6",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 12
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 12,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 14,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 16,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t7",
+          "group": "g7",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 14
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 14,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 16,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 18,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t8",
+          "group": "g8",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 16
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 16,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 18,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 20,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t9",
+          "group": "g9",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 18
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 18,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 20,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 22,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t10",
+          "group": "g10",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 20
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 20,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 22,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 24,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t11",
+          "group": "g11",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 22
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 22,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 24,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 26,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t12",
+          "group": "g12",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 24
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 24,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 26,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 28,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t13",
+          "group": "g13",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 26
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 26,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 28,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 30,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t14",
+          "group": "g14",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 28
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 28,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 30,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 32,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t15",
+          "group": "g15",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 30
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 30,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 32,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 34,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t16",
+          "group": "g16",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 32
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 32,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 34,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 36,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t17",
+          "group": "g17",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 34
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 34,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 36,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 38,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t18",
+          "group": "g18",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 36
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 36,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 38,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 40,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t19",
+          "group": "g19",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 38
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 38,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 40,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 42,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t20",
+          "group": "g20",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 40
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 40,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 42,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 44,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t21",
+          "group": "g21",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 42
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 42,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 44,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 46,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t22",
+          "group": "g22",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 44
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 44,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 46,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 48,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t23",
+          "group": "g23",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 46
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 46,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 48,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 50,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t24",
+          "group": "g24",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 48
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 48,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 50,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 52,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t25",
+          "group": "g25",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 50
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 50,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 52,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 54,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t26",
+          "group": "g26",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 52
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 52,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 54,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 56,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t27",
+          "group": "g27",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 54
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 54,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 56,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 58,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t28",
+          "group": "g28",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 56
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 56,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 58,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 60,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t29",
+          "group": "g29",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 58
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 58,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 60,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 62,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t30",
+          "group": "g30",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 60
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 60,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 62,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 64,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t31",
+          "group": "g31",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 62
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 62,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 64,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 66,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t32",
+          "group": "g32",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 64
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 64,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 66,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 68,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t33",
+          "group": "g33",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 66
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 66,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 68,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 70,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t34",
+          "group": "g34",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 68
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 68,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 70,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 72,
+              "cost": 2
+            }
+          ]
+        }
+      ]
+    },
+    "result": {
+      "tasks": 35,
+      "input_sha256": "a1f2ca2477a5358af4b70d4794b8ac673da470b6939a54ef6b22a4d8c19fbd19",
+      "milp": {
+        "variables": 105,
+        "best": {
+          "feasible": true,
+          "violations": [],
+          "violation_count": 0,
+          "objective": 71,
+          "preference_cost": 35,
+          "change_cost": 36,
+          "changed_tasks": 18,
+          "max_start_shift": 4,
+          "choices": [
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            1,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0
+          ],
+          "schedule": [
+            {
+              "task": "t0",
+              "resource": "oven",
+              "start": 4,
+              "end": 5
+            },
+            {
+              "task": "t1",
+              "resource": "oven",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "task": "t2",
+              "resource": "oven",
+              "start": 8,
+              "end": 9
+            },
+            {
+              "task": "t3",
+              "resource": "oven",
+              "start": 6,
+              "end": 7
+            },
+            {
+              "task": "t4",
+              "resource": "oven",
+              "start": 12,
+              "end": 13
+            },
+            {
+              "task": "t5",
+              "resource": "oven",
+              "start": 10,
+              "end": 11
+            },
+            {
+              "task": "t6",
+              "resource": "oven",
+              "start": 16,
+              "end": 17
+            },
+            {
+              "task": "t7",
+              "resource": "oven",
+              "start": 14,
+              "end": 15
+            },
+            {
+              "task": "t8",
+              "resource": "oven",
+              "start": 20,
+              "end": 21
+            },
+            {
+              "task": "t9",
+              "resource": "oven",
+              "start": 18,
+              "end": 19
+            },
+            {
+              "task": "t10",
+              "resource": "oven",
+              "start": 24,
+              "end": 25
+            },
+            {
+              "task": "t11",
+              "resource": "oven",
+              "start": 22,
+              "end": 23
+            },
+            {
+              "task": "t12",
+              "resource": "oven",
+              "start": 28,
+              "end": 29
+            },
+            {
+              "task": "t13",
+              "resource": "oven",
+              "start": 26,
+              "end": 27
+            },
+            {
+              "task": "t14",
+              "resource": "oven",
+              "start": 32,
+              "end": 33
+            },
+            {
+              "task": "t15",
+              "resource": "oven",
+              "start": 30,
+              "end": 31
+            },
+            {
+              "task": "t16",
+              "resource": "oven",
+              "start": 36,
+              "end": 37
+            },
+            {
+              "task": "t17",
+              "resource": "oven",
+              "start": 34,
+              "end": 35
+            },
+            {
+              "task": "t18",
+              "resource": "oven",
+              "start": 40,
+              "end": 41
+            },
+            {
+              "task": "t19",
+              "resource": "oven",
+              "start": 38,
+              "end": 39
+            },
+            {
+              "task": "t20",
+              "resource": "oven",
+              "start": 44,
+              "end": 45
+            },
+            {
+              "task": "t21",
+              "resource": "oven",
+              "start": 42,
+              "end": 43
+            },
+            {
+              "task": "t22",
+              "resource": "oven",
+              "start": 48,
+              "end": 49
+            },
+            {
+              "task": "t23",
+              "resource": "oven",
+              "start": 46,
+              "end": 47
+            },
+            {
+              "task": "t24",
+              "resource": "oven",
+              "start": 52,
+              "end": 53
+            },
+            {
+              "task": "t25",
+              "resource": "oven",
+              "start": 50,
+              "end": 51
+            },
+            {
+              "task": "t26",
+              "resource": "oven",
+              "start": 54,
+              "end": 55
+            },
+            {
+              "task": "t27",
+              "resource": "oven",
+              "start": 58,
+              "end": 59
+            },
+            {
+              "task": "t28",
+              "resource": "oven",
+              "start": 56,
+              "end": 57
+            },
+            {
+              "task": "t29",
+              "resource": "oven",
+              "start": 62,
+              "end": 63
+            },
+            {
+              "task": "t30",
+              "resource": "oven",
+              "start": 60,
+              "end": 61
+            },
+            {
+              "task": "t31",
+              "resource": "oven",
+              "start": 66,
+              "end": 67
+            },
+            {
+              "task": "t32",
+              "resource": "oven",
+              "start": 64,
+              "end": 65
+            },
+            {
+              "task": "t33",
+              "resource": "oven",
+              "start": 70,
+              "end": 71
+            },
+            {
+              "task": "t34",
+              "resource": "oven",
+              "start": 68,
+              "end": 69
+            }
+          ]
+        },
+        "dual_bound": 71.0,
+        "gap": 0.0,
+        "status": "optimal",
+        "solver_status": 0,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "constraints": 136,
+        "runtime_seconds": 0.008231874002376571
+      },
+      "reduction": {
+        "method": "singleton propagation + disconnected conflict components",
+        "original_qubits": 104,
+        "fixed_variables": [],
+        "fixed_cost": 0,
+        "removals": [],
+        "infeasible_task": null,
+        "component_qubits": [
+          104
+        ],
+        "max_component_qubits": 104,
+        "component_to_original": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95,
+            96,
+            97,
+            98,
+            99,
+            100,
+            101,
+            102,
+            103
+          ]
+        ]
+      },
+      "quantum_executed": false,
+      "scope": "classical-only; connected component exceeds CPU quantum cap"
+    }
+  },
+  {
+    "input": {
+      "name": "synthetic-classical-chain-50",
+      "horizon": 104,
+      "resources": [
+        {
+          "id": "oven",
+          "cleanup": 1,
+          "downtime": [
+            [
+              0,
+              2
+            ]
+          ]
+        }
+      ],
+      "tasks": [
+        {
+          "id": "t0",
+          "group": "g0",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 0
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 0,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 2,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 4,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t1",
+          "group": "g1",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 2
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 2,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 4,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 6,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t2",
+          "group": "g2",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 4
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 4,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 6,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 8,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t3",
+          "group": "g3",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 6
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 6,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 8,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 10,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t4",
+          "group": "g4",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 8
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 8,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 10,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 12,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t5",
+          "group": "g5",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 10
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 10,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 12,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 14,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t6",
+          "group": "g6",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 12
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 12,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 14,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 16,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t7",
+          "group": "g7",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 14
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 14,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 16,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 18,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t8",
+          "group": "g8",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 16
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 16,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 18,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 20,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t9",
+          "group": "g9",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 18
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 18,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 20,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 22,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t10",
+          "group": "g10",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 20
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 20,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 22,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 24,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t11",
+          "group": "g11",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 22
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 22,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 24,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 26,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t12",
+          "group": "g12",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 24
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 24,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 26,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 28,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t13",
+          "group": "g13",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 26
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 26,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 28,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 30,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t14",
+          "group": "g14",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 28
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 28,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 30,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 32,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t15",
+          "group": "g15",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 30
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 30,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 32,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 34,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t16",
+          "group": "g16",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 32
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 32,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 34,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 36,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t17",
+          "group": "g17",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 34
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 34,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 36,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 38,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t18",
+          "group": "g18",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 36
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 36,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 38,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 40,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t19",
+          "group": "g19",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 38
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 38,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 40,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 42,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t20",
+          "group": "g20",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 40
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 40,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 42,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 44,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t21",
+          "group": "g21",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 42
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 42,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 44,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 46,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t22",
+          "group": "g22",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 44
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 44,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 46,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 48,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t23",
+          "group": "g23",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 46
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 46,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 48,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 50,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t24",
+          "group": "g24",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 48
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 48,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 50,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 52,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t25",
+          "group": "g25",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 50
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 50,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 52,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 54,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t26",
+          "group": "g26",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 52
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 52,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 54,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 56,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t27",
+          "group": "g27",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 54
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 54,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 56,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 58,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t28",
+          "group": "g28",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 56
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 56,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 58,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 60,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t29",
+          "group": "g29",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 58
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 58,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 60,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 62,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t30",
+          "group": "g30",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 60
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 60,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 62,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 64,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t31",
+          "group": "g31",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 62
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 62,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 64,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 66,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t32",
+          "group": "g32",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 64
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 64,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 66,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 68,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t33",
+          "group": "g33",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 66
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 66,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 68,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 70,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t34",
+          "group": "g34",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 68
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 68,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 70,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 72,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t35",
+          "group": "g35",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 70
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 70,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 72,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 74,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t36",
+          "group": "g36",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 72
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 72,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 74,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 76,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t37",
+          "group": "g37",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 74
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 74,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 76,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 78,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t38",
+          "group": "g38",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 76
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 76,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 78,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 80,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t39",
+          "group": "g39",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 78
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 78,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 80,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 82,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t40",
+          "group": "g40",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 80
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 80,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 82,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 84,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t41",
+          "group": "g41",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 82
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 82,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 84,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 86,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t42",
+          "group": "g42",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 84
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 84,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 86,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 88,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t43",
+          "group": "g43",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 86
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 86,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 88,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 90,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t44",
+          "group": "g44",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 88
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 88,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 90,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 92,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t45",
+          "group": "g45",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 90
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 90,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 92,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 94,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t46",
+          "group": "g46",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 92
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 92,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 94,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 96,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t47",
+          "group": "g47",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 94
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 94,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 96,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 98,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t48",
+          "group": "g48",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 96
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 96,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 98,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 100,
+              "cost": 2
+            }
+          ]
+        },
+        {
+          "id": "t49",
+          "group": "g49",
+          "duration": 1,
+          "original": {
+            "resource": "oven",
+            "start": 98
+          },
+          "change_cost": 2,
+          "options": [
+            {
+              "resource": "oven",
+              "start": 98,
+              "cost": 0
+            },
+            {
+              "resource": "oven",
+              "start": 100,
+              "cost": 1
+            },
+            {
+              "resource": "oven",
+              "start": 102,
+              "cost": 2
+            }
+          ]
+        }
+      ]
+    },
+    "result": {
+      "tasks": 50,
+      "input_sha256": "2a68a5c5ab2827f80855542735fe066f931409ed3a3acc05ccbf46e8d8b2b1cd",
+      "milp": {
+        "variables": 150,
+        "best": {
+          "feasible": true,
+          "violations": [],
+          "violation_count": 0,
+          "objective": 100,
+          "preference_cost": 50,
+          "change_cost": 50,
+          "changed_tasks": 25,
+          "max_start_shift": 4,
+          "choices": [
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0,
+            2,
+            0
+          ],
+          "schedule": [
+            {
+              "task": "t0",
+              "resource": "oven",
+              "start": 4,
+              "end": 5
+            },
+            {
+              "task": "t1",
+              "resource": "oven",
+              "start": 2,
+              "end": 3
+            },
+            {
+              "task": "t2",
+              "resource": "oven",
+              "start": 8,
+              "end": 9
+            },
+            {
+              "task": "t3",
+              "resource": "oven",
+              "start": 6,
+              "end": 7
+            },
+            {
+              "task": "t4",
+              "resource": "oven",
+              "start": 12,
+              "end": 13
+            },
+            {
+              "task": "t5",
+              "resource": "oven",
+              "start": 10,
+              "end": 11
+            },
+            {
+              "task": "t6",
+              "resource": "oven",
+              "start": 16,
+              "end": 17
+            },
+            {
+              "task": "t7",
+              "resource": "oven",
+              "start": 14,
+              "end": 15
+            },
+            {
+              "task": "t8",
+              "resource": "oven",
+              "start": 20,
+              "end": 21
+            },
+            {
+              "task": "t9",
+              "resource": "oven",
+              "start": 18,
+              "end": 19
+            },
+            {
+              "task": "t10",
+              "resource": "oven",
+              "start": 24,
+              "end": 25
+            },
+            {
+              "task": "t11",
+              "resource": "oven",
+              "start": 22,
+              "end": 23
+            },
+            {
+              "task": "t12",
+              "resource": "oven",
+              "start": 28,
+              "end": 29
+            },
+            {
+              "task": "t13",
+              "resource": "oven",
+              "start": 26,
+              "end": 27
+            },
+            {
+              "task": "t14",
+              "resource": "oven",
+              "start": 32,
+              "end": 33
+            },
+            {
+              "task": "t15",
+              "resource": "oven",
+              "start": 30,
+              "end": 31
+            },
+            {
+              "task": "t16",
+              "resource": "oven",
+              "start": 36,
+              "end": 37
+            },
+            {
+              "task": "t17",
+              "resource": "oven",
+              "start": 34,
+              "end": 35
+            },
+            {
+              "task": "t18",
+              "resource": "oven",
+              "start": 40,
+              "end": 41
+            },
+            {
+              "task": "t19",
+              "resource": "oven",
+              "start": 38,
+              "end": 39
+            },
+            {
+              "task": "t20",
+              "resource": "oven",
+              "start": 44,
+              "end": 45
+            },
+            {
+              "task": "t21",
+              "resource": "oven",
+              "start": 42,
+              "end": 43
+            },
+            {
+              "task": "t22",
+              "resource": "oven",
+              "start": 48,
+              "end": 49
+            },
+            {
+              "task": "t23",
+              "resource": "oven",
+              "start": 46,
+              "end": 47
+            },
+            {
+              "task": "t24",
+              "resource": "oven",
+              "start": 52,
+              "end": 53
+            },
+            {
+              "task": "t25",
+              "resource": "oven",
+              "start": 50,
+              "end": 51
+            },
+            {
+              "task": "t26",
+              "resource": "oven",
+              "start": 56,
+              "end": 57
+            },
+            {
+              "task": "t27",
+              "resource": "oven",
+              "start": 54,
+              "end": 55
+            },
+            {
+              "task": "t28",
+              "resource": "oven",
+              "start": 60,
+              "end": 61
+            },
+            {
+              "task": "t29",
+              "resource": "oven",
+              "start": 58,
+              "end": 59
+            },
+            {
+              "task": "t30",
+              "resource": "oven",
+              "start": 64,
+              "end": 65
+            },
+            {
+              "task": "t31",
+              "resource": "oven",
+              "start": 62,
+              "end": 63
+            },
+            {
+              "task": "t32",
+              "resource": "oven",
+              "start": 68,
+              "end": 69
+            },
+            {
+              "task": "t33",
+              "resource": "oven",
+              "start": 66,
+              "end": 67
+            },
+            {
+              "task": "t34",
+              "resource": "oven",
+              "start": 72,
+              "end": 73
+            },
+            {
+              "task": "t35",
+              "resource": "oven",
+              "start": 70,
+              "end": 71
+            },
+            {
+              "task": "t36",
+              "resource": "oven",
+              "start": 76,
+              "end": 77
+            },
+            {
+              "task": "t37",
+              "resource": "oven",
+              "start": 74,
+              "end": 75
+            },
+            {
+              "task": "t38",
+              "resource": "oven",
+              "start": 80,
+              "end": 81
+            },
+            {
+              "task": "t39",
+              "resource": "oven",
+              "start": 78,
+              "end": 79
+            },
+            {
+              "task": "t40",
+              "resource": "oven",
+              "start": 84,
+              "end": 85
+            },
+            {
+              "task": "t41",
+              "resource": "oven",
+              "start": 82,
+              "end": 83
+            },
+            {
+              "task": "t42",
+              "resource": "oven",
+              "start": 88,
+              "end": 89
+            },
+            {
+              "task": "t43",
+              "resource": "oven",
+              "start": 86,
+              "end": 87
+            },
+            {
+              "task": "t44",
+              "resource": "oven",
+              "start": 92,
+              "end": 93
+            },
+            {
+              "task": "t45",
+              "resource": "oven",
+              "start": 90,
+              "end": 91
+            },
+            {
+              "task": "t46",
+              "resource": "oven",
+              "start": 96,
+              "end": 97
+            },
+            {
+              "task": "t47",
+              "resource": "oven",
+              "start": 94,
+              "end": 95
+            },
+            {
+              "task": "t48",
+              "resource": "oven",
+              "start": 100,
+              "end": 101
+            },
+            {
+              "task": "t49",
+              "resource": "oven",
+              "start": 98,
+              "end": 99
+            }
+          ]
+        },
+        "dual_bound": 100.0,
+        "gap": 0.0,
+        "status": "optimal",
+        "solver_status": 0,
+        "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+        "constraints": 196,
+        "runtime_seconds": 0.011087135004345328
+      },
+      "reduction": {
+        "method": "singleton propagation + disconnected conflict components",
+        "original_qubits": 149,
+        "fixed_variables": [],
+        "fixed_cost": 0,
+        "removals": [],
+        "infeasible_task": null,
+        "component_qubits": [
+          149
+        ],
+        "max_component_qubits": 149,
+        "component_to_original": [
+          [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47,
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71,
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95,
+            96,
+            97,
+            98,
+            99,
+            100,
+            101,
+            102,
+            103,
+            104,
+            105,
+            106,
+            107,
+            108,
+            109,
+            110,
+            111,
+            112,
+            113,
+            114,
+            115,
+            116,
+            117,
+            118,
+            119,
+            120,
+            121,
+            122,
+            123,
+            124,
+            125,
+            126,
+            127,
+            128,
+            129,
+            130,
+            131,
+            132,
+            133,
+            134,
+            135,
+            136,
+            137,
+            138,
+            139,
+            140,
+            141,
+            142,
+            143,
+            144,
+            145,
+            146,
+            147,
+            148
+          ]
+        ]
+      },
+      "quantum_executed": false,
+      "scope": "classical-only; connected component exceeds CPU quantum cap"
+    }
+  }
+]

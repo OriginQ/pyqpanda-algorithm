@@ -1,0 +1,358 @@
+{
+  "checked_on": "2026-09-21",
+  "source": "https://github.com/OriginQ/pyqpanda-algorithm/pulls",
+  "method": "GitHub HTML pages 1, 2, 3; page 4 empty",
+  "open_pr_count": 70,
+  "pull_requests": [
+    {
+      "number": 62,
+      "title": "【代码贡献】新增 Simon 隐藏异或算法与 GF(2) 恢复工具",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/62"
+    },
+    {
+      "number": 61,
+      "title": "【代码贡献】局部期望、量子核分量抽样、自适应归属与弱测量恢复",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/61"
+    },
+    {
+      "number": 60,
+      "title": "【创新应用】新增小麦灌溉预测与 QUBO/QAOA 调度应用（含本源真机验证）",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/60"
+    },
+    {
+      "number": 59,
+      "title": "【代码贡献】新增 Deutsch-Jozsa 与 Bernstein-Vazirani oracle-learning 模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/59"
+    },
+    {
+      "number": 58,
+      "title": "<feat> 新增 QECClosedForm：量子纠错码闭式参数预测（与 QECNoise 闭环）",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/58"
+    },
+    {
+      "number": 57,
+      "title": "【创新应用】量子纠错相干噪声 θ⁴ 损失标度演示",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/57"
+    },
+    {
+      "number": 56,
+      "title": "【代码贡献】优化量子核矩阵与量子距离计算：去除采样噪声、复用模拟器并修复多处缺陷",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/56"
+    },
+    {
+      "number": 55,
+      "title": "【代码贡献】完善 QARM 高阶关联规则枚举",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/55"
+    },
+    {
+      "number": 54,
+      "title": "【代码贡献】Reuse QSVR training-kernel symmetry to reduce simulator calls",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/54"
+    },
+    {
+      "number": 53,
+      "title": "【创新应用】QSEncode-Insight：面向误差预算的资源感知量子态制备与审计工具",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/53"
+    },
+    {
+      "number": 52,
+      "title": "【代码贡献】优化 QSEncode Walsh 变换与 Top-K 筛选性能",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/52"
+    },
+    {
+      "number": 51,
+      "title": "【代码贡献】补充 QSEncode 稀疏编码模块单元测试与文档示例",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/51"
+    },
+    {
+      "number": 50,
+      "title": "【代码贡献】修复 QARM 支持度与关联规则结果错误",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/50"
+    },
+    {
+      "number": 47,
+      "title": "【代码贡献】Add quantum counting (BHT) built on the existing Grover operator",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/47"
+    },
+    {
+      "number": 46,
+      "title": "【代码贡献】QSVR: build the show_res test grid from each column's own min/max",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/46"
+    },
+    {
+      "number": 45,
+      "title": "【代码贡献】Fix QUBO_QAOA.run crashing with default arguments",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/45"
+    },
+    {
+      "number": 44,
+      "title": "【代码贡献】QSVD: skip the unused state-vector simulation in the loss inner loop",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/44"
+    },
+    {
+      "number": 43,
+      "title": "【代码贡献】Fix QPCA crash on 4-feature input and k=2 returning 0",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/43"
+    },
+    {
+      "number": 42,
+      "title": "【代码贡献】Fix qft_qubit_comparator geq and s modes returning wrong results",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/42"
+    },
+    {
+      "number": 41,
+      "title": "【代码贡献】Fix SPSA optimizer ignoring parameter bounds",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/41"
+    },
+    {
+      "number": 40,
+      "title": "【代码贡献】修复并加速 QAOA 的 CVaR/Gibbs 风险目标函数",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/40"
+    },
+    {
+      "number": 39,
+      "title": "【代码贡献】修复 QmRMR 星号导入报错、8 个无法运行的示例及文档中的过时接口",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/39"
+    },
+    {
+      "number": 37,
+      "title": "【创新应用】基于振幅估计的量子风险分析：VaR 与预期损失计算",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/37"
+    },
+    {
+      "number": 36,
+      "title": "【代码贡献】修正 Grover 最优迭代次数计算，补充输入校验与依赖声明",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/36"
+    },
+    {
+      "number": 35,
+      "title": "【创新应用】量子增强A股选股系统——量子核SVM市场择时",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/35"
+    },
+    {
+      "number": 91,
+      "title": "【代码贡献】新增 QMitigation 读出误差缓解与零噪声外推模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/91"
+    },
+    {
+      "number": 90,
+      "title": "【代码贡献】新增 qDRIFT 随机哈密顿量模拟算法",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/90"
+    },
+    {
+      "number": 89,
+      "title": "【代码贡献】新增 Quantum Lanczos / Krylov 谱估计算法",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/89"
+    },
+    {
+      "number": 88,
+      "title": "【代码贡献】新增 Quantum Natural Gradient 与 Fubini-Study 度量模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/88"
+    },
+    {
+      "number": 87,
+      "title": "【代码贡献】新增 Parameter-Shift 变分量子梯度模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/87"
+    },
+    {
+      "number": 85,
+      "title": "【代码贡献】新增 Superdense Coding 量子超密编码模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/85"
+    },
+    {
+      "number": 83,
+      "title": "【代码贡献】新增 QuantumReservoir 量子储备池计算模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/83"
+    },
+    {
+      "number": 82,
+      "title": "【代码贡献】新增 Bernstein–Vazirani 隐藏比特串算法",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/82"
+    },
+    {
+      "number": 81,
+      "title": "【代码贡献】新增量子相位估计（QPE）算法模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/81"
+    },
+    {
+      "number": 80,
+      "title": "【代码贡献】新增最大似然振幅估计算法（MLAE）",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/80"
+    },
+    {
+      "number": 79,
+      "title": "【代码贡献】新增 VQLS 变分量子线性求解器",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/79"
+    },
+    {
+      "number": 78,
+      "title": "【代码贡献】新增多量子比特 SWAP Test 状态重叠估计算法",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/78"
+    },
+    {
+      "number": 77,
+      "title": "【代码贡献】新增量子态层析 QST 模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/77"
+    },
+    {
+      "number": 76,
+      "title": "【代码贡献】新增 Hadamard Test 复期望值估计模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/76"
+    },
+    {
+      "number": 75,
+      "title": "【代码贡献】新增可复用量子傅里叶变换（QFT）模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/75"
+    },
+    {
+      "number": 74,
+      "title": "【代码贡献】新增 Grover 量子计数算法",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/74"
+    },
+    {
+      "number": 73,
+      "title": "【代码贡献】新增 Quantum Counting 标记态计数模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/73"
+    },
+    {
+      "number": 72,
+      "title": "【代码贡献】新增 QTeleport 相干量子隐形传态模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/72"
+    },
+    {
+      "number": 69,
+      "title": "【代码贡献】完善 QUBO 二进制多项式规范化与高阶项校验",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/69"
+    },
+    {
+      "number": 68,
+      "title": "【代码贡献】Fix SPSA termination when tolerance is set",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/68"
+    },
+    {
+      "number": 67,
+      "title": "【代码贡献】新增BBHT未知解数量随机Grover搜索",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/67"
+    },
+    {
+      "number": 66,
+      "title": "【代码贡献】QKMeans 提前拒绝不可能的聚类数量",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/66"
+    },
+    {
+      "number": 65,
+      "title": "【代码贡献】修复 QSVR 绘图网格的特征范围",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/65"
+    },
+    {
+      "number": 64,
+      "title": "【代码贡献】新增三量子比特重复码 QEC 算法模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/64"
+    },
+    {
+      "number": 63,
+      "title": "【代码贡献】新增离散时间量子行走 QWalk 模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/63"
+    },
+    {
+      "number": 34,
+      "title": "【代码贡献】新增QPE量子相位估计算法",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/34"
+    },
+    {
+      "number": 32,
+      "title": "【创新应用】新增 QShadow：可观测量感知的经典阴影估计与置信预算控制",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/32"
+    },
+    {
+      "number": 31,
+      "title": "【创新应用】新增量子格密码攻击算法集（QLattice）",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/31"
+    },
+    {
+      "number": 30,
+      "title": "【创新应用】量子密钥分发QKD协议",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/30"
+    },
+    {
+      "number": 29,
+      "title": "【创新应用】QJPEG 量子图像压缩算法",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/29"
+    },
+    {
+      "number": 28,
+      "title": "【代码贡献】Add VQLS variational solver for linear systems",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/28"
+    },
+    {
+      "number": 27,
+      "title": "【代码贡献】修复 QAE / IQAE 目标量子比特索引错误",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/27"
+    },
+    {
+      "number": 26,
+      "title": "【创新应用】新增 Lindblad 动力学的随机 Magnus 变分模拟算法",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/26"
+    },
+    {
+      "number": 24,
+      "title": "【创新应用】新增 QReupload：数据重上传变分量子学习模块（可训练 input scaling + Fourier/贫瘠高原诊断）",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/24"
+    },
+    {
+      "number": 23,
+      "title": "【代码贡献】新增 VQE 变分量子本征求解器算法模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/23"
+    },
+    {
+      "number": 22,
+      "title": "【代码贡献】Add missing pandas and scikit-learn to requirements.txt",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/22"
+    },
+    {
+      "number": 21,
+      "title": "【代码贡献】Add HHL solver for linear systems (Ax=b)",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/21"
+    },
+    {
+      "number": 20,
+      "title": "feat: 新增 VQE（变分量子本征求解器）模块",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/20"
+    },
+    {
+      "number": 19,
+      "title": "[Innovative Application] NISQ Hardware Benchmarking Suite",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/19"
+    },
+    {
+      "number": 18,
+      "title": "[Innovative Application] Add CCF2026 professional MNIST submission",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/18"
+    },
+    {
+      "number": 17,
+      "title": "【创新应用】SU(2) color-chain quantum simulation tutorial",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/17"
+    },
+    {
+      "number": 15,
+      "title": "【代码贡献】优化 QSVM 算法实现效率",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/15"
+    },
+    {
+      "number": 9,
+      "title": "Fix typos, indentation, and add missing docstrings (QKmeans + Grover)",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/9"
+    },
+    {
+      "number": 7,
+      "title": "docs(QAOA): Comprehensive bilingual documentation",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/7"
+    },
+    {
+      "number": 6,
+      "title": "docs: Add comprehensive QAOA algorithm documentation with examples",
+      "url": "https://github.com/OriginQ/pyqpanda-algorithm/pull/6"
+    }
+  ]
+}

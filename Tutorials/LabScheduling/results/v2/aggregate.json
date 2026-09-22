@@ -1,0 +1,133 @@
+{
+  "instances": 36,
+  "feasible_instances": 24,
+  "paired_seed_records": 360,
+  "direct_statuses": {
+    "feasible": 240,
+    "infeasible_domain": 60,
+    "no_feasible_sample": 60
+  },
+  "reduced_statuses": {
+    "feasible": 220,
+    "classical_propagation": 20,
+    "infeasible_propagation": 120
+  },
+  "direct_quantum_executions": 300,
+  "reduced_quantum_executions": 220,
+  "reduced_component_trainings": 340,
+  "feasible_training_seeds": 240,
+  "seeds_better_than_uniform": 206,
+  "seeds_worse_than_uniform": 34,
+  "phase_max_error": 4.996003610813204e-16,
+  "cells": [
+    {
+      "tasks": 3,
+      "scenario": 0,
+      "instances": 4,
+      "feasible": 4,
+      "instance_mean_p_opt": 0.18786986403449024,
+      "instance_mean_uniform_p_opt": 0.08333333333333333,
+      "instance_mean_delta_range": [
+        0.06413173407907789,
+        0.18323327262836497
+      ]
+    },
+    {
+      "tasks": 3,
+      "scenario": 1,
+      "instances": 4,
+      "feasible": 2,
+      "instance_mean_p_opt": 0.3448381601987412,
+      "instance_mean_uniform_p_opt": 0.1875,
+      "instance_mean_delta_range": [
+        0.09887757618912868,
+        0.2157987442083537
+      ]
+    },
+    {
+      "tasks": 3,
+      "scenario": 2,
+      "instances": 4,
+      "feasible": 2,
+      "instance_mean_p_opt": 0.17274474138797985,
+      "instance_mean_uniform_p_opt": 0.08333333333333333,
+      "instance_mean_delta_range": [
+        0.05719447681395938,
+        0.12162833929533369
+      ]
+    },
+    {
+      "tasks": 4,
+      "scenario": 0,
+      "instances": 4,
+      "feasible": 4,
+      "instance_mean_p_opt": 0.06493803014908012,
+      "instance_mean_uniform_p_opt": 0.041666666666666664,
+      "instance_mean_delta_range": [
+        -0.007502533321192738,
+        0.06361773930346004
+      ]
+    },
+    {
+      "tasks": 4,
+      "scenario": 1,
+      "instances": 4,
+      "feasible": 2,
+      "instance_mean_p_opt": 0.20110470241254325,
+      "instance_mean_uniform_p_opt": 0.11458333333333333,
+      "instance_mean_delta_range": [
+        0.05347529302208902,
+        0.1195674451363308
+      ]
+    },
+    {
+      "tasks": 4,
+      "scenario": 2,
+      "instances": 4,
+      "feasible": 3,
+      "instance_mean_p_opt": 0.15728182023404488,
+      "instance_mean_uniform_p_opt": 0.05555555555555555,
+      "instance_mean_delta_range": [
+        0.06131367761263367,
+        0.12301993361808973
+      ]
+    },
+    {
+      "tasks": 5,
+      "scenario": 0,
+      "instances": 4,
+      "feasible": 4,
+      "instance_mean_p_opt": 0.03643322626910944,
+      "instance_mean_uniform_p_opt": 0.013888888888888888,
+      "instance_mean_delta_range": [
+        0.0015993116588795837,
+        0.04438090186202739
+      ]
+    },
+    {
+      "tasks": 5,
+      "scenario": 1,
+      "instances": 4,
+      "feasible": 1,
+      "instance_mean_p_opt": 0.08914420177005611,
+      "instance_mean_uniform_p_opt": 0.020833333333333332,
+      "instance_mean_delta_range": [
+        0.06831086843672278,
+        0.06831086843672278
+      ]
+    },
+    {
+      "tasks": 5,
+      "scenario": 2,
+      "instances": 4,
+      "feasible": 2,
+      "instance_mean_p_opt": 0.09263376497535755,
+      "instance_mean_uniform_p_opt": 0.013888888888888888,
+      "instance_mean_delta_range": [
+        0.03388222584343676,
+        0.12360752632950056
+      ]
+    }
+  ],
+  "scope": "synthetic instances; seed means within instance; unequal component budgets; no speedup claim"
+}

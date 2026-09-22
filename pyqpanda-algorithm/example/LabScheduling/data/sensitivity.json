@@ -1,0 +1,26 @@
+{
+  "base_input": "tradeoff.json",
+  "base_sha256": "fb186f6154a157be65af2f6b9e65c295c016791fd60e21b1e257ab35b2f63b9f",
+  "weights": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "seeds": [
+    7,
+    19,
+    42
+  ],
+  "solver": {
+    "reduce": true,
+    "layers": 1,
+    "shots": 512,
+    "maxiter": 60,
+    "restarts": 2,
+    "mixer": "xy"
+  }
+}

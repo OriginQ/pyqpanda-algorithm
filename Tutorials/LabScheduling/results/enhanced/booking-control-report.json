@@ -1,0 +1,1204 @@
+{
+  "schema_version": 2,
+  "problem": "合成无停机对照：原预约全部保留",
+  "input_sha256": "bcf8ea0f42cb28a5da14145bfd0ddb38113705a5a7a69b8de9c67eed7029acfe",
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux",
+    "pyqpanda3": "0.4.1",
+    "pyqpanda_alg": "2.0.0",
+    "numpy": "2.5.3",
+    "scipy": "1.18.1"
+  },
+  "model": {
+    "qubits": 10,
+    "penalty": 11,
+    "objective_bound": 10,
+    "offset": 55,
+    "linear": [
+      -11,
+      -10,
+      -11,
+      -9,
+      -11,
+      -8,
+      -11,
+      -9,
+      -9,
+      -11
+    ],
+    "quadratic": [
+      [
+        0,
+        1,
+        22
+      ],
+      [
+        1,
+        2,
+        11
+      ],
+      [
+        2,
+        3,
+        22
+      ],
+      [
+        3,
+        4,
+        11
+      ],
+      [
+        4,
+        5,
+        22
+      ],
+      [
+        6,
+        7,
+        22
+      ],
+      [
+        6,
+        8,
+        11
+      ],
+      [
+        7,
+        9,
+        11
+      ],
+      [
+        8,
+        9,
+        22
+      ]
+    ],
+    "domains": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        8,
+        9
+      ]
+    ],
+    "pruned": [],
+    "variables": [
+      {
+        "index": 0,
+        "task": "A-heat",
+        "resource": "oven",
+        "start": 0,
+        "cost": 0
+      },
+      {
+        "index": 1,
+        "task": "A-heat",
+        "resource": "oven",
+        "start": 1,
+        "cost": 1
+      },
+      {
+        "index": 2,
+        "task": "B-heat",
+        "resource": "oven",
+        "start": 1,
+        "cost": 0
+      },
+      {
+        "index": 3,
+        "task": "B-heat",
+        "resource": "oven",
+        "start": 2,
+        "cost": 2
+      },
+      {
+        "index": 4,
+        "task": "C-heat",
+        "resource": "oven",
+        "start": 2,
+        "cost": 0
+      },
+      {
+        "index": 5,
+        "task": "C-heat",
+        "resource": "oven",
+        "start": 3,
+        "cost": 3
+      },
+      {
+        "index": 6,
+        "task": "D-image",
+        "resource": "scope",
+        "start": 1,
+        "cost": 0
+      },
+      {
+        "index": 7,
+        "task": "D-image",
+        "resource": "scope",
+        "start": 2,
+        "cost": 2
+      },
+      {
+        "index": 8,
+        "task": "E-image",
+        "resource": "scope",
+        "start": 1,
+        "cost": 2
+      },
+      {
+        "index": 9,
+        "task": "E-image",
+        "resource": "scope",
+        "start": 2,
+        "cost": 0
+      }
+    ],
+    "conflicts": [
+      {
+        "i": 1,
+        "j": 2,
+        "reasons": [
+          "resource"
+        ]
+      },
+      {
+        "i": 3,
+        "j": 4,
+        "reasons": [
+          "resource"
+        ]
+      },
+      {
+        "i": 6,
+        "j": 8,
+        "reasons": [
+          "resource"
+        ]
+      },
+      {
+        "i": 7,
+        "j": 9,
+        "reasons": [
+          "resource"
+        ]
+      }
+    ]
+  },
+  "quantum": {
+    "seed": 7,
+    "mixer": "xy",
+    "reduction": {
+      "method": "singleton propagation + disconnected conflict components",
+      "original_qubits": 10,
+      "fixed_variables": [],
+      "fixed_cost": 0,
+      "removals": [],
+      "infeasible_task": null,
+      "component_qubits": [
+        6,
+        4
+      ],
+      "max_component_qubits": 6,
+      "component_to_original": [
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        [
+          6,
+          7,
+          8,
+          9
+        ]
+      ],
+      "components": [
+        {
+          "qubits": 6,
+          "penalty": 7,
+          "objective_bound": 6,
+          "offset": 21,
+          "linear": [
+            -7,
+            -6,
+            -7,
+            -5,
+            -7,
+            -4
+          ],
+          "quadratic": [
+            [
+              0,
+              1,
+              14
+            ],
+            [
+              1,
+              2,
+              7
+            ],
+            [
+              2,
+              3,
+              14
+            ],
+            [
+              3,
+              4,
+              7
+            ],
+            [
+              4,
+              5,
+              14
+            ]
+          ],
+          "domains": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              4,
+              5
+            ]
+          ],
+          "pruned": [],
+          "variables": [
+            {
+              "index": 0,
+              "task": "A-heat",
+              "resource": "oven",
+              "start": 0,
+              "cost": 0
+            },
+            {
+              "index": 1,
+              "task": "A-heat",
+              "resource": "oven",
+              "start": 1,
+              "cost": 1
+            },
+            {
+              "index": 2,
+              "task": "B-heat",
+              "resource": "oven",
+              "start": 1,
+              "cost": 0
+            },
+            {
+              "index": 3,
+              "task": "B-heat",
+              "resource": "oven",
+              "start": 2,
+              "cost": 2
+            },
+            {
+              "index": 4,
+              "task": "C-heat",
+              "resource": "oven",
+              "start": 2,
+              "cost": 0
+            },
+            {
+              "index": 5,
+              "task": "C-heat",
+              "resource": "oven",
+              "start": 3,
+              "cost": 3
+            }
+          ],
+          "conflicts": [
+            {
+              "i": 1,
+              "j": 2,
+              "reasons": [
+                "resource"
+              ]
+            },
+            {
+              "i": 3,
+              "j": 4,
+              "reasons": [
+                "resource"
+              ]
+            }
+          ]
+        },
+        {
+          "qubits": 4,
+          "penalty": 5,
+          "objective_bound": 4,
+          "offset": 10,
+          "linear": [
+            -5,
+            -3,
+            -3,
+            -5
+          ],
+          "quadratic": [
+            [
+              0,
+              1,
+              10
+            ],
+            [
+              0,
+              2,
+              5
+            ],
+            [
+              1,
+              3,
+              5
+            ],
+            [
+              2,
+              3,
+              10
+            ]
+          ],
+          "domains": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ]
+          ],
+          "pruned": [],
+          "variables": [
+            {
+              "index": 0,
+              "task": "D-image",
+              "resource": "scope",
+              "start": 1,
+              "cost": 0
+            },
+            {
+              "index": 1,
+              "task": "D-image",
+              "resource": "scope",
+              "start": 2,
+              "cost": 2
+            },
+            {
+              "index": 2,
+              "task": "E-image",
+              "resource": "scope",
+              "start": 1,
+              "cost": 2
+            },
+            {
+              "index": 3,
+              "task": "E-image",
+              "resource": "scope",
+              "start": 2,
+              "cost": 0
+            }
+          ],
+          "conflicts": [
+            {
+              "i": 0,
+              "j": 2,
+              "reasons": [
+                "resource"
+              ]
+            },
+            {
+              "i": 1,
+              "j": 3,
+              "reasons": [
+                "resource"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "best": {
+      "feasible": true,
+      "objective": 0,
+      "raw_cost": 0,
+      "violation_count": 0,
+      "violations": [],
+      "schedule": [
+        {
+          "variable": 0,
+          "task": "A-heat",
+          "group": "A",
+          "resource": "oven",
+          "start": 0,
+          "end": 1,
+          "reserved_end": 1,
+          "changed": false
+        },
+        {
+          "variable": 2,
+          "task": "B-heat",
+          "group": "B",
+          "resource": "oven",
+          "start": 1,
+          "end": 2,
+          "reserved_end": 2,
+          "changed": false
+        },
+        {
+          "variable": 6,
+          "task": "D-image",
+          "group": "D",
+          "resource": "scope",
+          "start": 1,
+          "end": 2,
+          "reserved_end": 2,
+          "changed": false
+        },
+        {
+          "variable": 4,
+          "task": "C-heat",
+          "group": "C",
+          "resource": "oven",
+          "start": 2,
+          "end": 3,
+          "reserved_end": 3,
+          "changed": false
+        },
+        {
+          "variable": 9,
+          "task": "E-image",
+          "group": "E",
+          "resource": "scope",
+          "start": 2,
+          "end": 3,
+          "reserved_end": 3,
+          "changed": false
+        }
+      ],
+      "bits": [
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "qubo_energy": 0
+    },
+    "components": [
+      {
+        "status": "feasible",
+        "best": {
+          "feasible": true,
+          "objective": 0,
+          "raw_cost": 0,
+          "violation_count": 0,
+          "violations": [],
+          "schedule": [
+            {
+              "variable": 0,
+              "task": "A-heat",
+              "group": "A",
+              "resource": "oven",
+              "start": 0,
+              "end": 1,
+              "reserved_end": 1,
+              "changed": false
+            },
+            {
+              "variable": 2,
+              "task": "B-heat",
+              "group": "B",
+              "resource": "oven",
+              "start": 1,
+              "end": 2,
+              "reserved_end": 2,
+              "changed": false
+            },
+            {
+              "variable": 4,
+              "task": "C-heat",
+              "group": "C",
+              "resource": "oven",
+              "start": 2,
+              "end": 3,
+              "reserved_end": 3,
+              "changed": false
+            }
+          ],
+          "bits": [
+            1,
+            0,
+            1,
+            0,
+            1,
+            0
+          ],
+          "qubo_energy": 0
+        },
+        "seed": 1201125462,
+        "mixer": "xy",
+        "phase_mode": "auto",
+        "layers": 1,
+        "shots": 512,
+        "maxiter": 60,
+        "restarts": 2,
+        "parameters": [
+          1.5386651877590345,
+          1.3277436415288868
+        ],
+        "expected_energy": 3.3100588677071032,
+        "initial_expected_energy": 3.715004400059187,
+        "history": [
+          3.715004400059187,
+          3.8715779605414062,
+          8.487274981813977,
+          7.084957601183609,
+          8.043030868054373,
+          3.486660763019654,
+          4.852288174703832,
+          3.475022913113017,
+          3.3520957860528258,
+          3.5464257887318755,
+          3.364000896467733,
+          3.349734000986312,
+          3.3467375729254365,
+          3.3645584081902404,
+          3.3431538212882304,
+          3.3413032136507805,
+          3.3391601980415584,
+          3.335899736897865,
+          3.36649868034472,
+          3.334961251955132,
+          3.3327039483960395,
+          3.328257523288946,
+          3.321588695600478,
+          3.323924913245535,
+          3.3458296722007477,
+          3.320255807369711,
+          3.3275768149528444,
+          3.3202889946120715,
+          3.3199670925846534,
+          3.32000207565231,
+          3.3202144013347743,
+          3.3195746711265537,
+          3.319202968154569,
+          3.319887295881851,
+          3.3188661530737367,
+          3.318552030785198,
+          3.31798057830167,
+          3.3179050877889082,
+          3.3168657977436746,
+          3.3162968572225617,
+          3.315217128098016,
+          3.3132671128302373,
+          3.310946120349859,
+          3.328675575493053,
+          3.3199006113240883,
+          3.310682111742864,
+          3.311023166602122,
+          3.3110845443947468,
+          3.3104037888376565,
+          3.3105272498292164,
+          3.3105773504977485,
+          3.310407262629761,
+          3.3103557637584746,
+          3.310316719943129,
+          3.3102358267787793,
+          3.310100733708904,
+          3.3101220743874498,
+          3.31029551946844,
+          3.3100588677071032,
+          3.310090424220129,
+          3.5674304100442407,
+          3.708207311167009,
+          8.68054858754289,
+          7.0508459509943515,
+          7.7439557837222175,
+          3.6165900335627725,
+          3.582793165293441,
+          3.7909108923978208,
+          3.7600806279809573,
+          3.35215809610024,
+          3.4362392567273488,
+          3.3368685053062426,
+          3.3381403101461076,
+          3.3364070354946307,
+          3.3385555649868848,
+          3.337688877821305,
+          3.3352334031219337,
+          3.3371062564966385,
+          3.3341580556582704,
+          3.3339193540701237,
+          3.3328500578613207,
+          3.3318479185065377,
+          3.329954485177209,
+          3.3265754550569007,
+          3.3251435914439282,
+          3.322284039894126,
+          3.338449510220361,
+          3.3332949882747007,
+          3.324180886036201,
+          3.31840382262632,
+          3.3180244185356678,
+          3.3175846286245525,
+          3.3176129701341726,
+          3.317383194410409,
+          3.3170923792516307,
+          3.3170325803796645,
+          3.3179211771688957,
+          3.3170963383550776,
+          3.31669419654677,
+          3.3164235283442896,
+          3.3172927282498863,
+          3.3161194082072463,
+          3.315843684021539,
+          3.3153306654562273,
+          3.314487785104414,
+          3.3146669529488797,
+          3.3157546037633887,
+          3.3142202066157154,
+          3.313845592105389,
+          3.31345969924189,
+          3.3168226229144127,
+          3.3128223087703397,
+          3.312750173770528,
+          3.3122852026660663,
+          3.311869616907373,
+          3.3112036142835137,
+          3.3119974522074873,
+          3.31204245257406,
+          3.311603069448508,
+          3.3113009661025368
+        ],
+        "feasible_probability": 0.908313734181724,
+        "one_hot_probability": 1.0,
+        "sampled_feasible_fraction": 0.923828125,
+        "counts": {
+          "010101": 189,
+          "010110": 9,
+          "011001": 3,
+          "011010": 22,
+          "100101": 105,
+          "100110": 5,
+          "101001": 95,
+          "101010": 84
+        },
+        "circuit_evaluations": 120,
+        "optimizer_runs": [
+          {
+            "success": false,
+            "message": "Return from COBYLA because the objective function has been evaluated MAXFUN times.",
+            "evaluations": 60
+          },
+          {
+            "success": false,
+            "message": "Return from COBYLA because the objective function has been evaluated MAXFUN times.",
+            "evaluations": 60
+          }
+        ],
+        "sampling": "seeded NumPy multinomial from CPUQVM Born probabilities",
+        "runtime_seconds": 0.14143924000381958
+      },
+      {
+        "status": "feasible",
+        "best": {
+          "feasible": true,
+          "objective": 0,
+          "raw_cost": 0,
+          "violation_count": 0,
+          "violations": [],
+          "schedule": [
+            {
+              "variable": 0,
+              "task": "D-image",
+              "group": "D",
+              "resource": "scope",
+              "start": 1,
+              "end": 2,
+              "reserved_end": 2,
+              "changed": false
+            },
+            {
+              "variable": 3,
+              "task": "E-image",
+              "group": "E",
+              "resource": "scope",
+              "start": 2,
+              "end": 3,
+              "reserved_end": 3,
+              "changed": false
+            }
+          ],
+          "bits": [
+            1,
+            0,
+            0,
+            1
+          ],
+          "qubo_energy": 0
+        },
+        "seed": 3618983171,
+        "mixer": "xy",
+        "phase_mode": "auto",
+        "layers": 1,
+        "shots": 512,
+        "maxiter": 60,
+        "restarts": 2,
+        "parameters": [
+          3.330101968825688,
+          1.956282587704385
+        ],
+        "expected_energy": 0.22735153797114388,
+        "initial_expected_energy": 4.423101928752402,
+        "history": [
+          4.423101928752402,
+          4.8940773975186485,
+          1.0835098476945895,
+          4.916669000957205,
+          3.042784974137224,
+          1.5144440709415434,
+          0.7552748723217815,
+          1.3298264480112696,
+          0.7298046005515646,
+          1.061746877815482,
+          0.613039371690324,
+          0.7022200749495127,
+          0.5967771041855354,
+          0.6652061471447298,
+          0.5921103800366538,
+          0.5730167186060464,
+          0.561053343892916,
+          0.5777269979391698,
+          0.554741808411826,
+          0.5485695474765155,
+          0.5367924592345193,
+          0.5199252712262649,
+          0.49535881554607075,
+          0.47056007425140034,
+          0.4321365271631219,
+          0.43727573486335064,
+          0.47775457766561996,
+          0.43401745356877874,
+          0.41949956162378044,
+          0.4115751121490199,
+          0.40182597160345895,
+          0.3919535691939865,
+          0.3737871218190425,
+          0.34719064962444407,
+          0.31137538765038975,
+          0.31470713077822443,
+          0.361368392018819,
+          0.3276672968154641,
+          0.3158623660465177,
+          0.3098233414006214,
+          0.3205989395619202,
+          0.30564166013011257,
+          0.2979033160972571,
+          0.28403486969442615,
+          0.2617653920933292,
+          0.36640681925786445,
+          0.3617340943939172,
+          0.26740514144460054,
+          0.2637975017453714,
+          0.26384860600206195,
+          0.25915170422365186,
+          0.2590948206614168,
+          0.26249482076923664,
+          0.25609506086947736,
+          0.2510699158429324,
+          0.24248923207583442,
+          0.22735153797114388,
+          0.3694558030324052,
+          0.3063278877017642,
+          0.24814358364561914,
+          3.883649081339217,
+          4.02389334699396,
+          3.573126713029105,
+          4.918083106042975,
+          3.8418082819488943,
+          3.1627537533562142,
+          2.638021954200193,
+          2.8659399028661845,
+          2.720000751634073,
+          3.084965483237965,
+          2.6145989996565135,
+          2.911020751371655,
+          2.5381931191863027,
+          2.500306629481105,
+          2.462697147437915,
+          2.464029537955286,
+          2.438058643755368,
+          2.465701305388498,
+          2.4513969659030916,
+          2.4211968830029424,
+          2.426878474246787,
+          2.4175570856069286,
+          2.4091363183407197,
+          2.392179802261802,
+          2.3590237552270965,
+          2.306862535779181,
+          2.2178632568802095,
+          2.0943131288062387,
+          2.1117436540769283,
+          2.501723955469635,
+          2.1588499744540885,
+          2.110317984184486,
+          2.0856879369851,
+          2.0555579540972504,
+          2.090635763194714,
+          2.060284186865399,
+          2.0517131832658464,
+          2.0524391836426292,
+          2.04702919482402,
+          2.043900741226848,
+          2.04425841947213,
+          2.0387794651304647,
+          2.034892423604139,
+          2.0360261443071375,
+          2.030546333273355,
+          2.0278618750886226,
+          2.0294480455317245,
+          2.0227475417080525,
+          2.0193858508299716,
+          2.0220289083977234,
+          2.014620756286969,
+          2.011325811426058,
+          2.0146815085040326,
+          2.0066409396515055,
+          2.0020741568079505,
+          1.9951277812712753,
+          1.9815334227313977,
+          1.965039217340374,
+          1.9355740828351553,
+          1.9488126306073834
+        ],
+        "feasible_probability": 0.9729204776837721,
+        "one_hot_probability": 1.0,
+        "sampled_feasible_fraction": 0.970703125,
+        "counts": {
+          "0101": 10,
+          "0110": 4,
+          "1001": 493,
+          "1010": 5
+        },
+        "circuit_evaluations": 120,
+        "optimizer_runs": [
+          {
+            "success": false,
+            "message": "Return from COBYLA because the objective function has been evaluated MAXFUN times.",
+            "evaluations": 60
+          },
+          {
+            "success": false,
+            "message": "Return from COBYLA because the objective function has been evaluated MAXFUN times.",
+            "evaluations": 60
+          }
+        ],
+        "sampling": "seeded NumPy multinomial from CPUQVM Born probabilities",
+        "runtime_seconds": 0.11707820701121818
+      }
+    ],
+    "circuit_evaluations": 240,
+    "status": "feasible",
+    "feasible_probability": 0.8837170321468137,
+    "total_shots": 1024,
+    "runtime_seconds": 0.2588852199987741,
+    "business_metrics": {
+      "feasible": true,
+      "violations": [],
+      "violation_count": 0,
+      "objective": 0,
+      "preference_cost": 0,
+      "change_cost": 0,
+      "changed_tasks": 0,
+      "max_start_shift": 0,
+      "choices": [
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "schedule": [
+        {
+          "task": "A-heat",
+          "resource": "oven",
+          "start": 0,
+          "end": 1
+        },
+        {
+          "task": "B-heat",
+          "resource": "oven",
+          "start": 1,
+          "end": 2
+        },
+        {
+          "task": "C-heat",
+          "resource": "oven",
+          "start": 2,
+          "end": 3
+        },
+        {
+          "task": "D-image",
+          "resource": "scope",
+          "start": 1,
+          "end": 2
+        },
+        {
+          "task": "E-image",
+          "resource": "scope",
+          "start": 2,
+          "end": 3
+        }
+      ]
+    }
+  },
+  "exact": {
+    "status": "optimal",
+    "best": {
+      "feasible": true,
+      "objective": 0,
+      "raw_cost": 0,
+      "violation_count": 0,
+      "violations": [],
+      "schedule": [
+        {
+          "variable": 0,
+          "task": "A-heat",
+          "group": "A",
+          "resource": "oven",
+          "start": 0,
+          "end": 1,
+          "reserved_end": 1,
+          "changed": false
+        },
+        {
+          "variable": 2,
+          "task": "B-heat",
+          "group": "B",
+          "resource": "oven",
+          "start": 1,
+          "end": 2,
+          "reserved_end": 2,
+          "changed": false
+        },
+        {
+          "variable": 6,
+          "task": "D-image",
+          "group": "D",
+          "resource": "scope",
+          "start": 1,
+          "end": 2,
+          "reserved_end": 2,
+          "changed": false
+        },
+        {
+          "variable": 4,
+          "task": "C-heat",
+          "group": "C",
+          "resource": "oven",
+          "start": 2,
+          "end": 3,
+          "reserved_end": 3,
+          "changed": false
+        },
+        {
+          "variable": 9,
+          "task": "E-image",
+          "group": "E",
+          "resource": "scope",
+          "start": 2,
+          "end": 3,
+          "reserved_end": 3,
+          "changed": false
+        }
+      ],
+      "bits": [
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "qubo_energy": 0
+    },
+    "combinations": 32,
+    "feasible_count": 8,
+    "runtime_seconds": 0.00023576300009153783
+  },
+  "milp": {
+    "variables": 10,
+    "best": {
+      "feasible": true,
+      "violations": [],
+      "violation_count": 0,
+      "objective": 0,
+      "preference_cost": 0,
+      "change_cost": 0,
+      "changed_tasks": 0,
+      "max_start_shift": 0,
+      "choices": [
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "schedule": [
+        {
+          "task": "A-heat",
+          "resource": "oven",
+          "start": 0,
+          "end": 1
+        },
+        {
+          "task": "B-heat",
+          "resource": "oven",
+          "start": 1,
+          "end": 2
+        },
+        {
+          "task": "C-heat",
+          "resource": "oven",
+          "start": 2,
+          "end": 3
+        },
+        {
+          "task": "D-image",
+          "resource": "scope",
+          "start": 1,
+          "end": 2
+        },
+        {
+          "task": "E-image",
+          "resource": "scope",
+          "start": 2,
+          "end": 3
+        }
+      ]
+    },
+    "dual_bound": 0.0,
+    "gap": 0.0,
+    "status": "optimal",
+    "solver_status": 0,
+    "message": "Optimization terminated successfully. (HiGHS Status 7: Optimal)",
+    "constraints": 9,
+    "runtime_seconds": 0.0017784100054996088
+  },
+  "uniform_one_hot": {
+    "best": {
+      "feasible": true,
+      "objective": 0,
+      "raw_cost": 0,
+      "violation_count": 0,
+      "violations": [],
+      "schedule": [
+        {
+          "variable": 0,
+          "task": "A-heat",
+          "group": "A",
+          "resource": "oven",
+          "start": 0,
+          "end": 1,
+          "reserved_end": 1,
+          "changed": false
+        },
+        {
+          "variable": 2,
+          "task": "B-heat",
+          "group": "B",
+          "resource": "oven",
+          "start": 1,
+          "end": 2,
+          "reserved_end": 2,
+          "changed": false
+        },
+        {
+          "variable": 6,
+          "task": "D-image",
+          "group": "D",
+          "resource": "scope",
+          "start": 1,
+          "end": 2,
+          "reserved_end": 2,
+          "changed": false
+        },
+        {
+          "variable": 4,
+          "task": "C-heat",
+          "group": "C",
+          "resource": "oven",
+          "start": 2,
+          "end": 3,
+          "reserved_end": 3,
+          "changed": false
+        },
+        {
+          "variable": 9,
+          "task": "E-image",
+          "group": "E",
+          "resource": "scope",
+          "start": 2,
+          "end": 3,
+          "reserved_end": 3,
+          "changed": false
+        }
+      ],
+      "bits": [
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "qubo_energy": 0
+    },
+    "shots": 512,
+    "seed": 7,
+    "feasible_probability": 0.25,
+    "sampled_feasible_fraction": 0.25390625,
+    "runtime_seconds": 0.013508394986274652
+  },
+  "absolute_gap": 0,
+  "status": "feasible",
+  "runtime_seconds": 0.2773386640037643
+}

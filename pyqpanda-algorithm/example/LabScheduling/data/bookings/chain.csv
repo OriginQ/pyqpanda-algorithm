@@ -1,0 +1,6 @@
+id,group,duration,original_resource,original_start,allowed_resources,earliest,latest,step,change_cost,shift_cost
+A-heat,A,1,oven,0,oven,0,1,1,1,0
+B-heat,B,1,oven,1,oven,1,2,1,2,0
+C-heat,C,1,oven,2,oven,2,3,1,3,0
+D-image,D,1,scope,1,scope,1,2,1,2,0
+E-image,E,1,scope,2,scope,1,2,1,2,0

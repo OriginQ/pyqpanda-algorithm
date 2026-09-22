@@ -1,0 +1,6 @@
+task,original_resource,original_start,new_resource,new_start,changed,preference_cost,change_cost,explanation
+A-heat,oven,0,oven,1,True,0,1,原预约被停机排除
+D-image,scope,1,scope,1,False,0,0,保留原预约
+B-heat,oven,1,oven,2,True,0,2,约束传播要求连锁改约，见 reduction.removals
+E-image,scope,2,scope,2,False,0,0,保留原预约
+C-heat,oven,2,oven,3,True,0,3,约束传播要求连锁改约，见 reduction.removals

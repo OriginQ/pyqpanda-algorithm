@@ -1,0 +1,9 @@
+{
+  "name": "合成业务案例：烘箱停机引发三单连锁改约，显微预约保持不动",
+  "horizon": 6,
+  "resources": [
+    {"id": "oven", "cleanup": 0, "downtime": [[0, 1]]},
+    {"id": "scope", "cleanup": 0}
+  ],
+  "precedence": []
+}

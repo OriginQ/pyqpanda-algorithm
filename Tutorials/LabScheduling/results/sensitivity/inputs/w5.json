@@ -1,0 +1,113 @@
+{
+  "name": "合成连锁改约：低成本整体后移或高成本备用设备",
+  "horizon": 14,
+  "resources": [
+    {
+      "id": "oven",
+      "cleanup": 1,
+      "downtime": [
+        [
+          0,
+          1
+        ]
+      ]
+    },
+    {
+      "id": "backup",
+      "cleanup": 1
+    }
+  ],
+  "tasks": [
+    {
+      "id": "A",
+      "group": "gA",
+      "duration": 2,
+      "original": {
+        "resource": "oven",
+        "start": 0
+      },
+      "change_cost": 5,
+      "options": [
+        {
+          "resource": "oven",
+          "start": 0,
+          "cost": 0
+        },
+        {
+          "resource": "oven",
+          "start": 2,
+          "cost": 2
+        },
+        {
+          "resource": "backup",
+          "start": 0,
+          "cost": 12
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "group": "gB",
+      "duration": 1,
+      "original": {
+        "resource": "oven",
+        "start": 3
+      },
+      "change_cost": 5,
+      "options": [
+        {
+          "resource": "oven",
+          "start": 3,
+          "cost": 0
+        },
+        {
+          "resource": "oven",
+          "start": 5,
+          "cost": 2
+        },
+        {
+          "resource": "oven",
+          "start": 8,
+          "cost": 5
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "group": "gC",
+      "duration": 2,
+      "original": {
+        "resource": "oven",
+        "start": 5
+      },
+      "change_cost": 5,
+      "options": [
+        {
+          "resource": "oven",
+          "start": 5,
+          "cost": 0
+        },
+        {
+          "resource": "oven",
+          "start": 7,
+          "cost": 2
+        },
+        {
+          "resource": "oven",
+          "start": 10,
+          "cost": 5
+        }
+      ]
+    }
+  ],
+  "precedence": [
+    [
+      "A",
+      "B"
+    ],
+    [
+      "B",
+      "C"
+    ]
+  ]
+}

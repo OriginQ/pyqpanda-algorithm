@@ -1,0 +1,10 @@
+objective,changed_tasks,schedule,sampled_choice
+12,3,A:oven@2; B:oven@5; C:oven@7,True
+14,1,A:backup@0; B:oven@3; C:oven@5,False
+15,3,A:oven@2; B:oven@5; C:oven@10,False
+18,2,A:backup@0; B:oven@3; C:oven@7,False
+18,3,A:oven@2; B:oven@8; C:oven@10,False
+21,2,A:backup@0; B:oven@3; C:oven@10,False
+22,3,A:backup@0; B:oven@5; C:oven@7,False
+25,3,A:backup@0; B:oven@5; C:oven@10,False
+28,3,A:backup@0; B:oven@8; C:oven@10,False

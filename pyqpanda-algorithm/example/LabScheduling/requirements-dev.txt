@@ -1,0 +1,9 @@
+# Upstream eager imports currently need these undeclared runtime dependencies.
+pandas
+scikit-learn
+# Application verification tools.
+pytest
+pytest-cov
+pytest-timeout
+allure-pytest
+ruff

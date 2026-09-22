@@ -1,0 +1,115 @@
+{
+  "name": "heterogeneous-n3-s1-seed2026092613",
+  "horizon": 19,
+  "resources": [
+    {
+      "id": "r0",
+      "cleanup": 0,
+      "downtime": [
+        [
+          0,
+          3
+        ]
+      ]
+    },
+    {
+      "id": "r1",
+      "cleanup": 2,
+      "downtime": [
+        [
+          1,
+          7
+        ]
+      ]
+    },
+    {
+      "id": "r2",
+      "cleanup": 1,
+      "downtime": []
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t0",
+      "group": "g0",
+      "duration": 1,
+      "original": {
+        "resource": "r0",
+        "start": 0
+      },
+      "change_cost": 3,
+      "options": [
+        {
+          "resource": "r0",
+          "start": 0,
+          "cost": 0
+        },
+        {
+          "resource": "r1",
+          "start": 4,
+          "cost": 6
+        }
+      ]
+    },
+    {
+      "id": "t1",
+      "group": "g1",
+      "duration": 2,
+      "original": {
+        "resource": "r1",
+        "start": 1
+      },
+      "change_cost": 1,
+      "options": [
+        {
+          "resource": "r1",
+          "start": 1,
+          "cost": 0
+        },
+        {
+          "resource": "r1",
+          "start": 3,
+          "cost": 4
+        },
+        {
+          "resource": "r0",
+          "start": 6,
+          "cost": 6
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "group": "g0",
+      "duration": 1,
+      "original": {
+        "resource": "r2",
+        "start": 6
+      },
+      "change_cost": 3,
+      "options": [
+        {
+          "resource": "r2",
+          "start": 6,
+          "cost": 0
+        },
+        {
+          "resource": "r2",
+          "start": 7,
+          "cost": 4
+        },
+        {
+          "resource": "r1",
+          "start": 10,
+          "cost": 4
+        },
+        {
+          "resource": "r1",
+          "start": 4,
+          "cost": 4
+        }
+      ]
+    }
+  ],
+  "precedence": []
+}

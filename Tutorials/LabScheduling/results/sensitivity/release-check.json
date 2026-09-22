@@ -1,0 +1,67 @@
+{
+  "source_commit": "51a5067f9b0b3aaf24922b917e143e49fcf5ed6d",
+  "installed_module": ".venv/lib/python3.12/site-packages/pyqpanda_alg/LabScheduling/__init__.py",
+  "installed_core_matches_source": true,
+  "cases": [
+    {
+      "case": "tradeoff_sensitivity",
+      "command": [
+        ".venv/bin/python",
+        "pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py",
+        "--sensitivity",
+        "--output",
+        "reports/demo"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "runtime_seconds": 6.984278827992966
+    },
+    {
+      "case": "arc",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pyqpanda_alg.LabScheduling",
+        "pyqpanda-algorithm/example/LabScheduling/data/support-chain.json",
+        "--reduce",
+        "--pruning",
+        "arc",
+        "--output",
+        "reports/arc.json"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "runtime_seconds": 2.395720750995679
+    },
+    {
+      "case": "resource_limit",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pyqpanda_alg.LabScheduling",
+        "pyqpanda-algorithm/example/LabScheduling/data/support-chain.json",
+        "--reduce",
+        "--output",
+        "reports/limit.json"
+      ],
+      "exit_code": 5,
+      "expected_exit_code": 5,
+      "runtime_seconds": 1.8166655529930722
+    },
+    {
+      "case": "infeasible",
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pyqpanda_alg.LabScheduling",
+        "pyqpanda-algorithm/example/LabScheduling/data/infeasible.json",
+        "--reduce",
+        "--output",
+        "reports/infeasible.json"
+      ],
+      "exit_code": 3,
+      "expected_exit_code": 3,
+      "runtime_seconds": 2.253177899008733
+    }
+  ]
+}

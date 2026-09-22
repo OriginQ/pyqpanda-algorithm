@@ -1,0 +1,160 @@
+{
+  "after_regression": {
+    "failed": 0,
+    "passed": 5
+  },
+  "application_tests": {
+    "command": "OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python -m pytest -c test/LabScheduling/pytest.ini test/LabScheduling --timeout=60 --cov=.venv/lib/python3.12/site-packages/pyqpanda_alg/LabScheduling --cov-fail-under=95",
+    "coverage_percent": 98.92,
+    "passed": 113,
+    "seconds": 41.26
+  },
+  "arc_objective": 3,
+  "before_regression": {
+    "commit": "1d9d8aa0b1469d60d792584624738e582ce697cc",
+    "failed": 4,
+    "passed": 1
+  },
+  "commands": [
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pip",
+        "check"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "name": "pip-check",
+      "seconds": 0.5999653120088624
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pyqpanda_alg.LabScheduling",
+        "pyqpanda-algorithm/example/LabScheduling/data/medium.json",
+        "--output",
+        "reports/medium.json"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "name": "medium",
+      "seconds": 1.9976603179966332
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py",
+        "--sensitivity"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "name": "tradeoff",
+      "seconds": 5.678206475000479
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pyqpanda_alg.LabScheduling",
+        "pyqpanda-algorithm/example/LabScheduling/data/support-chain.json",
+        "--reduce",
+        "--pruning",
+        "arc",
+        "--output",
+        "reports/arc.json"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "name": "arc",
+      "seconds": 1.991893740996602
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pyqpanda_alg.LabScheduling",
+        "pyqpanda-algorithm/example/LabScheduling/data/support-chain.json",
+        "--reduce",
+        "--output",
+        "reports/resource-limit.json"
+      ],
+      "exit_code": 5,
+      "expected_exit_code": 5,
+      "name": "resource-limit",
+      "seconds": 1.6146869130025152
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pyqpanda_alg.LabScheduling",
+        "pyqpanda-algorithm/example/LabScheduling/data/infeasible.json",
+        "--reduce",
+        "--output",
+        "reports/infeasible.json"
+      ],
+      "exit_code": 3,
+      "expected_exit_code": 3,
+      "name": "infeasible",
+      "seconds": 1.558603272002074
+    },
+    {
+      "command": [
+        ".venv/bin/python",
+        "-m",
+        "pytest",
+        "-c",
+        "test/LabScheduling/pytest.ini",
+        "-o",
+        "python_files=Test_*.py",
+        "test",
+        "--ignore=test/LabScheduling",
+        "--timeout=60"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "name": "upstream-tests",
+      "seconds": 11.057248769007856
+    }
+  ],
+  "constraints_sha256": "6ab291f8463f891d421278a03cdda50d6f5af09ebea5a747d155c17dae9c14ac",
+  "existing_report_equivalence": {
+    "cases": [
+      "simple",
+      "medium",
+      "infeasible",
+      "tradeoff",
+      "support-chain"
+    ],
+    "comparison": "all non-timing fields",
+    "passed": true
+  },
+  "infeasible_status": "infeasible",
+  "installed_module": ".venv/lib/python3.12/site-packages/pyqpanda_alg/LabScheduling",
+  "machine": "x86_64",
+  "medium_objective": 4,
+  "module_sha256": {
+    "__init__.py": "1336ac94b68e53a108965f0f2127d619c08d3c4ecfd6b541233c193b6a9ee474",
+    "__main__.py": "6d147f69d578cd770d24d52ce7b7aeea0f487ad7279fb9b70fb413c34c72b328",
+    "bookings.py": "dba45010ef9e5f6a1781d8a8d79e9f3faf4fbf90223f526f550687723de1382a",
+    "classical.py": "d1bd575af9969c49cda59cd15328d98f176bb004ebc22e887be173b43d69aac5",
+    "metrics.py": "b084507c46a7bf6cc1ca2a6a116156e24a23efb3fdea699f02b4a29bdbd503e0",
+    "milp.py": "e8be7deb1be9c5dadea978daac28cf2a7d378e70bb69d370bc6186b0e7309efd",
+    "model.py": "f442c4751a7f17f66e5fae331e14f75eaa327177af5346a49ceddb87e86ef509",
+    "problem.py": "5abd2c9f01a712fb18ac7791bb89cba435eecd35f49b05283a3ca7ad6d7f582b",
+    "quantum.py": "3f8469be5a92afbf87eb0c82f7b80282a6443edfbe335a55635717f40501522f",
+    "reduction.py": "fa249b234ef4fc74c88a916a6bba87bd6150f2905dd47fe860e2e7d5617d7870",
+    "report.py": "2ac48f7ba9f53881a670d1878b7630d008c2be989ae1b566945bd2ba826fc406"
+  },
+  "python": "3.12.3",
+  "resource_limit_status": "resource_limit",
+  "source_commit": "1a544658bb7048419723a741caf4c305ffa08832",
+  "system": "Linux",
+  "upstream_tests": {
+    "passed": 18,
+    "seconds": 10.47
+  },
+  "wheel_sha256": "e664374aeb42ff19ecf4e738a00b00f747d0e8dde994a5c281198e166dd414a4"
+}

@@ -1,0 +1,161 @@
+{
+  "manifest": {
+    "schema_version": 1,
+    "synthetic": true,
+    "generator_sha256": "6188e05164971853337fc04cd9321e2c5365bf027f77a4433e02bde827f32123",
+    "optimization_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "training": {
+      "layers": 1,
+      "maxiter": 60,
+      "restarts": 2
+    },
+    "shots": [
+      8,
+      16,
+      32,
+      64,
+      128,
+      512
+    ],
+    "instances": [
+      {
+        "file": "development-n3-d0.json",
+        "split": "development",
+        "tasks": 3,
+        "density_parameter": 0,
+        "data_seed": 20260921,
+        "sha256": "d827ac7785a07c2ff18c3dc47d1e9345986a6249913826a2518a1d46f3ba7e18"
+      },
+      {
+        "file": "evaluation-n3-d0.json",
+        "split": "evaluation",
+        "tasks": 3,
+        "density_parameter": 0,
+        "data_seed": 20260952,
+        "sha256": "3b20e4e5c9e6ad0bcf04042080562788494a211b81f5b69cb6b200c3c66ecefe"
+      },
+      {
+        "file": "evaluation-n3-d1.json",
+        "split": "evaluation",
+        "tasks": 3,
+        "density_parameter": 1,
+        "data_seed": 20260953,
+        "sha256": "6d4d463f2d2b556e9352777df21317551122163d72f017025cc267fc9313bece"
+      },
+      {
+        "file": "evaluation-n3-d2.json",
+        "split": "evaluation",
+        "tasks": 3,
+        "density_parameter": 2,
+        "data_seed": 20260954,
+        "sha256": "6989a69a0cf7aab50b2b8a14a3a1b148f6301c187f8985ab4fb89d53709165a2"
+      },
+      {
+        "file": "evaluation-n5-d0.json",
+        "split": "evaluation",
+        "tasks": 5,
+        "density_parameter": 0,
+        "data_seed": 20260972,
+        "sha256": "16fb5b30481f7cb6e26893257198d60694a6b3601222700345682b477446f36c"
+      },
+      {
+        "file": "evaluation-n5-d1.json",
+        "split": "evaluation",
+        "tasks": 5,
+        "density_parameter": 1,
+        "data_seed": 20260973,
+        "sha256": "778be907478568fc0cd92503e0ae9e228b7caf62dc8b0c8f6cfe56dc337d42e6"
+      },
+      {
+        "file": "evaluation-n5-d2.json",
+        "split": "evaluation",
+        "tasks": 5,
+        "density_parameter": 2,
+        "data_seed": 20260974,
+        "sha256": "27e8da20697a51e79b1d9cf2f1a5103f183a804008384928ebe157dc6a0766ff"
+      },
+      {
+        "file": "evaluation-n6-d0.json",
+        "split": "evaluation",
+        "tasks": 6,
+        "density_parameter": 0,
+        "data_seed": 20260982,
+        "sha256": "689c6c10d93b32575b84b1a0b9b4ea32c3ac8e9cd35507dcf47df31a996cec46"
+      },
+      {
+        "file": "evaluation-n6-d1.json",
+        "split": "evaluation",
+        "tasks": 6,
+        "density_parameter": 1,
+        "data_seed": 20260983,
+        "sha256": "3670be6577fdf0a72f9099bae3e4264ab4cf1d364f2385a31835d48e0fd2d0b7"
+      },
+      {
+        "file": "evaluation-n6-d2.json",
+        "split": "evaluation",
+        "tasks": 6,
+        "density_parameter": 2,
+        "data_seed": 20260984,
+        "sha256": "9598e15a813425247ee3059d68f9f72d4ed0c80935040d96bc8b959549c5b482"
+      },
+      {
+        "file": "evaluation-n8-d0.json",
+        "split": "evaluation",
+        "tasks": 8,
+        "density_parameter": 0,
+        "data_seed": 20261002,
+        "sha256": "3f0bb0c0f3046ff399ba6cb057cbd4af76f9e58379bf21f3093dd368cce64145"
+      },
+      {
+        "file": "evaluation-n8-d1.json",
+        "split": "evaluation",
+        "tasks": 8,
+        "density_parameter": 1,
+        "data_seed": 20261003,
+        "sha256": "24a78232cc15095f23f1960fce0fa6b469331287e939761855cc9afe88d423e3"
+      },
+      {
+        "file": "evaluation-n8-d2.json",
+        "split": "evaluation",
+        "tasks": 8,
+        "density_parameter": 2,
+        "data_seed": 20261004,
+        "sha256": "829ea1e178a972a60b33f01009260d9577a71277b317cd63e6abab4823d5f8f2"
+      }
+    ]
+  },
+  "split": "evaluation",
+  "benchmark_sha256": "30c66c5a33cbf8c72c62c422a6a442c7504f3359142d1571f2d071e6a0d0ed4e",
+  "python": "3.12.3",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "packages": {
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "pyqpanda3": "0.4.1",
+    "pyqpanda_alg": "2.0.0"
+  },
+  "source_hashes": {
+    "milp.py": "fc3b22b705beb95491b6b9c51f875480a021bbb40607810abdc04fd6dc8b97a2",
+    "__init__.py": "232397fe0094a0c799b939f58da7689a60b8e40b243a7bce1e1cb072ae8056d7",
+    "__main__.py": "9ea4aa0d5ffe882a5e6ffe8eb09b79dcf9dc4de4fbfafbbec33354f8c2ec6046",
+    "classical.py": "d1bd575af9969c49cda59cd15328d98f176bb004ebc22e887be173b43d69aac5",
+    "problem.py": "22ce9db50a98dc8ad8ee8cc1f9b06cef3e5469df4cfe2b043ad87ad360292990",
+    "report.py": "96b5dbc737ea4f80b737b6acfb030fcdb33b0a65b2dbf5eb8ff641e8861df2aa",
+    "model.py": "f442c4751a7f17f66e5fae331e14f75eaa327177af5346a49ceddb87e86ef509",
+    "bookings.py": "dba45010ef9e5f6a1781d8a8d79e9f3faf4fbf90223f526f550687723de1382a",
+    "quantum.py": "3f8469be5a92afbf87eb0c82f7b80282a6443edfbe335a55635717f40501522f",
+    "metrics.py": "b084507c46a7bf6cc1ca2a6a116156e24a23efb3fdea699f02b4a29bdbd503e0",
+    "reduction.py": "99d07b5b02592a30cd8eb8c141e6bddcbdc2e85b366a057bd4b699018cd491e1"
+  }
+}
