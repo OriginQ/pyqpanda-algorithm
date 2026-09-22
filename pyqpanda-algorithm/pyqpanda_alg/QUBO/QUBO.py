@@ -507,9 +507,12 @@ class QUBO_QAOA(QuadraticBinary):
                         For `TNC` use `maxfun` instead of `maxiter`.
 
         Returns
-            qaoa_result : ``list[tuple]``\n
-                List of all possible solutions with corresponding probabilities.
-                The solution of the problem we are looking for should generally be the maximum probability.
+            qaoa_result : ``dict[str, float]``\n
+                Mapping of all variable assignments to their probabilities. Each
+                bit string has one bit per declared variable, from x0 on the left,
+                including variables absent from the objective after cancellation.
+                The highest-probability assignment is a heuristic candidate, not an
+                optimality certificate.
 
         Examples
             An example for minimization of quadratic binary function = -0.5 * x0 * x1 - 0.7 * x0 * x1 + 0.9 * x1 * x2 + 1.3 * x0 - x1 - 0.5 * x2
@@ -531,6 +534,9 @@ class QUBO_QAOA(QuadraticBinary):
         H = H_linear + H_quadratic + H_constant
 
         qaoa_model = qaoa.QAOA(problem=H)
+        # The operator may omit variables with zero or cancelled coefficients.
+        # Preserve the declared QUBO width and the original output bit positions.
+        qaoa_model.problem_dimension = n_key
         qaoa_result = qaoa_model.run(layer=layer, loss_type='default', optimize_type='default',
                                      optimizer=optimizer, optimizer_option=optimizer_option)[0]
         return qaoa_result

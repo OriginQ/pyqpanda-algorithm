@@ -252,9 +252,9 @@ class QAOA:
     optimization problem.
 
     Parameters
-        problem : ``expression`` in sympy or ``pq.PauliOperator``\n
-            A polynomial function with binary variables to be optimized. Support an expression in sympy. Next version will
-            support an object from pypanda PauliOperator.
+        problem : sympy expression, ``PauliOperator`` or ``Hamiltonian``\n
+            A binary polynomial or a diagonal Pauli Z Hamiltonian. Operator
+            inputs use PyQPanda3 and retain their explicit qubit indices.
 
         init_circuit : ``function``,  ``optional``\n
             The quantum circuit to create the initial state of QAOA algorithm. Default is Hadamard circuit to create an
@@ -273,6 +273,10 @@ class QAOA:
             The dict which stores the function value for solutions being sampled during the optimization.
         problem_dimension : ``integer``\n
             The problem dimension, and also the qubit number.
+            For PauliOperator or Hamiltonian input, this is one plus the
+            highest referenced qubit index (zero for identity-only input).
+            Gaps in the addresses are retained, so bit vectors and custom
+            circuits use the original operator indices.
         circuit iter : ``integer``\n
             The number of times the quantum circuit being called during optimization.
 
@@ -318,9 +322,9 @@ class QAOA:
             self.problem = problem.pauli_operator()
             self.operator = problem.pauli_operator()
             qubit = set()
-            for term in problem.terms():
+            for term in self.operator.terms():
                 qubit = qubit |set([qubit.qbit() for qubit in term.paulis()])
-            problem_dimension = len(qubit)
+            problem_dimension = max(qubit, default=-1) + 1
 
         elif isinstance(problem, PauliOperator):
             self.problem = problem
@@ -328,7 +332,7 @@ class QAOA:
             qubit = set()
             for term in problem.terms():
                 qubit = qubit |set([qubit.qbit() for qubit in term.paulis()])
-            problem_dimension = len(qubit)
+            problem_dimension = max(qubit, default=-1) + 1
         
         else:
             raise TypeError("problem must be a sympy expression or a PauliOperator")
