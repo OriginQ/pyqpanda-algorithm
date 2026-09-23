@@ -35,6 +35,13 @@ class QAE:
         target_state : ``str``\n
             Estimated target state.
 
+    Notes
+        ``operator_in`` must construct the same state-preparation circuit throughout
+        a single ``run()`` call. The Grover circuit is built once per run and reused
+        for its controlled powers. It is rebuilt on later runs, so parameters may
+        be changed between calls. This reduces Python circuit construction work;
+        the number of quantum oracle applications is unchanged.
+
 
     References
         [1] Brassard G, Hoyer P, Mosca M, et al. Quantum amplitude amplification and estimation[J].
@@ -171,9 +178,11 @@ class QAE:
 
         for qidx in q_operator[self.qnumber:]:
             prog << H(qidx)
+        grover_circuit = self._Q_cir(q_operator[:self.qnumber])
         for i in range(self.n_anc):
+            controlled_grover = grover_circuit.control([q_operator[self.qnumber + i]])
             for j in range(2 ** i):
-                prog << self._Q_cir(q_operator[:self.qnumber]).control([q_operator[self.qnumber:][i]])
+                prog << controlled_grover
 
         prog << QFT(q_operator[self.qnumber:]).dagger()
         self.machine.run(prog, 1000)
