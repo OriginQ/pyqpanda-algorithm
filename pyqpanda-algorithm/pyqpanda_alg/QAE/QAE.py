@@ -199,6 +199,12 @@ class IQAE:
         epsilon : ``float``\n
             Estimated precision, i.e. the minimum error.\n
 
+    Notes
+        Repeated measurements are pooled only while the Grover power is unchanged.
+        The success fraction and its confidence interval use the same pooled
+        samples. ``n_sum`` records total measurement shots for the current run
+        and is reset on each call; it is not the sample size of every interval.
+
 
     References
         [2] Grinko, D., Gacon, J., Zoufal, C. et al. Iterative quantum amplitude estimation.
@@ -279,6 +285,7 @@ class IQAE:
         0.25735228001322236
 
         """
+        self.n_sum = 0
         i_count = 0
         k = [0]
         up = True
@@ -295,7 +302,6 @@ class IQAE:
 
         m_add = 0
         n_add = 0
-        k_count = 0
         scaller = 1.5
         while (theta_u - theta_l > self.epsilon / np.pi) and i_count < 20:
             i_count += 1
@@ -321,15 +327,14 @@ class IQAE:
             if k[i_count] == k[i_count - 1]:
                 m_add += m
                 n_add += n_round
-                k_count += 1
-                res = m_add / n_add
-
             else:
-                m_add = 0
-                n_add = 0
-                res = m / n_round
+                m_add = m
+                n_add = n_round
 
-            ai_min, ai_max = self._chernoff_confint(res, int(np.minimum(self.n_sum, self.N_max)), rounds_m)
+            # Other powers estimate different Bernoulli probabilities. Only
+            # count the shots used in this power's empirical success fraction.
+            res = m_add / n_add
+            ai_min, ai_max = self._chernoff_confint(res, n_add, rounds_m)
 
             if up:
                 thetai_min = np.arccos(1 - 2 * ai_min) / 2 / np.pi
@@ -338,8 +343,12 @@ class IQAE:
                 thetai_min = 1 - np.arccos(1 - 2 * ai_max) / 2 / np.pi
                 thetai_max = 1 - np.arccos(1 - 2 * ai_min) / 2 / np.pi
 
-            theta_u = (int(bigk * theta_u) + thetai_max) / bigk
-            theta_l = (int(bigk * theta_l) + thetai_min) / bigk
+            # Both endpoints belong to the same selected period. Use an
+            # interior point: an upper endpoint can name the next period,
+            # while roundoff at a lower endpoint can name the previous one.
+            theta_period = int(bigk * (theta_l + (theta_u - theta_l) / 2))
+            theta_u = (theta_period + thetai_max) / bigk
+            theta_l = (theta_period + thetai_min) / bigk
 
         a_l = np.sin(2 * np.pi * theta_l) ** 2
         a_u = np.sin(2 * np.pi * theta_u) ** 2
