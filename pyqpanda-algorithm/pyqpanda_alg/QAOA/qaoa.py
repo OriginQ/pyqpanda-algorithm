@@ -445,8 +445,9 @@ class QAOA:
             pyqpanda Circuit\n
 
         """
-        if self.layer is None:
-            self.layer = len(gammas)
+        if len(gammas) != len(betas):
+            raise ValueError('gammas and betas must have the same length')
+        self.layer = len(gammas)
         circuit = QCircuit()
         circuit << self._init_circuit(qlist)
         for i in range(self.layer):
@@ -457,6 +458,12 @@ class QAOA:
     def run_qaoa_circuit(self, gammas, betas, shots=-1):
         """
         Given parameters, run the qaoa circuit and get the theoretical probability distribution.
+
+        Each call uses one layer per gamma/beta pair and updates ``self.layer``.
+        The two sequences must have the same length; unequal lengths raise
+        ``ValueError`` without changing the layer or successful circuit count.
+        Empty sequences run only the initial-state circuit (zero layers).
+        Reusing this instance with a different depth does not reuse old angles.
 
         Parameters
             gammas : ``array-like``\n
