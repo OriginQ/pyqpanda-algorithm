@@ -26,7 +26,6 @@ def read(file_path):
 
 
 def test_qarm_normal_case():
-    """测试正常情况下的QARM执行"""
     data_path = QARM.__path__[0]
     data_file = os.path.join(data_path, 'dataset/data2.txt')
     trans_data = read(data_file)

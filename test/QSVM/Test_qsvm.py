@@ -14,7 +14,6 @@ data_path = QSVM.__path__[0]
 
 
 def _read_vqc_qsvm_data(path):
-    """读取量子SVM数据"""
     train_features = np.loadtxt(os.path.join(path, "dataset/qsvm_train_features.txt"))
     test_features = np.loadtxt(os.path.join(path, "dataset/qsvm_test_features.txt"))
     train_labels = np.loadtxt(os.path.join(path, "dataset/qsvm_train_labels.txt"))
@@ -24,7 +23,6 @@ def _read_vqc_qsvm_data(path):
 
 
 def test_data_loading():
-    """测试数据加载功能"""
     train_features, test_features, train_labels, test_labels, samples = _read_vqc_qsvm_data(data_path)
 
     assert train_features.shape[1] == 2

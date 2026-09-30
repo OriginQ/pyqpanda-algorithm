@@ -209,7 +209,6 @@ class QuantumKernel_vqnet:
 
                 import os
                 import numpy as np
-                import pyqpanda as pq
                 from sklearn.svm import SVC
                 import matplotlib
                 try:

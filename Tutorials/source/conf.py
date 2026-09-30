@@ -19,7 +19,7 @@
 # -- Project information -----------------------------------------------------
 
 project = 'pyqpanda-algorithm'
-copyright = '2023, OriginQC'
+copyright = '2026, OriginQC'
 author = 'OriginQC'
 
 # The short X.Y version
