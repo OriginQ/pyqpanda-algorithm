@@ -29,6 +29,7 @@ Overall, it provides a standardized set of tools for developers, allowing them t
     :maxdepth: 2
 
     autoapi/pyqpanda_alg/QAOA/index
+    autoapi/pyqpanda_alg/BFDCQO/index
     autoapi/pyqpanda_alg/QARM/index
     autoapi/pyqpanda_alg/QAlgBase/index
     autoapi/pyqpanda_alg/QKmeans/index

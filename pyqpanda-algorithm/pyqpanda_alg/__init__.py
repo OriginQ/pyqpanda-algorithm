@@ -16,7 +16,7 @@ user-defined problem.
 Overall, the QMengJi provides a standardized set of tools for developers, allowing them to optimize functions with
 binary variables, such as combinatorial optimization problems, that may have many practical implications.
 Developers can use quantum algorithms directly to obtain results without knowing anything about quantum computing, or
-build their own suitable quantum circuits to obtain more customized results according to their requirements.It is an 
+build their own suitable quantum circuits to obtain more customized results according to their requirements.It is an
 important resource for solving optimization problems and advancing research on quantum optimization algorithms.
 
 '''
@@ -30,6 +30,7 @@ import warnings
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 from . import QAOA
+from . import BFDCQO
 # from . import VQE
 # from . import HHL
 # from . import QAOA
