@@ -16,6 +16,6 @@ amplification algorithm is used to search the candidate K term sets that are not
 less than the predetermined threshold from the superposition quantum states.
 '''
 
-from .qarm import QuantumAssociationRulesMining
+from .complete_rules import QuantumAssociationRulesMining
 
 __all__ = ['QuantumAssociationRulesMining']
