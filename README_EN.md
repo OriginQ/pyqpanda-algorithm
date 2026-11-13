@@ -50,6 +50,8 @@ Integrates quantum computing into classical machine learning to improve efficien
 Solves key problems in physical modeling and engineering simulation (e.g., eigenvalues, linear equations, matrix decomposition).
 - **QSVD (Quantum Variational Singular Value Decomposition)**  
   Extracts matrix singular values/vectors under a variational framework (for dimensionality reduction and recommendation systems).
+- **VQLS (Variational Quantum Linear Solver)**  
+  Solves power-of-two linear systems with a variational state ansatz, a scale-invariant global VQLS cost, SPSA optimization, and residual-aware reconstruction of the classical solution magnitude. Custom state functions can bridge PyQPanda3 simulators or hardware backends.
 
 ### 4. General Tools & Basic Components
 Provides underlying tools for quantum computing workflows.
