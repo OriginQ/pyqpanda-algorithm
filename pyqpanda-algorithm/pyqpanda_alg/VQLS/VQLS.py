@@ -12,10 +12,11 @@
 
 """Variational Quantum Linear Solver.
 
-The solver owns the backend-independent VQLS mathematics. A caller may provide
-any ansatz function mapping a real parameter vector to a statevector, including
-a PyQPanda3 simulator or hardware adapter. A compact RY plus CNOT-ring reference
-ansatz is included for examples and local experimentation.
+The solver evaluates the VQLS objective using complete complex statevectors.
+A caller may provide an ansatz from a statevector simulator, including
+PyQPanda3. A compact NumPy RY plus CNOT-ring reference ansatz is included for
+examples and local experimentation. Measurement counts alone do not provide
+the complex amplitudes required by this interface.
 """
 
 from dataclasses import dataclass
@@ -25,6 +26,47 @@ import numpy as np
 
 
 StateFunction = Callable[[np.ndarray], np.ndarray]
+
+
+def _component_scale(values: np.ndarray) -> float:
+    """Largest real or imaginary component, without overflowing complex abs."""
+    return float(max(np.max(np.abs(values.real)), np.max(np.abs(values.imag))))
+
+
+def _divide_real(values: np.ndarray, scale: float) -> np.ndarray:
+    """Divide componentwise, including when scale is a positive subnormal."""
+    result = np.empty_like(values, dtype=np.complex128)
+    result.real = values.real / scale
+    result.imag = values.imag / scale
+    return result
+
+
+def _rescale(values: np.ndarray, numerator: float, denominator: float) -> np.ndarray:
+    """Multiply by a positive scale ratio without forming that ratio first."""
+    num_mantissa, num_exponent = np.frexp(numerator)
+    den_mantissa, den_exponent = np.frexp(denominator)
+    factor = num_mantissa / den_mantissa
+    exponent = int(num_exponent) - int(den_exponent)
+    result = np.empty_like(values, dtype=np.complex128)
+    real_mantissa, real_exponent = np.frexp(values.real)
+    imag_mantissa, imag_exponent = np.frexp(values.imag)
+    with np.errstate(over="ignore", under="ignore"):
+        result.real = np.ldexp(real_mantissa * factor, real_exponent + exponent)
+        result.imag = np.ldexp(imag_mantissa * factor, imag_exponent + exponent)
+    return result
+
+
+def _scaled_norm(values: np.ndarray, scale: float = 1.0) -> float:
+    """Norm of scale * values, avoiding overflow in the sum of squares."""
+    component = _component_scale(values)
+    if component == 0.0:
+        return 0.0
+    normalized_norm = float(np.linalg.norm(_divide_real(values, component)))
+    mantissa, exponent = np.frexp(scale)
+    component_mantissa, component_exponent = np.frexp(component)
+    with np.errstate(over="ignore", under="ignore"):
+        return float(np.ldexp(normalized_norm * mantissa * component_mantissa,
+                              int(exponent) + int(component_exponent)))
 
 
 @dataclass(frozen=True)
@@ -49,10 +91,13 @@ def _normalize_state(state: Sequence[complex], dimension: int) -> np.ndarray:
                 vector.size, dimension
             )
         )
-    norm = float(np.linalg.norm(vector))
-    if not np.isfinite(norm) or norm <= np.finfo(float).tiny:
+    if not np.all(np.isfinite(vector)):
         raise ValueError("ansatz returned a zero or non-finite state")
-    return vector / norm
+    scale = _component_scale(vector)
+    if scale == 0.0:
+        raise ValueError("ansatz returned a zero or non-finite state")
+    scaled = _divide_real(vector, scale)
+    return scaled / np.linalg.norm(scaled)
 
 
 def _apply_ry(
@@ -134,8 +179,9 @@ class VQLS:
     reporting the residual.
 
     The optimizer is SPSA, so every update needs two gradient objective
-    evaluations regardless of parameter count. This keeps the optimizer useful
-    for shot-based backend adapters.
+    evaluations regardless of parameter count, plus a third evaluation of the
+    updated parameters. The objective currently requires complete complex
+    statevectors, rather than a shot-based expectation-value interface.
 
     Parameters
     ----------
@@ -182,7 +228,7 @@ class VQLS:
         parameter_bounds: Optional[Tuple[float, float]] = (-np.pi, np.pi),
         gradient_clip: Optional[float] = 10.0,
     ):
-        matrix_array = np.asarray(matrix, dtype=np.complex128)
+        matrix_array = np.array(matrix, dtype=np.complex128, copy=True)
         if matrix_array.ndim != 2 or matrix_array.shape[0] != matrix_array.shape[1]:
             raise ValueError("matrix must be square")
         dimension = int(matrix_array.shape[0])
@@ -191,19 +237,19 @@ class VQLS:
         if not np.all(np.isfinite(matrix_array)):
             raise ValueError("matrix contains non-finite values")
 
-        vector_array = np.asarray(vector, dtype=np.complex128).reshape(-1)
+        vector_array = np.array(vector, dtype=np.complex128, copy=True).reshape(-1)
         if vector_array.size != dimension:
             raise ValueError("vector length must match matrix dimension")
         if not np.all(np.isfinite(vector_array)):
             raise ValueError("vector contains non-finite values")
-        vector_norm = float(np.linalg.norm(vector_array))
-        if vector_norm <= np.finfo(float).tiny:
+        vector_scale = _component_scale(vector_array)
+        if vector_scale == 0.0:
             raise ValueError("vector must be non-zero")
-
-        matrix_norm = float(np.linalg.norm(matrix_array, ord=2))
-        if not np.isfinite(matrix_norm) or matrix_norm <= np.finfo(float).tiny:
-            raise ValueError("matrix must have non-zero finite spectral norm")
-        if np.linalg.matrix_rank(matrix_array) < dimension:
+        matrix_scale = _component_scale(matrix_array)
+        if matrix_scale == 0.0:
+            raise ValueError("matrix must be non-zero")
+        scaled_matrix = _divide_real(matrix_array, matrix_scale)
+        if np.linalg.matrix_rank(scaled_matrix) < dimension:
             raise ValueError("matrix must be non-singular")
 
         num_qubits = int(np.log2(dimension))
@@ -235,8 +281,9 @@ class VQLS:
             raise ValueError("max_iterations must be at least 1")
         if not (0.0 < float(tolerance) < 1.0):
             raise ValueError("tolerance must be between 0 and 1")
-        if float(learning_rate) <= 0.0 or float(perturbation) <= 0.0:
-            raise ValueError("learning_rate and perturbation must be positive")
+        if any(not np.isfinite(float(value)) or float(value) <= 0.0
+               for value in (learning_rate, perturbation)):
+            raise ValueError("learning_rate and perturbation must be finite and positive")
         if parameter_bounds is not None:
             low, high = map(float, parameter_bounds)
             if not np.isfinite(low) or not np.isfinite(high) or low >= high:
@@ -244,11 +291,17 @@ class VQLS:
             self.parameter_bounds = (low, high)
         else:
             self.parameter_bounds = None
-        if gradient_clip is not None and float(gradient_clip) <= 0.0:
-            raise ValueError("gradient_clip must be positive when supplied")
+        if gradient_clip is not None and (
+            not np.isfinite(float(gradient_clip)) or float(gradient_clip) <= 0.0
+        ):
+            raise ValueError("gradient_clip must be finite and positive when supplied")
 
         self.matrix = matrix_array
         self.vector = vector_array
+        # The system is fixed at construction; cached normalized arrays and
+        # reported residuals must describe the same system after caller edits.
+        self.matrix.flags.writeable = False
+        self.vector.flags.writeable = False
         self.dimension = dimension
         self.num_qubits = num_qubits
         self.max_iterations = int(max_iterations)
@@ -259,8 +312,11 @@ class VQLS:
         self.gradient_clip = (
             None if gradient_clip is None else float(gradient_clip)
         )
-        self._normalized_vector = vector_array / vector_norm
-        self._scaled_matrix = matrix_array / matrix_norm
+        self._matrix_scale = matrix_scale
+        self._vector_scale = vector_scale
+        self._scaled_vector = _divide_real(vector_array, vector_scale)
+        self._normalized_vector = self._scaled_vector / np.linalg.norm(self._scaled_vector)
+        self._scaled_matrix = scaled_matrix
 
     def state(self, parameters: Sequence[float]) -> np.ndarray:
         """Evaluate and normalize the configured variational ansatz."""
@@ -281,26 +337,44 @@ class VQLS:
 
         state = self.state(parameters)
         transformed = self._scaled_matrix @ state
-        denominator = float(np.vdot(transformed, transformed).real)
-        if not np.isfinite(denominator) or denominator <= np.finfo(float).tiny:
+        transformed_scale = _component_scale(transformed)
+        if transformed_scale == 0.0:
             return 1.0
-        overlap = np.vdot(self._normalized_vector, transformed)
-        value = 1.0 - (float(abs(overlap) ** 2) / denominator)
+        direction = _normalize_state(transformed, self.dimension)
+        overlap = np.vdot(self._normalized_vector, direction)
+        value = 1.0 - float(abs(overlap) ** 2)
         return float(np.clip(value, 0.0, 1.0))
 
     def solution(
         self, parameters: Sequence[float]
     ) -> Tuple[np.ndarray, np.ndarray, float]:
-        """Return state, scaled solution, and original-system residual norm."""
+        """Return state, scaled solution, and original-system residual norm.
+
+        Matrix and right-hand-side scales are removed before inner products.
+        The classical solution must fit in complex128; an unrepresentable
+        solution raises ValueError. A residual norm exceeding float64's range
+        is reported as infinity. Subnormal solution components may round to
+        zero, and the residual is evaluated for the returned solution.
+        """
 
         state = self.state(parameters)
-        transformed = self.matrix @ state
-        denominator = np.vdot(transformed, transformed)
-        if abs(denominator) <= np.finfo(float).tiny:
+        transformed = self._scaled_matrix @ state
+        transformed_scale = _component_scale(transformed)
+        if transformed_scale == 0.0:
             raise ValueError("ansatz maps into a numerically null matrix direction")
-        scale = np.vdot(transformed, self.vector) / denominator
-        solution = scale * state
-        residual = float(np.linalg.norm(self.matrix @ solution - self.vector))
+        direction = _divide_real(transformed, transformed_scale)
+        coefficient = (np.vdot(direction, self._scaled_vector)
+                       / np.vdot(direction, direction).real
+                       / transformed_scale)
+        solution = _rescale(coefficient * state,
+                            self._vector_scale, self._matrix_scale)
+        if not np.all(np.isfinite(solution)):
+            raise ValueError("solution cannot be represented with finite complex128 components")
+        # Rebase the returned solution, so underflow during reconstruction is
+        # reflected in the residual instead of reporting an idealized zero.
+        rebased = _rescale(solution, self._matrix_scale, self._vector_scale)
+        residual = _scaled_norm(self._scaled_matrix @ rebased - self._scaled_vector,
+                                self._vector_scale)
         return state, solution, residual
 
     def _project(self, parameters: np.ndarray) -> np.ndarray:
