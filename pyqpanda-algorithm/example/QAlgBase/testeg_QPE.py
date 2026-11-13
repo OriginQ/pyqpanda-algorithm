@@ -4,7 +4,7 @@ from math import pi
 
 from pyqpanda3.core import QCircuit, U1, X
 
-from pyqpanda_alg.QPE import QPE
+from pyqpanda_alg.QPE import StructuredQPE as QPE
 
 
 TARGET_PHASE = 3.0 / 8.0

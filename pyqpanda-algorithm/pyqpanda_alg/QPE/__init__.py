@@ -1,10 +1,19 @@
-"""Quantum Phase Estimation public API."""
+'''
+Quantum Phase Estimation (QPE)
 
-from .qpe import QPE, PhaseEstimationResult, decode_phase, phase_to_eigenvalue
+QPE is a fundamental quantum algorithm that estimates the phase φ
+of an eigenvalue e^(2πiφ) of a unitary operator U.  Given an
+eigenstate |ψ⟩ such that U|ψ⟩ = e^(2πiφ)|ψ⟩, QPE outputs an
+n-bit estimate of φ.
 
-__all__ = [
-    "QPE",
-    "PhaseEstimationResult",
-    "decode_phase",
-    "phase_to_eigenvalue",
-]
+This module provides:
+
+    - QPE : Standard Quantum Phase Estimation.
+'''
+
+from .qpe import QPE
+from .compat import StructuredQPE
+from .readout import PhaseEstimationResult, decode_phase, phase_to_eigenvalue
+
+__all__ = ["QPE", "StructuredQPE", "PhaseEstimationResult",
+           "decode_phase", "phase_to_eigenvalue"]
