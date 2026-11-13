@@ -105,6 +105,7 @@ class MyBuildExt(build_ext):
         self.copy_file(Path('pyqpanda_alg/HHL') / '__init__.py', root_dir, target_dir)
         self.copy_file(Path('pyqpanda_alg/QCPA') / '__init__.py', root_dir, target_dir)
         self.copy_file(Path('pyqpanda_alg/QCmp') / '__init__.py', root_dir, target_dir)
+        self.copy_file(Path('pyqpanda_alg/QPE') / '__init__.py', root_dir, target_dir)
         self.copy_file(Path('pyqpanda_alg/Grover') / '__init__.py', root_dir, target_dir)
         
         remove_all(target_dir)

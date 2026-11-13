@@ -50,6 +50,8 @@ Integrates quantum computing into classical machine learning to improve efficien
 Solves key problems in physical modeling and engineering simulation (e.g., eigenvalues, linear equations, matrix decomposition).
 - **QSVD (Quantum Variational Singular Value Decomposition)**  
   Extracts matrix singular values/vectors under a variational framework (for dimensionality reduction and recommendation systems).
+- **QPE (Quantum Phase Estimation)**  
+  Estimates eigenphases with controlled unitary evolution and inverse QFT, with helpers for converting phases to Hamiltonian eigenvalues.
 
 ### 4. General Tools & Basic Components
 Provides underlying tools for quantum computing workflows.
