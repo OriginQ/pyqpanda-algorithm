@@ -4,4 +4,7 @@
 
 from .QuantumCounting import QuantumCounting, QuantumCountingResult
 
-__all__ = ["QuantumCounting", "QuantumCountingResult"]
+__all__ = ["QuantumCounting", "QuantumCountingResult", "PhaseEstimate",
+           "decode_phase_distribution", "phase_to_probability"]
+
+from .decoding import PhaseEstimate, decode_phase_distribution, phase_to_probability
